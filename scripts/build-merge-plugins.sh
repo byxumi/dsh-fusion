@@ -13,6 +13,8 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${1:-$ROOT/out/merge-plugins}"
 mkdir -p "$OUT"
+# 转成绝对路径：子 shell 会 cd 进各包目录，相对 OUT 会飘到包里
+OUT="$(cd "$OUT" && pwd)"
 
 # 顺序即依赖序（被依赖者在前）
 PACKAGES=(
