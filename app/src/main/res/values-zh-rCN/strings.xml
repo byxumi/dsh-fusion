@@ -296,14 +296,14 @@
     <!-- APM Bulk Install Strings -->
 
     <!-- Welcome Guide -->
-    <string name="welcome_title_1">欢迎使用 DSH-Folk</string>
-    <string name="welcome_desc_1">在手机上跑 DeepSeek Harness。DSH-Folk 会下载一份 Linux 运行时，用容器把它拉起来，再把 Web UI 交到你手上。</string>
+    <string name="welcome_title_1">欢迎使用 DSH-Fusion</string>
+    <string name="welcome_desc_1">在手机上跑 DeepSeek Harness。DSH-Fusion 会下载一份 Linux 运行时，用容器把它拉起来，再把 Web UI 交到你手上。</string>
     <string name="welcome_title_2">高度自定义</string>
     <string name="welcome_desc_2">从主题颜色、背景、字体到音效、震动，一切都可以自由定制。原有的 FolkPatch / APatch theme.json 依然可以直接导入。</string>
     <string name="welcome_title_3">运行方式与权限</string>
-    <string name="welcome_desc_3">首页可以切换 proot / proroot 两种容器后端。DSH-Folk 不打内核补丁，只探测并复用设备上已有的 root、Shizuku 或无线 ADB。</string>
+    <string name="welcome_desc_3">首页可以切换 proot / proroot 两种容器后端。DSH-Fusion 不打内核补丁，只探测并复用设备上已有的 root、Shizuku 或无线 ADB。</string>
     <string name="welcome_title_4">准备好了吗？</string>
-    <string name="welcome_desc_4">回到首页点启动，DSH-Folk 会自动下载运行时、拉起 dsh web，并把访问地址显示给你。</string>
+    <string name="welcome_desc_4">回到首页点启动，DSH-Fusion 会自动下载运行时、拉起 dsh web，并把访问地址显示给你。</string>
     <string name="welcome_prev">上一步</string>
     <string name="welcome_next">下一步</string>
     <string name="welcome_skip">跳过</string>

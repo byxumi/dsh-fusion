@@ -282,7 +282,7 @@ fun DeveloperInfo(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "IPF-Sinon",
+                    text = "byxumi",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )

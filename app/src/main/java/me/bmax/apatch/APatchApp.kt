@@ -194,7 +194,7 @@ class APApplication : Application(), Thread.UncaughtExceptionHandler, ImageLoade
                 .addInterceptor { block ->
                     block.proceed(
                         block.request().newBuilder()
-                            .header("User-Agent", "DSH-Folk/${BuildConfig.VERSION_CODE}")
+                            .header("User-Agent", "DSH-Fusion/${BuildConfig.VERSION_CODE}")
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()

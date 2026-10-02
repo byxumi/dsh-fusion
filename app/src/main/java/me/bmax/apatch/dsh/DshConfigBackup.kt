@@ -80,7 +80,7 @@ object DshConfigBackup {
         if (includeSessions) DEFAULT_SECTIONS + "sessions" else DEFAULT_SECTIONS
 
     /** 备份落地的公共子目录（在 Download 下，用户用文件管理器就能看到）。 */
-    const val PUBLIC_SUBDIR = "DSH-Folk"
+    const val PUBLIC_SUBDIR = "DSH-Fusion"
 
     /**
      * 超过这个大小才走流式加密。
@@ -491,7 +491,7 @@ object DshConfigBackup {
         name = ctx.appString(R.string.dsh_bk_theme_name),
         type = "phone",
         version = BuildConfig.VERSION_NAME,
-        author = "DSH-Folk",
+        author = "DSH-Fusion",
         description = ctx.appString(R.string.dsh_bk_theme_desc),
     )
 

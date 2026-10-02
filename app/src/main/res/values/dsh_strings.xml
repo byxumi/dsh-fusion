@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- DSH-Folk 专属字符串（与 FolkPatch 原有 strings.xml 分开，便于维护与同步上游） -->
+    <!-- DSH-Fusion 专属字符串（与 FolkPatch 原有 strings.xml 分开，便于维护与同步上游） -->
 
     <!-- 底栏 -->
     <string name="dsh_log_collect_failed">Collecting logs failed — please retry (see the app log for details)</string>
@@ -25,7 +25,7 @@
     <string name="dsh_webui_load_failed">Failed to load</string>
     <string name="dsh_webui_no_file_picker">No file picker app found on this device</string>
     <string name="dsh_webui_downloading">Downloading %1$s…</string>
-    <string name="dsh_webui_downloaded">Saved to Download/DSH-Folk/%1$s</string>
+    <string name="dsh_webui_downloaded">Saved to Download/DSH-Fusion/%1$s</string>
     <string name="dsh_webui_download_failed">Download failed</string>
     <string name="dsh_webui_ball">Web UI controls</string>
     <string name="dsh_webui_close">Close</string>
@@ -101,12 +101,12 @@
     <string name="dsh_plugin_install_action">Install</string>
 
     <!-- 关于 / 致谢 -->
-    <string name="dsh_about_repo" translatable="false">https://github.com/IPF-Sinon/DSH-Folk</string>
+    <string name="dsh_about_repo" translatable="false">https://github.com/byxumi/dsh-fusion</string>
     <string name="dsh_acknowledgements">Acknowledgements</string>
     <string name="dsh_qq_group">QQ group</string>
-    <string name="dsh_qq_group_id" translatable="false">1109060326</string>
-    <string name="dsh_qq_group_url" translatable="false">https://qm.qq.com/q/t7HDoR5ACk</string>
-    <string name="dsh_dev_url" translatable="false">https://github.com/IPF-Sinon</string>
+    <string name="dsh_qq_group_id" translatable="false">DSH-Fusion</string>
+    <string name="dsh_qq_group_url" translatable="false">https://github.com/byxumi/dsh-fusion/issues</string>
+    <string name="dsh_dev_url" translatable="false">https://github.com/byxumi</string>
     <string name="dsh_dev_motto">Run DeepSeek Harness on your phone.</string>
 
     <!-- 终端页 -->
@@ -139,7 +139,7 @@
     <string name="dsh_run_mode_restart_hint">Takes effect the next time the harness starts.</string>
 
     <string name="dsh_perm_section">Permission channel</string>
-    <string name="dsh_perm_summary">DSH-Folk does not patch the kernel. It detects and reuses what the device already has.</string>
+    <string name="dsh_perm_summary">DSH-Fusion does not patch the kernel. It detects and reuses what the device already has.</string>
     <string name="dsh_perm_current">In effect: %1$s</string>
     <string name="dsh_priv_strictness_title">Privilege strictness</string>
     <string name="dsh_priv_strictness_summary">How often the agent has to ask before using the privileged channel. This is only about asking, not about which channel is used.</string>
@@ -243,7 +243,7 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_backup_dsh_stopped">DSH service is not running, so configuration backup cannot read or write.</string>
     <string name="dsh_backup_exporting">Exporting…</string>
     <string name="dsh_backup_importing">Importing…</string>
-    <string name="dsh_backup_open_dir_failed">Could not open the folder; it is at Download/DSH-Folk.</string>
+    <string name="dsh_backup_open_dir_failed">Could not open the folder; it is at Download/DSH-Fusion.</string>
 
     <!-- 插件设置页 -->
     <string name="dsh_plugin_disable_update_check">Disable update check</string>
@@ -259,7 +259,7 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_autostart">Start on boot</string>
     <string name="dsh_autostart_summary">Launch the harness automatically after the device finishes booting (only when the runtime is already installed)</string>
     <string name="dsh_auto_start_service">Start the service when I open the app</string>
-    <string name="dsh_auto_start_service_summary">Bring the DSH service up as soon as DSH-Folk is opened, without tapping start (only when the runtime is installed and the service is not already running)</string>
+    <string name="dsh_auto_start_service_summary">Bring the DSH service up as soon as DSH-Fusion is opened, without tapping start (only when the runtime is installed and the service is not already running)</string>
     <string name="dsh_auto_open_webui">Open the page once the service is ready</string>
     <string name="dsh_auto_open_webui_summary">Jump straight into the DSH page when the service finishes starting (only while the app is in the foreground)</string>
     <string name="dsh_autostart_mode_off">Off</string>
@@ -289,8 +289,8 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_autostart_a11y_state_on">Service enabled</string>
     <string name="dsh_autostart_a11y_state_off">Service not enabled yet — turn on “%1$s” in accessibility settings</string>
     <string name="dsh_autostart_a11y_restricted">Android may hide this switch for sideloaded apps. If it is greyed out, open the app info page, tap the ⋮ menu and choose “Allow restricted settings”.</string>
-    <string name="dsh_autostart_a11y_desc">Starts DSH-Folk after boot. This service reads nothing: it registers no screen content access and its event handler is empty — it exists only because the system re-binds accessibility services automatically.</string>
-    <string name="dsh_autostart_a11y_summary">Boot-time start for DSH-Folk (reads nothing)</string>
+    <string name="dsh_autostart_a11y_desc">Starts DSH-Fusion after boot. This service reads nothing: it registers no screen content access and its event handler is empty — it exists only because the system re-binds accessibility services automatically.</string>
+    <string name="dsh_autostart_a11y_summary">Boot-time start for DSH-Fusion (reads nothing)</string>
     <string name="dsh_autostart_not_installed">The runtime is not installed yet, so nothing will start on boot until you install it once.</string>
     <string name="dsh_perm_hint_root">Root granted — full capability</string>
     <string name="dsh_perm_hint_shizuku">Shell permission (uid 2000)</string>
@@ -427,8 +427,8 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_runtime_not_installed">Not installed yet — start the service on the home page to download it</string>
     <string name="dsh_runtime_reinstall">Reinstall</string>
     <string name="dsh_runtime_update_available">Update available: %1$s</string>
-    <string name="dsh_runtime_update_requires_app">The new runtime requires DSH-Folk %1$s or newer. Update the app first.</string>
-    <string name="dsh_runtime_min_app_required">This runtime requires DSH-Folk %1$s or newer. Please update the app first.</string>
+    <string name="dsh_runtime_update_requires_app">The new runtime requires DSH-Fusion %1$s or newer. Update the app first.</string>
+    <string name="dsh_runtime_min_app_required">This runtime requires DSH-Fusion %1$s or newer. Please update the app first.</string>
     <string name="dsh_runtime_min_app_go_update">Check for app update</string>
     <string name="dsh_runtime_update_go">Update runtime</string>
     <string name="dsh_runtime_reinstall_confirm_title">Reinstall the runtime?</string>
@@ -458,7 +458,7 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_runtime_backup_advice_continue">Continue</string>
     <string name="dsh_plugin_builtin_label">Built-in</string>
     <string name="dsh_host_plugin_name">Android native capability bridge prompt</string>
-    <string name="dsh_host_plugin_version">Built into DSH-Folk · cannot be uninstalled</string>
+    <string name="dsh_host_plugin_version">Built into DSH-Fusion · cannot be uninstalled</string>
     <string name="dsh_host_plugin_description">Tells agents which Android host capabilities and dsh-fs / dsh-native commands are available. Disable it to stop injecting this information.</string>
     <string name="dsh_permission_log_title">Permission records</string>
     <string name="dsh_permission_log_empty">No permission calls have been recorded.</string>
@@ -565,10 +565,10 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <!-- 免 root 文件访问（DocumentsProvider） -->
     <string name="dsh_docs_open_title">Open data directory in file manager</string>
     <string name="dsh_docs_open_summary">Browse rootfs/root/.dsh (sessions, profiles) without root. Editing container files may stop DSH from starting.</string>
-    <string name="dsh_docs_open_failed">Could not open the file picker. Open your system Files app and choose the DSH-Folk root in the sidebar.</string>
+    <string name="dsh_docs_open_failed">Could not open the file picker. Open your system Files app and choose the DSH-Fusion root in the sidebar.</string>
     <string name="dsh_docs_grant_title">Grant data directory to MT Manager</string>
     <string name="dsh_docs_grant_summary">Use this when MT Manager says "No persistable permission grants found" after picking the folder. Grants access directly, without the system picker.</string>
-    <string name="dsh_docs_grant_message">This grants %1$s read and write access to DSH-Folk\'s private data directory, including the container rootfs. Only do this if you trust that app; you can revoke it here at any time.</string>
+    <string name="dsh_docs_grant_message">This grants %1$s read and write access to DSH-Fusion\'s private data directory, including the container rootfs. Only do this if you trust that app; you can revoke it here at any time.</string>
     <string name="dsh_docs_grant_confirm">Grant</string>
     <string name="dsh_docs_grant_revoke">Revoke</string>
     <string name="dsh_docs_grant_done">Granted. In MT Manager, add the local storage again — it should no longer fail.</string>
@@ -581,7 +581,7 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_webui_compat_title">Outdated WebView (compatibility mode enabled)</string>
     <string name="dsh_webui_compat_body">Your system WebView is Chromium %1$s, which lacks JavaScript APIs the DSH web interface needs (Iterator, for example). Without them the whole interface shows "Failed to load plugins" and never opens.
 
-DSH-Folk has already injected a small compatibility script before the local page loads. It only adds missing APIs and never changes anything else, and it applies only to http://127.0.0.1.
+DSH-Fusion has already injected a small compatibility script before the local page loads. It only adds missing APIs and never changes anything else, and it applies only to http://127.0.0.1.
 
 Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_webui_compat_section">Old-WebView compatibility</string>
@@ -729,7 +729,7 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_native_err_notify_failed">Could not post the notification: %1$s</string>
     <string name="dsh_native_err_vibrate_failed">Vibration failed: %1$s</string>
     <string name="dsh_native_err_clipboard_write">Could not write the clipboard: %1$s</string>
-    <string name="dsh_native_err_clipboard_background">Reading the clipboard needs the app in the foreground — ask the user to switch back to DSH-Folk</string>
+    <string name="dsh_native_err_clipboard_background">Reading the clipboard needs the app in the foreground — ask the user to switch back to DSH-Fusion</string>
     <string name="dsh_native_err_scheme">Only http/https is supported</string>
     <string name="dsh_native_err_bad_number">Not a dialable phone number</string>
     <string name="dsh_native_err_bad_torch_state">state must be on or off</string>
@@ -737,7 +737,7 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_native_err_torch_failed">Could not toggle the flashlight: %1$s</string>
     <string name="dsh_native_err_bad_url">The url could not be parsed</string>
     <string name="dsh_native_err_start_failed">Could not start the activity: %1$s</string>
-    <string name="dsh_native_err_activity_background">Opening a UI needs the app in the foreground — ask the user to switch back to DSH-Folk</string>
+    <string name="dsh_native_err_activity_background">Opening a UI needs the app in the foreground — ask the user to switch back to DSH-Fusion</string>
     <string name="dsh_native_err_bad_media_type">type must be image, video or audio</string>
     <string name="dsh_native_err_media_type_denied">Permission to read %1$s is not granted</string>
     <string name="dsh_native_err_media_query">Media query failed: %1$s</string>
@@ -801,10 +801,10 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_native_cap_shell_desc">Let the agent run commands through the permission channel you picked (root, Shizuku or wireless ADB). Read allows diagnostics only; read+write can also change device state. A channel must be selected in Settings first. How often you are asked is set by the strictness level.</string>
     <string name="dsh_native_perm_label_a11y">Accessibility service</string>
     <string name="dsh_native_cap_a11y">Accessibility (read and act)</string>
-    <string name="dsh_native_cap_a11y_desc">Read the text and controls on the current screen, or tap, swipe, type and go home for the user. Read only looks; you must enable the DSH-Folk accessibility service in system settings first.</string>
+    <string name="dsh_native_cap_a11y_desc">Read the text and controls on the current screen, or tap, swipe, type and go home for the user. Read only looks; you must enable the DSH-Fusion accessibility service in system settings first.</string>
     <string name="dsh_native_need_a11y_perm">Accessibility service is off — tap to open system settings</string>
     <string name="dsh_native_err_a11y_bad_args">Missing or malformed arguments</string>
-    <string name="dsh_a11y_service_label">DSH-Folk accessibility</string>
+    <string name="dsh_a11y_service_label">DSH-Fusion accessibility</string>
     <string name="dsh_a11y_service_summary">Let the AI read the current screen and act on it</string>
     <string name="dsh_a11y_service_desc">When enabled, the AI inside the container can read the text and controls on your current screen and tap, swipe or type as you ask. This is a separate switch from the accessibility service used for boot autostart: that one sees system events only, never screen content. Off by default, and you can turn it off here at any time.</string>
     <string name="dsh_native_cap_shell_need_channel">No permission channel is selected — tap to open the channel settings</string>
@@ -916,7 +916,7 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_native_err_notification_access">Notification Access is not granted or the listener is not connected</string>
     <string name="dsh_native_err_sms_send_denied">Permission to send SMS is not granted</string>
     <string name="dsh_native_err_sms_send">Could not send SMS: %1$s</string>
-    <string name="dsh_native_err_elevate_foreground">Permission requests can only be shown while DSH-Folk is in the foreground</string>
+    <string name="dsh_native_err_elevate_foreground">Permission requests can only be shown while DSH-Fusion is in the foreground</string>
     <string name="dsh_native_err_bad_cap">Unknown native capability</string>
     <string name="dsh_native_err_bad_access">Unsupported access level for this capability</string>
     <string name="dsh_native_err_elevate_busy">Another permission request is already awaiting the user</string>
@@ -1068,7 +1068,7 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_log_dup_entry_retry">Plugin entry conflict repaired; retrying start</string>
     <string name="dsh_log_dsh_missing_in_container">Could not find dsh inside the container; please reinstall the runtime in Settings</string>
     <!-- ── 容器内插件操作的日志（DshPluginRepo） ────────────────
-         都带 [DSH-Folk] 前缀，与 pnpm/dsh 自己的输出区分开。 -->
+         都带 [DSH-Fusion] 前缀，与 pnpm/dsh 自己的输出区分开。 -->
     <string name="dsh_plug_log_no_pkg_toggle">The package name is empty, cannot toggle</string>
     <string name="dsh_plug_log_no_pkg_install">The package name is empty, cannot install</string>
     <string name="dsh_plug_log_no_pkg_remove">The package name is empty, cannot uninstall</string>
@@ -1173,7 +1173,7 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_bk_appdata_none">This archive has no app data</string>
     <string name="dsh_bk_audit_merged">Native capability log merged (%1$d lines)</string>
     <string name="dsh_bk_step_appdata">Backing up your sessions, then applying app data…</string>
-    <string name="dsh_bk_appdata_takes_effect">Restored app settings take effect after restarting DSH-Folk.</string>
+    <string name="dsh_bk_appdata_takes_effect">Restored app settings take effect after restarting DSH-Fusion.</string>
     <string name="dsh_bk_appdata_skipped_rollback">App data was not restored because the configuration import was rolled back.</string>
     <string name="dsh_bk_conflict_title">Found %1$d conflicting items</string>
     <string name="dsh_bk_conflict_note">A conflict means this device already has an item with the same name but different content. You only see this question when there is at least one.</string>
@@ -1227,7 +1227,7 @@ Updating Android System WebView from your app store is the proper fix.</string>
     <string name="dsh_native_off_hint_kept">The bridge is off: %1$d capabilities still have a level other than off. Those levels are kept and take effect again the moment you turn the bridge back on.</string>
     <string name="dsh_backup_plugin_timeout">Timed out while checking the plugin. The plugin or DSH is not answering - make sure DSH is running, then check again.</string>
     <string name="dsh_bk_step_theme_export">Packaging the appearance (background, font, music, sound)…</string>
-    <string name="dsh_bk_theme_name">DSH-Folk backup appearance</string>
+    <string name="dsh_bk_theme_name">DSH-Fusion backup appearance</string>
     <string name="dsh_bk_theme_desc">Appearance exported together with the software-data backup (background, font, music, sound)</string>
     <string name="dsh_bk_export_theme_title">Include app appearance</string>
     <string name="dsh_bk_export_theme_measuring">Measuring appearance size…</string>

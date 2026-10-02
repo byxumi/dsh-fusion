@@ -483,7 +483,7 @@ private fun TopBar(
                         text = { Text(stringResource(R.string.home_more_menu_feedback_or_suggestion)) },
                         onClick = {
                             showDropdownMoreOptions = false
-                            uriHandler.openUri("https://github.com/IPF-Sinon/DSH-Folk/issues/new/choose")
+                            uriHandler.openUri("https://github.com/byxumi/dsh-fusion/issues/new/choose")
                         }
                     )
                     WallpaperAwareDropdownMenuItem(

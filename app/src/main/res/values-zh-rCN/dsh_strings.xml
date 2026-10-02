@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- DSH-Folk 专属字符串（简体中文） -->
+    <!-- DSH-Fusion 专属字符串（简体中文） -->
 
     <string name="dsh_log_collect_failed">采集日志失败，请重试（详情见应用日志）</string>
     <string name="dsh_terminal">终端</string>
@@ -21,7 +21,7 @@
     <string name="dsh_webui_load_failed">加载失败</string>
     <string name="dsh_webui_no_file_picker">这台设备上找不到可用的文件选择器</string>
     <string name="dsh_webui_downloading">正在下载 %1$s…</string>
-    <string name="dsh_webui_downloaded">已保存到 Download/DSH-Folk/%1$s</string>
+    <string name="dsh_webui_downloaded">已保存到 Download/DSH-Fusion/%1$s</string>
     <string name="dsh_webui_download_failed">下载失败</string>
     <string name="dsh_webui_ball">Web 界面控制</string>
     <string name="dsh_webui_close">关闭</string>
@@ -122,7 +122,7 @@
     <string name="dsh_run_mode_restart_hint">下次启动 harness 时生效。</string>
 
     <string name="dsh_perm_section">权限通道</string>
-    <string name="dsh_perm_summary">DSH-Folk 不打内核补丁，只探测并复用设备上已有的提权途径。</string>
+    <string name="dsh_perm_summary">DSH-Fusion 不打内核补丁，只探测并复用设备上已有的提权途径。</string>
     <string name="dsh_perm_current">当前生效：%1$s</string>
     <string name="dsh_priv_strictness_title">特权严格程度</string>
     <string name="dsh_priv_strictness_summary">决定 agent 用特权时要不要问你。它只管「问不问」，与选哪条通道无关。</string>
@@ -225,7 +225,7 @@
     <string name="dsh_backup_dsh_stopped">DSH 服务未运行，无法读写配置备份。</string>
     <string name="dsh_backup_exporting">正在导出…</string>
     <string name="dsh_backup_importing">正在导入…</string>
-    <string name="dsh_backup_open_dir_failed">打不开目录，文件在 Download/DSH-Folk。</string>
+    <string name="dsh_backup_open_dir_failed">打不开目录，文件在 Download/DSH-Fusion。</string>
 
     <!-- 插件设置页 -->
     <string name="dsh_plugin_disable_update_check">禁用更新检查</string>
@@ -241,7 +241,7 @@
     <string name="dsh_autostart">开机自启</string>
     <string name="dsh_autostart_summary">设备启动完成后自动拉起 Harness（仅在运行时已安装时生效）</string>
     <string name="dsh_auto_start_service">启动应用后自启动服务</string>
-    <string name="dsh_auto_start_service_summary">打开 DSH-Folk 就自动把 DSH 服务拉起来，不用再点一次启动（仅在运行时已安装且服务未在运行时生效）</string>
+    <string name="dsh_auto_start_service_summary">打开 DSH-Fusion 就自动把 DSH 服务拉起来，不用再点一次启动（仅在运行时已安装且服务未在运行时生效）</string>
     <string name="dsh_auto_open_webui">服务就绪后自动打开页面</string>
     <string name="dsh_auto_open_webui_summary">DSH 服务启动完成后直接打开 DSH 页面（仅应用在前台时）</string>
     <string name="dsh_autostart_mode_off">不自启</string>
@@ -271,8 +271,8 @@
     <string name="dsh_autostart_a11y_state_on">服务已启用</string>
     <string name="dsh_autostart_a11y_state_off">服务尚未启用 —— 请在无障碍设置里打开「%1$s」</string>
     <string name="dsh_autostart_a11y_restricted">Android 可能对旁加载安装的应用隐藏这个开关。如果它是灰的，去应用信息页点右上角 ⋮ 菜单，选「允许受限设置」。</string>
-    <string name="dsh_autostart_a11y_desc">开机后拉起 DSH-Folk。这个服务不读取任何东西：它没有申请读取屏幕内容，事件回调是空的 —— 存在的唯一理由是系统会自动重新连接无障碍服务。</string>
-    <string name="dsh_autostart_a11y_summary">用于开机启动 DSH-Folk（不读取任何内容）</string>
+    <string name="dsh_autostart_a11y_desc">开机后拉起 DSH-Fusion。这个服务不读取任何东西：它没有申请读取屏幕内容，事件回调是空的 —— 存在的唯一理由是系统会自动重新连接无障碍服务。</string>
+    <string name="dsh_autostart_a11y_summary">用于开机启动 DSH-Fusion（不读取任何内容）</string>
     <string name="dsh_autostart_not_installed">运行时还没装，装过一次之后开机自启才会有东西可拉。</string>
     <string name="dsh_perm_hint_root">已获得 root，完整能力</string>
     <string name="dsh_perm_hint_shizuku">shell 权限（uid 2000）</string>
@@ -409,8 +409,8 @@
     <string name="dsh_runtime_not_installed">尚未安装 —— 在首页启动服务即会下载</string>
     <string name="dsh_runtime_reinstall">重装</string>
     <string name="dsh_runtime_update_available">可更新到 %1$s</string>
-    <string name="dsh_runtime_update_requires_app">新运行时要求 DSH-Folk %1$s 或更高版本，请先更新应用。</string>
-    <string name="dsh_runtime_min_app_required">此运行时要求 DSH-Folk %1$s 或更高版本，请先更新应用。</string>
+    <string name="dsh_runtime_update_requires_app">新运行时要求 DSH-Fusion %1$s 或更高版本，请先更新应用。</string>
+    <string name="dsh_runtime_min_app_required">此运行时要求 DSH-Fusion %1$s 或更高版本，请先更新应用。</string>
     <string name="dsh_runtime_min_app_go_update">去检查更新</string>
     <string name="dsh_runtime_update_go">更新运行时</string>
     <string name="dsh_runtime_reinstall_confirm_title">重装运行时？</string>
@@ -440,7 +440,7 @@
     <string name="dsh_runtime_backup_advice_continue">继续</string>
     <string name="dsh_plugin_builtin_label">内置</string>
     <string name="dsh_host_plugin_name">安卓原生权限桥提示词</string>
-    <string name="dsh_host_plugin_version">DSH-Folk 内置 · 不可卸载</string>
+    <string name="dsh_host_plugin_version">DSH-Fusion 内置 · 不可卸载</string>
     <string name="dsh_host_plugin_description">让 Agent 知道当前可用的安卓宿主能力和 dsh-fs / dsh-native 命令；关闭后停止注入这些信息。</string>
     <string name="dsh_permission_log_title">权限记录</string>
     <string name="dsh_permission_log_empty">暂无权限调用记录。</string>
@@ -547,10 +547,10 @@
     <!-- 免 root 文件访问（DocumentsProvider） -->
     <string name="dsh_docs_open_title">在文件管理器中打开数据目录</string>
     <string name="dsh_docs_open_summary">免 root 浏览 rootfs/root/.dsh（sessions、profiles）。改动容器文件可能导致 DSH 无法启动。</string>
-    <string name="dsh_docs_open_failed">无法打开文件选择器。请在系统「文件」应用侧栏选择 DSH-Folk。</string>
+    <string name="dsh_docs_open_failed">无法打开文件选择器。请在系统「文件」应用侧栏选择 DSH-Fusion。</string>
     <string name="dsh_docs_grant_title">直接授权数据目录给 MT 管理器</string>
     <string name="dsh_docs_grant_summary">MT 管理器选好文件夹后报「No persistable permission grants found」时用这个：绕开系统选择器直接授权。</string>
-    <string name="dsh_docs_grant_message">将把 DSH-Folk 私有数据目录（含容器 rootfs）的读写权限授予 %1$s。请只在信任该应用时授权，随时可在此撤销。</string>
+    <string name="dsh_docs_grant_message">将把 DSH-Fusion 私有数据目录（含容器 rootfs）的读写权限授予 %1$s。请只在信任该应用时授权，随时可在此撤销。</string>
     <string name="dsh_docs_grant_confirm">授权</string>
     <string name="dsh_docs_grant_revoke">撤销</string>
     <string name="dsh_docs_grant_done">已授权。回到 MT 管理器重新「添加本地存储」即可，不会再报错。</string>
@@ -563,7 +563,7 @@
     <string name="dsh_webui_compat_title">系统 WebView 版本过旧（已自动启用兼容模式）</string>
     <string name="dsh_webui_compat_body">当前系统 WebView 内核是 Chromium %1$s，缺少 DSH 网页界面用到的 JavaScript 接口（例如 Iterator）。不补的话整个界面会显示「Failed to load plugins」而完全打不开。
 
-DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补缺失的接口、不改动其它行为，且仅对 http://127.0.0.1 生效。
+DSH-Fusion 已在本机页面加载前自动注入一小段兼容脚本：只补缺失的接口、不改动其它行为，且仅对 http://127.0.0.1 生效。
 
 根治办法是在应用商店更新「Android System WebView」。</string>
     <string name="dsh_webui_compat_section">旧 WebView 兼容</string>
@@ -711,7 +711,7 @@ DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补�
     <string name="dsh_native_err_notify_failed">发送通知失败：%1$s</string>
     <string name="dsh_native_err_vibrate_failed">振动失败：%1$s</string>
     <string name="dsh_native_err_clipboard_write">写剪贴板失败：%1$s</string>
-    <string name="dsh_native_err_clipboard_background">读剪贴板需要应用处于前台，请让用户先切回 DSH-Folk</string>
+    <string name="dsh_native_err_clipboard_background">读剪贴板需要应用处于前台，请让用户先切回 DSH-Fusion</string>
     <string name="dsh_native_err_scheme">只支持 http/https</string>
     <string name="dsh_native_err_bad_number">不是可拨打的电话号码</string>
     <string name="dsh_native_err_bad_torch_state">state 必须是 on 或 off</string>
@@ -719,7 +719,7 @@ DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补�
     <string name="dsh_native_err_torch_failed">切换手电筒失败：%1$s</string>
     <string name="dsh_native_err_bad_url">url 无法解析</string>
     <string name="dsh_native_err_start_failed">拉起失败：%1$s</string>
-    <string name="dsh_native_err_activity_background">拉起界面需要应用处于前台，请让用户先切回 DSH-Folk</string>
+    <string name="dsh_native_err_activity_background">拉起界面需要应用处于前台，请让用户先切回 DSH-Fusion</string>
     <string name="dsh_native_err_bad_media_type">type 只能是 image、video 或 audio</string>
     <string name="dsh_native_err_media_type_denied">尚未授予读取 %1$s 的权限</string>
     <string name="dsh_native_err_media_query">查询媒体库失败：%1$s</string>
@@ -783,10 +783,10 @@ DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补�
     <string name="dsh_native_cap_shell_desc">让 agent 通过你选的权限通道（root / Shizuku / 无线 ADB）执行命令。「读」只允许诊断类命令，「读写」还能改设备状态。需先在设置里选好通道；问不问、问多勤由严格程度决定。</string>
     <string name="dsh_native_perm_label_a11y">无障碍服务</string>
     <string name="dsh_native_cap_a11y">无障碍（读屏与操作）</string>
-    <string name="dsh_native_cap_a11y_desc">读取当前屏幕上的文字与控件，或替用户点按、滑动、输入、返回桌面。「读」只看不动；需要你单独在系统设置里打开 DSH-Folk 的无障碍服务。</string>
+    <string name="dsh_native_cap_a11y_desc">读取当前屏幕上的文字与控件，或替用户点按、滑动、输入、返回桌面。「读」只看不动；需要你单独在系统设置里打开 DSH-Fusion 的无障碍服务。</string>
     <string name="dsh_native_need_a11y_perm">未开启无障碍服务 —— 点这里去系统设置打开</string>
     <string name="dsh_native_err_a11y_bad_args">参数不全或格式不对</string>
-    <string name="dsh_a11y_service_label">DSH-Folk 无障碍</string>
+    <string name="dsh_a11y_service_label">DSH-Fusion 无障碍</string>
     <string name="dsh_a11y_service_summary">让 AI 读取当前屏幕内容并代为点按</string>
     <string name="dsh_a11y_service_desc">开启后，容器里的 AI 可以读取你当前屏幕上的文字与控件，并按你的要求点按、滑动、输入。它与「开机自启」用的那个无障碍开关是两个独立开关：那一个只看得到系统事件，看不到屏幕内容。默认关闭，随时可以在这里关掉。</string>
     <string name="dsh_native_cap_shell_need_channel">还没有选权限通道 —— 点这里去选</string>
@@ -898,7 +898,7 @@ DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补�
     <string name="dsh_native_err_notification_access">未获得通知使用权，或通知监听服务尚未连接</string>
     <string name="dsh_native_err_sms_send_denied">未授予发送短信的权限</string>
     <string name="dsh_native_err_sms_send">短信发送失败：%1$s</string>
-    <string name="dsh_native_err_elevate_foreground">仅当 DSH-Folk 位于前台时才能显示权限申请</string>
+    <string name="dsh_native_err_elevate_foreground">仅当 DSH-Fusion 位于前台时才能显示权限申请</string>
     <string name="dsh_native_err_bad_cap">未知的原生能力</string>
     <string name="dsh_native_err_bad_access">该能力不支持请求的权限等级</string>
     <string name="dsh_native_err_elevate_busy">已有一个权限申请正在等待用户处理</string>
@@ -1152,7 +1152,7 @@ DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补�
     <string name="dsh_bk_appdata_none">这个归档不含软件数据</string>
     <string name="dsh_bk_audit_merged">原生权限记录并入 %1$d 行</string>
     <string name="dsh_bk_step_appdata">正在写入会话并恢复软件数据…</string>
-    <string name="dsh_bk_appdata_takes_effect">恢复的应用设置要重启 DSH-Folk 后才会全部生效。</string>
+    <string name="dsh_bk_appdata_takes_effect">恢复的应用设置要重启 DSH-Fusion 后才会全部生效。</string>
     <string name="dsh_bk_appdata_skipped_rollback">配置导入已整体回滚，因此没有恢复软件数据。</string>
     <string name="dsh_bk_conflict_title">检测到 %1$d 项冲突</string>
     <string name="dsh_bk_conflict_note">冲突指本机已有同名条目、但内容与备份不同。只有真的存在冲突时才会问这一句。</string>
@@ -1205,7 +1205,7 @@ DSH-Folk 已在本机页面加载前自动注入一小段兼容脚本：只补�
     <string name="dsh_native_off_hint_kept">桥关着：有 %1$d 项能力还留着非「关」的档位。这些档位会保留，重新打开开关的那一刻就重新生效。</string>
     <string name="dsh_backup_plugin_timeout">检测插件超时：插件或 DSH 没有响应。确认 DSH 已在运行，再重新检测一次。</string>
     <string name="dsh_bk_step_theme_export">正在打包外观（背景、字体、音乐、音效）…</string>
-    <string name="dsh_bk_theme_name">DSH-Folk 备份外观</string>
+    <string name="dsh_bk_theme_name">DSH-Fusion 备份外观</string>
     <string name="dsh_bk_theme_desc">随软件数据备份一起导出的外观（背景、字体、音乐、音效）</string>
     <string name="dsh_bk_export_theme_title">包含应用主题</string>
     <string name="dsh_bk_export_theme_measuring">正在计算主题大小…</string>
