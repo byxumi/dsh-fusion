@@ -1,5 +1,7 @@
 # 容器里能调宿主的什么（dsh-fs / dsh-native）
 
+> 本文档由 DSH-Fusion 维护,内容承接自 DSH-Folk 1.9.8 并随合并适配。
+
 [← 返回 README](../README.md)
 
 ## 容器里能调宿主的什么

@@ -2,6 +2,8 @@
 
 [← 返回 README](../README.md)
 
+> 本文档由 DSH-Fusion 维护，内容承接自 DSH-Folk 1.9.8 并随合并适配。
+
 ## 备份为什么要由软件侧加密
 
 配置备份的内容仍然由容器里的 `dsh-config-manager` 插件产出（它最清楚 `~/.dsh` 里什么是配置），

@@ -2,6 +2,8 @@
 
 [← Back to README](../README.en.md)
 
+> Maintained by DSH-Fusion; content inherited from DSH-Folk 1.9.8 and adapted for the merge.
+
 ## How It Runs
 
 ```

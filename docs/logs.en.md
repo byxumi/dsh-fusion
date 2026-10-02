@@ -1,5 +1,7 @@
 # Log Collection & Redaction (bugreport)
 
+> Maintained by DSH-Fusion; content inherited from DSH-Folk 1.9.8 and adapted for the merge.
+
 [← Back to README](../README.en.md)
 
 ### File ownership when collecting logs

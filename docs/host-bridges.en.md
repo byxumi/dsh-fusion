@@ -1,5 +1,7 @@
 # What the Container Can Access on the Host (dsh-fs / dsh-native)
 
+> Maintained by DSH-Fusion; content inherited from DSH-Folk 1.9.8 and adapted for the merge.
+
 [← Back to README](../README.en.md)
 
 ## What the Container Can Access on the Host

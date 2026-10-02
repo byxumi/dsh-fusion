@@ -1,5 +1,7 @@
 # 日志采集与脱敏（bugreport）
 
+> 本文档由 DSH-Fusion 维护,内容承接自 DSH-Folk 1.9.8 并随合并适配。
+
 [← 返回 README](../README.md)
 
 ### 采集日志时的文件归属

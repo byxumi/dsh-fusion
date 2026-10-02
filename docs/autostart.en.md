@@ -2,6 +2,8 @@
 
 [← Back to README](../README.en.md)
 
+> Maintained by DSH-Fusion; content inherited from DSH-Folk 1.9.8 and adapted for the merge.
+
 ## Start on Boot
 
 Choose one of three methods under **Settings → Features → Start on boot**. There are three not to pad out the list, but because Android's official broadcast method is largely

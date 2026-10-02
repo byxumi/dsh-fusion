@@ -1,5 +1,7 @@
 # Build & Release Internals
 
+> Maintained by DSH-Fusion; workflow/app names match the actual runtime values.
+
 [← Back to README](../README.en.md)
 
 ## What's New
