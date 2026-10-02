@@ -71,6 +71,12 @@ data class DshState(
     val portConflict: Boolean = false,
     /** dsh web 的认证 token；有值时 [webUrl] 带 `?token=...`。 */
     val webToken: String? = null,
+    /** DSH-Fusion：容器内已装的 dsh 引擎版本（独立模块）。 */
+    val dshVersion: String? = null,
+    /** DSH-Fusion：官方 GitHub 仓库当前最新的 dsh 版本（异步查询后填入）。 */
+    val dshOfficialLatest: String? = null,
+    /** DSH-Fusion：dsh 引擎正在安装/更新中。 */
+    val dshInstalling: Boolean = false,
 ) {
     val webUrl: String get() {
         val base = "http://127.0.0.1:$port/"
@@ -996,6 +1002,7 @@ object DshRuntime {
                 installed = installed,
                 port = port(),
                 runtimeVersion = prefs().getString(DshEnv.KEY_RUNTIME_VERSION, null),
+                dshVersion = prefs().getString(DshEnv.KEY_RUNTIME_DSH, null),
                 appUpdateRequired = installed && !appSatisfies(minApp),
                 requiredAppVersion = minApp.ifEmpty { null },
                 rootfsSizeBytes = if (installed) cachedSize else 0L,
@@ -2630,40 +2637,79 @@ object DshRuntime {
 
      * 在 [seedPlugins] 之前调用：预装插件依赖 dsh plugin 命令。
      */
+    /**
+     * 两段式启动：容器就绪后自动按官方 GitHub 最新版本安装/更新 dsh（静默，仅日志）。
+     * 与手动 [installDsh] 共用实现；已是最新则跳过。
+     */
     private suspend fun ensureDshInstalled() {
         if (!DshEnv.isRuntimeInstalled(appContext)) return
         val official = fetchOfficialDshVersion() ?: return
-        val local = localDshVersion()
-        if (local == official) return
-        android.util.Log.i(TAG, "两段式：安装 dsh " + local + " -> " + official)
+        if (localDshVersion() == official) return
+        installDsh(official)
+    }
+
+    /**
+     * DSH-Fusion dsh 独立模块：按指定版本在容器内安装/更新 dsh 引擎。
+
+     * 容器内用 npm --prefix /usr/local 安装（先官方 registry，失败回退 npmmirror）。
+     * 成功落盘 KEY_RUNTIME_DSH 并更新状态。返回是否安装成功。
+     */
+    suspend fun installDsh(version: String): Boolean = withContext(Dispatchers.IO) {
+        if (!DshEnv.isRuntimeInstalled(appContext)) return@withContext false
+        _state.update { it.copy(dshInstalling = true) }
         val npm = "/usr/local/bin/npm"
         val registries = listOf(
             "https://registry.npmjs.org",
             "https://registry.npmmirror.com",
         )
-        for (registry in registries) {
-            val out = runCatching {
-                execRootfsForOutput(
-                    npm + " install -g --prefix /usr/local --registry " + registry +
-                        " --no-audit --no-fund @deepseek-ai/dsh@" + official + " 2>&1 | tail -15",
-                    timeoutMs = 20 * 60_000L,
-                )
-            }.getOrDefault("")
-            val ver = runCatching {
-                execRootfsForOutput(
-                    "node -e " + "console.log(require(process.argv[1]).version)" +
-                        " /usr/local/lib/node_modules/@deepseek-ai/dsh/package.json 2>&1",
-                    timeoutMs = 30_000L,
-                ).trim()
-            }.getOrDefault("")
-            if (ver == official) {
-                prefs().edit().putString(DshEnv.KEY_RUNTIME_DSH, official).apply()
-                android.util.Log.i(TAG, "dsh " + official + " 安装成功（registry=" + registry + "）")
-                return
+        try {
+            for (registry in registries) {
+                val out = runCatching {
+                    execRootfsForOutput(
+                        npm + " install -g --prefix /usr/local --registry " + registry +
+                            " --no-audit --no-fund @deepseek-ai/dsh@" + version + " 2>&1 | tail -15",
+                        timeoutMs = 20 * 60_000L,
+                    )
+                }.getOrDefault("")
+                val ver = runCatching {
+                    execRootfsForOutput(
+                        "node -e " + "console.log(require(process.argv[1]).version)" +
+                            " /usr/local/lib/node_modules/@deepseek-ai/dsh/package.json 2>&1",
+                        timeoutMs = 30_000L,
+                    ).trim()
+                }.getOrDefault("")
+                if (ver == version) {
+                    prefs().edit().putString(DshEnv.KEY_RUNTIME_DSH, version).apply()
+                    _state.update { it.copy(dshVersion = version) }
+                    android.util.Log.i(TAG, "dsh " + version + " 安装成功（registry=" + registry + "）")
+                    return@withContext true
+                }
+                android.util.Log.w(TAG, "registry " + registry + " 安装 dsh 失败: " + out.takeLast(300))
             }
-            android.util.Log.w(TAG, "registry " + registry + " 安装 dsh 失败: " + out.takeLast(300))
+            android.util.Log.e(TAG, "dsh 安装失败，目标版本 " + version)
+            false
+        } finally {
+            _state.update { it.copy(dshInstalling = false) }
         }
-        android.util.Log.e(TAG, "两段式：dsh 安装失败，官方版本 " + official + "，本地 " + local)
+    }
+
+    /**
+     * DSH-Fusion dsh 独立模块：列出官方 GitHub 仓库**所有** dsh release 版本（新→旧）。
+     * 供设置页「dsh 版本」长按列表使用。查询失败返回空表。
+     */
+    suspend fun listOfficialDshVersions(): List<String> = withContext(Dispatchers.IO) {
+        val body = UpdateChecker.fetchApiJson(
+            "/repos/deepseek-ai/deepseek-harness/releases?per_page=100",
+        ) ?: return@withContext emptyList()
+        runCatching {
+            val arr = JSONArray(body)
+            val out = ArrayList<String>()
+            for (i in 0 until arr.length()) {
+                val tag = arr.getJSONObject(i).optString("tag_name", "")
+                if (tag.startsWith("dsh-v")) out.add(tag.removePrefix("dsh-v"))
+            }
+            out
+        }.getOrNull() ?: emptyList()
     }
 
 

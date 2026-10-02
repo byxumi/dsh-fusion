@@ -407,6 +407,18 @@
     <string name="dsh_runtime_management_summary">查看当前版本、检查或执行更新（长按可选任意历史版本）、重装、导入本地包，并设置自动检查与测试版通道</string>
     <string name="dsh_runtime_installed_version">已安装：%1$s</string>
     <string name="dsh_runtime_not_installed">尚未安装 —— 在首页启动服务即会下载</string>
+
+    <!-- DSH-Fusion: dsh 引擎独立模块 -->
+    <string name="dsh_engine_section">DSH 引擎</string>
+    <string name="dsh_engine_summary">dsh 引擎独立于容器，按官方 GitHub 版本在容器内单独安装</string>
+    <string name="dsh_engine_installed">已装 dsh：%1$s</string>
+    <string name="dsh_engine_official_latest">官方最新：%1$s</string>
+    <string name="dsh_engine_official_unknown">官方最新：未知</string>
+    <string name="dsh_engine_not_installed">未安装 —— 下次启动会自动按官方 GitHub 版本安装</string>
+    <string name="dsh_engine_update">更新 dsh</string>
+    <string name="dsh_engine_install">安装 dsh</string>
+    <string name="dsh_engine_installing">正在安装…</string>
+    <string name="dsh_engine_version_history">dsh 版本（长按可选）</string>
     <string name="dsh_runtime_reinstall">重装</string>
     <string name="dsh_runtime_update_available">可更新到 %1$s</string>
     <string name="dsh_runtime_update_requires_app">新运行时要求 DSH-Fusion %1$s 或更高版本，请先更新应用。</string>

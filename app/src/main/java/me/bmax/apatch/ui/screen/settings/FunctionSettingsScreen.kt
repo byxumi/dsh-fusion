@@ -379,6 +379,11 @@ internal fun DshSettingsScreen(
     var runtimeInstalled by remember { mutableStateOf(DshEnv.isRuntimeInstalled(context)) }
     // 已装版本从运行时状态读（同一份 prefs，下载成功时写入）
     val runtimeState by DshRuntime.state.collectAsStateWithLifecycle()
+    // DSH-Fusion：dsh 引擎独立模块 —— 官方最新版本（进入页面时懒查一次）
+    var dshOfficialLatest by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
+    }
 
 
     // proroot 的可用性要读它自己的目录，放 IO 线程算一次即可。
@@ -907,6 +912,16 @@ internal fun DshSettingsScreen(
                     },
                     permissionOnly = permissionOnly,
                     highlightKey = highlightKey,
+                    dshVersion = runtimeState.dshVersion,
+                    dshOfficialLatest = dshOfficialLatest,
+                    dshInstalling = runtimeState.dshInstalling,
+                    onInstallDsh = { ver -> DshRuntime.installDsh(ver) },
+                    onListDshVersions = { DshRuntime.listOfficialDshVersions() },
+                    onRefreshDshLatest = {
+                        scope.launch {
+                            dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
+                        }
+                    },
                 )
             }
             if (permissionOnly) {

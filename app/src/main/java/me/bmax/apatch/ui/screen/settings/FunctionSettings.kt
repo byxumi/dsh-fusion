@@ -41,6 +41,10 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SettingsInputComponent
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VerifiedUser
@@ -273,6 +277,13 @@ fun FunctionSettingsContent(
     permissionOnly: Boolean = false,
     flat: Boolean = false,
     highlightKey: String? = null,
+    // ── DSH-Fusion dsh 独立模块 ──
+    dshVersion: String? = null,
+    dshOfficialLatest: String? = null,
+    dshInstalling: Boolean = false,
+    onInstallDsh: suspend (String) -> Boolean,
+    onListDshVersions: suspend () -> List<String>,
+    onRefreshDshLatest: () -> Unit,
 ) {
     val context = LocalContext.current
     val showCleanStorageDialog = remember { mutableStateOf(false) }
@@ -956,6 +967,85 @@ fun FunctionSettingsContent(
                                 }
                             },
                         )
+                    }
+                }
+            }
+        }
+
+        // ───────── DSH-Fusion：dsh 引擎独立模块（容器与引擎各自管理版本） ─────────
+        item(key = "function_dsh_engine", visible = !permissionOnly) {
+            ExpressiveCard(flat = flat) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    SectionHeader(
+                        icon = { Icon(Icons.Filled.SettingsInputComponent, null, Modifier.size(20.dp)) },
+                        title = stringResource(R.string.dsh_engine_section),
+                        summary = stringResource(R.string.dsh_engine_summary),
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = when {
+                            dshInstalling -> stringResource(R.string.dsh_engine_installing)
+                            dshVersion.isNullOrEmpty() -> stringResource(R.string.dsh_engine_not_installed)
+                            else -> stringResource(R.string.dsh_engine_installed, dshVersion)
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = dshOfficialLatest?.let { stringResource(R.string.dsh_engine_official_latest, it) }
+                            ?: stringResource(R.string.dsh_engine_official_unknown),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    var dshListOpen by remember { mutableStateOf(false) }
+                    var dshInstallingBusy by remember { mutableStateOf(false) }
+                    var dshScope = rememberCoroutineScope()
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedButton(
+                            enabled = !dshInstalling && runtimeInstalled &&
+                                dshOfficialLatest != null && dshOfficialLatest != dshVersion,
+                            onClick = {
+                                dshScope.launch {
+                                    dshInstallingBusy = true
+                                    runCatching { onInstallDsh(dshOfficialLatest!!) }
+                                    dshInstallingBusy = false
+                                }
+                            },
+                        ) {
+                            Text(if (dshVersion.isNullOrEmpty()) stringResource(R.string.dsh_engine_install) else stringResource(R.string.dsh_engine_update))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        TextButton(
+                            enabled = !dshInstalling && runtimeInstalled,
+                            onClick = { dshListOpen = true },
+                        ) {
+                            Text(stringResource(R.string.dsh_engine_version_history))
+                        }
+                        if (dshOfficialLatest == null) {
+                            IconButton(onClick = onRefreshDshLatest) {
+                                Icon(Icons.Filled.Refresh, stringResource(R.string.dsh_engine_official_latest), Modifier.size(18.dp))
+                            }
+                        }
+                    }
+                    if (dshListOpen) {
+                        DshVersionListDialog(
+                            current = dshVersion.orEmpty(),
+                            onDismiss = { dshListOpen = false },
+                            onLoad = onListDshVersions,
+                            onInstall = { ver ->
+                                dshListOpen = false
+                                dshScope.launch {
+                                    dshInstallingBusy = true
+                                    runCatching { onInstallDsh(ver) }
+                                    dshInstallingBusy = false
+                                }
+                            },
+                        )
+                    }
+                    if (dshInstallingBusy) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
                     }
                 }
             }
@@ -2034,6 +2124,78 @@ private fun RuntimeVersionDialog(
                                 current = entry.version == currentVersion,
                                 onInstall = { onInstall(entry) },
                                 onGoUpdateApp = onGoUpdateApp,
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
+}
+
+/**
+ * DSH-Fusion：dsh 引擎版本列表（官方 GitHub 仓库所有 dsh release tag）。
+ * 设置页 dsh 独立卡片「版本」按钮唤出；点某一版即按该版本安装。
+ */
+@Composable
+private fun DshVersionListDialog(
+    current: String,
+    onDismiss: () -> Unit,
+    onLoad: suspend () -> List<String>,
+    onInstall: (String) -> Unit,
+) {
+    var versions by remember { mutableStateOf<List<String>?>(null) }
+    var failed by remember { mutableStateOf(false) }
+    var reloadKey by remember { mutableStateOf(0) }
+    LaunchedEffect(reloadKey) {
+        versions = null
+        failed = false
+        val loaded = runCatching { onLoad() }.getOrNull()
+        if (loaded.isNullOrEmpty()) failed = true else versions = loaded
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.dsh_engine_version_history)) },
+        text = {
+            val list = versions
+            when {
+                failed -> Column {
+                    Text(stringResource(R.string.dsh_runtime_versions_failed))
+                    Spacer(Modifier.height(8.dp))
+                    TextButton(onClick = { reloadKey++ }) {
+                        Text(stringResource(R.string.dsh_runtime_versions_retry))
+                    }
+                }
+                list == null -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(10.dp))
+                    Text(stringResource(R.string.dsh_runtime_versions_loading))
+                }
+                else -> LazyColumn(
+                    modifier = Modifier.heightIn(max = 320.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    items(list, key = { it }) { ver ->
+                        val isCurrent = ver == current
+                        val container = if (isCurrent) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(container)
+                                .combinedClickable(onClick = { onInstall(ver) })
+                                .padding(10.dp),
+                        ) {
+                            Text(
+                                text = ver + if (isCurrent) "  (current)" else "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     }
