@@ -18,6 +18,9 @@ NODE_VER="${NODE_VER:-v24.19.0}"
 # 官方只在 npm 发布可下载资产，GitHub release 是版本真源 —— 版本以官方 GitHub 为准，
 # 下载走 npm 对应版本。可在外部用 DSH_VERSION 覆盖（指定版本 / npm dist-tag）。
 DSH_VERSION="${DSH_VERSION:-}"
+# BASE_ONLY=1 时产出「基础容器」:Ubuntu + node + pnpm,不装 dsh。
+# dsh 由 App 在容器启动后按官方 GitHub 仓库版本另行下载安装(两段式运行时)。
+BASE_ONLY="${BASE_ONLY:-0}"
 # 锁在 pnpm 10：10.x 是自包含的纯 JS CLI（bin/pnpm.cjs），能跨架构直接随 rootfs
 # 搬运；pnpm 12 的 npm 包换成了「postinstall 下载本机原生二进制」的启动器，配合
 # 我们必须使用的 --ignore-scripts 会留下一个缺原生二进制的壳，在手机上既不可靠也
@@ -195,6 +198,9 @@ fi
 tar -xJf "$NODE_TAR" -C "$ROOTFS/usr/local" --strip-components=1
 test -x "$ROOTFS/usr/local/bin/node"
 
+# BASE_ONLY=1（基础容器）：整段跳过 dsh 安装 —— dsh 由 App 在容器启动后
+# 按官方 GitHub 仓库版本另行下载安装（两段式运行时）。
+if [ "$BASE_ONLY" != "1" ]; then
 # 未显式指定版本时，从官方 GitHub 仓库解析最新 release tag 作为 dsh 版本真源。
 if [ -z "$DSH_VERSION" ]; then
   echo "==> [2b/9] 从官方 GitHub 仓库解析最新 dsh 版本"
@@ -259,6 +265,10 @@ if [ -n "$BAD_NATIVE" ]; then
 fi
 NATIVE_COUNT="$(find "$ROOTFS/usr/local/lib/node_modules" -name "*.node" 2>/dev/null | wc -l)"
 echo "    原生模块 ${NATIVE_COUNT} 个，未发现异架构产物"
+else
+  # 基础容器：不装 dsh，版本与 metadata.dsh 记为 base，App 据此判断需要安装 dsh。
+  DSH_REAL_VERSION="base"
+fi
 
 # dsh 的插件管理（dsh plugin --profile web add …）内部转发 pnpm，PATH 上没有 pnpm
 # 就直接返回 127「pnpm not found on PATH」。rootfs 里只有 corepack 的 shim，

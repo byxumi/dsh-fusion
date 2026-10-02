@@ -121,6 +121,28 @@ dsh 版本依据官方 GitHub 仓库下载运行」）：
      KEY_RUNTIME_DSH 对比；官方有新版且本仓库 runtime 通道有对应版本时，走既有运行时
      更新提示（RuntimeCheckResult → runtimePrompt）下载新 rootfs。
 
+### 6.6 两段式运行时：先容器，后 dsh（当前架构）
+
+容器与 dsh 引擎解耦，按顺序装配：
+
+1. **下载并启动 Ubuntu 容器**（容器实现沿用 df 的 proot/rootfs 方法）：
+   - runtime-builder/build-rootfs.sh 以 `BASE_ONLY=1` 产出**基础容器**
+     （Ubuntu 24.04 + node + pnpm，**不含 dsh**）；metadata.dsh="base"、
+     metadata.version="base-ubuntu-noble-r<N>"。
+   - 由 runtime.yml（workflow_dispatch, base_only=true）构建并发布到
+     `runtime-latest` 滚动 release；App 打开后自动下载解压（DshRuntime.downloadAndInstall）。
+2. **容器启动后，按官方 GitHub 版本安装 dsh**：
+   - bootstrap() 在 setupResolvConf() 之后调用 [DshRuntime.ensureDshInstalled]：
+     查询官方仓库最新 dsh 版本（fetchOfficialDshVersion，经 gh-proxy），与本地
+     KEY_RUNTIME_DSH 比较；本地为空 / "base" / 版本不一致 → 容器内执行
+     `npm install -g --prefix /usr/local @deepseek-ai/dsh@<官方版>`
+     （先官方 registry，失败回退 npmmirror），装完回读 package.json 版本校验并落盘。
+3. **最后启动 dsh web**：dsh 就绪后才 seedPlugins（预装插件依赖 dsh plugin）→
+   startAndAwait() 启动 `dsh web`（proot/proroot）。
+
+好处：容器一次下载长期复用；dsh 引擎按官方 GitHub 版本随时独立更新，
+无需为换引擎重建整个 rootfs。一体容器（含 dsh）仍兼容：localDshVersion 与官方一致时跳过安装。
+
 ## 7. 后续路线（不在本版内）
 
 - BrowserHost / Vdisplay / Shizuku 特权传输从 dm 完整移植为 df 能力（当前为降级桥）；
