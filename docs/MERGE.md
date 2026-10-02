@@ -100,6 +100,27 @@ SharedPreferences("merge_settings")：
   （https://github.com/kelai141/dsh-mobile-apk）。
 - 合并层（merge/ 目录）为新增代码，以 dm 实现为参考（MIT 兼容），按 df 仓库 GPL-3.0 分发。
 
+## 6.5 打开软件自动释放容器组件 + dsh 版本真源
+
+DSH-Fusion 的运行逻辑（对应需求「打开软件自动释放容器组件，容器使用 Ubuntu，
+dsh 版本依据官方 GitHub 仓库下载运行」）：
+
+1. **打开软件自动释放容器组件**：[DshRuntime.autoStartOnLaunch] 默认**开**；
+   MainActivity 打开即自动完成 —— 未安装 → DshRuntime.bootstrap() 自动下载并解压
+   （Ubuntu 24.04 rootfs，proot/proroot）；已安装 → 自动拉起 HarnessService 启动 `dsh web`。
+   无需手动点「启动」，可在设置关闭。
+2. **容器使用 Ubuntu**：rootfs 由 runtime-builder/build-rootfs.sh 以 Ubuntu 24.04 noble
+   为基础构建（UBUNTU_RELEASE=noble），node + dsh + pnpm 装入其中。
+3. **dsh 版本依据官方 GitHub 仓库**：
+   - 构建侧：build-rootfs.sh 的 DSH_VERSION 默认从官方仓库
+     （deepseek-ai/deepseek-harness）最新 release tag（如 `dsh-v0.2.0-rc.2`）解析版本号，
+     再交给 npm 安装该版本 —— 版本真源是官方 GitHub，下载走 npm（官方唯一可下载渠道，
+     其 GitHub release 无资产）；可在外部用 DSH_VERSION 覆盖。
+   - App 侧：打开自动释放容器后，后台经 UpdateChecker.fetchApiJson（直连 + gh-proxy 镜像）
+     查询官方仓库最新 dsh 版本（DshRuntime.fetchOfficialDshVersion），与安装时落盘的
+     KEY_RUNTIME_DSH 对比；官方有新版且本仓库 runtime 通道有对应版本时，走既有运行时
+     更新提示（RuntimeCheckResult → runtimePrompt）下载新 rootfs。
+
 ## 7. 后续路线（不在本版内）
 
 - BrowserHost / Vdisplay / Shizuku 特权传输从 dm 完整移植为 df 能力（当前为降级桥）；

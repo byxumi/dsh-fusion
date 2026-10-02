@@ -135,6 +135,14 @@ object DshEnv {
     const val KEY_RUNTIME_VERSION = "runtime_version"
 
     /**
+     * 已装运行时内含的 dsh 引擎版本（安装时从 metadata.dsh 落盘）。
+     *
+     * DSH-Fusion：dsh 版本真源是官方 GitHub 仓库（deepseek-ai/deepseek-harness）的
+     * release tag；App 打开时用它核对本地，官方有新版本则提示更新运行时。
+     */
+    const val KEY_RUNTIME_DSH = "runtime_dsh_version"
+
+    /**
      * 已装运行时要求的最低 App 版本（安装成功时从 metadata 落盘）。
      *
      * 必须持久化而不是每次现查：App 升级/降级后、或离线环境下，启动服务前要知道

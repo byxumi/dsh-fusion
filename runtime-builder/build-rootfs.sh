@@ -13,7 +13,11 @@ set -euo pipefail
 
 UBUNTU_RELEASE="${UBUNTU_RELEASE:-noble}"          # 24.04 LTS
 NODE_VER="${NODE_VER:-v24.19.0}"
-DSH_VERSION="${DSH_VERSION:-latest}"
+# dsh 版本依据官方 GitHub 仓库（deepseek-ai/deepseek-harness）的最新 release tag 解析
+# （tag 形如 dsh-v0.2.0-rc.2 → 0.2.0-rc.2），再交给 npm 安装该版本。
+# 官方只在 npm 发布可下载资产，GitHub release 是版本真源 —— 版本以官方 GitHub 为准，
+# 下载走 npm 对应版本。可在外部用 DSH_VERSION 覆盖（指定版本 / npm dist-tag）。
+DSH_VERSION="${DSH_VERSION:-}"
 # 锁在 pnpm 10：10.x 是自包含的纯 JS CLI（bin/pnpm.cjs），能跨架构直接随 rootfs
 # 搬运；pnpm 12 的 npm 包换成了「postinstall 下载本机原生二进制」的启动器，配合
 # 我们必须使用的 --ignore-scripts 会留下一个缺原生二进制的壳，在手机上既不可靠也
@@ -190,6 +194,15 @@ fi
 # --strip-components=1 把 node-vX-linux-<arch>/{bin,lib,include,share} 摊进 /usr/local
 tar -xJf "$NODE_TAR" -C "$ROOTFS/usr/local" --strip-components=1
 test -x "$ROOTFS/usr/local/bin/node"
+
+# 未显式指定版本时，从官方 GitHub 仓库解析最新 release tag 作为 dsh 版本真源。
+if [ -z "$DSH_VERSION" ]; then
+  echo "==> [2b/9] 从官方 GitHub 仓库解析最新 dsh 版本"
+  DSH_VERSION="$(curl -fsSL --max-time 25 "https://api.github.com/repos/deepseek-ai/deepseek-harness/releases?per_page=10" \
+    | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{const rs=JSON.parse(s);const t=(rs.find(r=>/^dsh-v/.test(r.tag_name))||{}).tag_name;if(!t)process.exit(1);console.log(t.replace(/^dsh-v/,''))}catch(e){process.exit(1)}})")" \
+    || { echo "!! 官方 GitHub 不可达，回落到 npm dist-tag latest"; DSH_VERSION=latest; }
+  echo "    dsh = $DSH_VERSION (来自官方 GitHub release tag)"
+fi
 
 echo "==> [3/9] 安装 @deepseek-ai/dsh@${DSH_VERSION}"
 # 用 runner（x86_64）的 npm 装进目标 rootfs 的前缀。

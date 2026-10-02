@@ -662,7 +662,6 @@ class MainActivity : AppCompatActivity() {
                 // 背地里拉起一个本地服务，用户解锁后再说。
                 LaunchedEffect(Unit) {
                     if (!DshRuntime.autoStartOnLaunch()) return@LaunchedEffect
-                    if (!DshEnv.isRuntimeInstalled(context)) return@LaunchedEffect
                     val state = DshRuntime.state.value
                     // 端口冲突时不替他做决定：那种状态要在首页选「换端口 / 指定端口 /
                     // 强制启动」，这里抢先启动只会把那个对话框跳过。
@@ -676,7 +675,28 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         return@LaunchedEffect
                     }
-                    HarnessService.start(context)
+                    // DSH-Fusion：打开软件自动释放容器组件。
+                    // 未安装运行时 → bootstrap 内部自动下载 + 解压（Ubuntu rootfs）；
+                    // 已安装 → 直接拉起前台服务启动 dsh web。
+                    if (!DshEnv.isRuntimeInstalled(context)) {
+                        DshRuntime.bootstrap()
+                    } else {
+                        HarnessService.start(context)
+                    }
+                    // DSH-Fusion：打开软件自动释放容器后，以官方 GitHub 仓库为 dsh 版本真源，
+                    // 后台核对一次：官方有新版且本仓库有对应运行时 → 走既有更新提示。
+                    launch {
+                        withContext(Dispatchers.IO) {
+                            val official = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
+                            val local = DshRuntime.localDshVersion()
+                            if (official != null && local.isNotEmpty() && official != local) {
+                                val result = runCatching { DshRuntime.checkRuntimeUpdate() }.getOrNull()
+                                if (result?.version != null && result.minAppVersion.isEmpty()) {
+                                    runtimePrompt.value = result
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // ② 服务就绪后自动打开 DSH 页面。

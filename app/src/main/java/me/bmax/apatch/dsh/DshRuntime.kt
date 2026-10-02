@@ -1156,13 +1156,15 @@ object DshRuntime {
     // ────────────────────────── 应用启动行为 ──────────────────────────
 
     /**
-     * 打开 App 时是否自动启动服务（默认关）。
+     * 打开 App 时是否自动启动服务（默认开：DSH-Fusion 打开即自动释放并运行容器）。
      *
      * 与开机自启（[DshAutostart]）分开：那是设备开机，这是用户点开应用。两者可以各自
      * 独立成立 —— 有人只在手动打开时必须自动跑起来，不想让它在后台常驻到开机。
+     * DSH-Fusion 的默认行为：打开应用即自动完成「容器下载/释放 + 引擎启动」，
+     * 用户无需手动点启动；可在设置里关闭。
      */
     fun autoStartOnLaunch(): Boolean =
-        ready && prefs().getBoolean(DshEnv.KEY_AUTO_START_ON_LAUNCH, false)
+        ready && prefs().getBoolean(DshEnv.KEY_AUTO_START_ON_LAUNCH, true)
 
     fun setAutoStartOnLaunch(enabled: Boolean) {
         if (!ready) return
@@ -2436,6 +2438,7 @@ object DshRuntime {
         prefs().edit()
             .putString(DshEnv.KEY_RUNTIME_VERSION, meta.version)
             .putString(DshEnv.KEY_RUNTIME_MIN_APP, meta.minAppVersion)
+            .putString(DshEnv.KEY_RUNTIME_DSH, meta.dsh)
             .apply()
         // phase 必须回 NOT_READY，不能直接置 STARTING：[bootstrap] 下一步就调
         // [startServer]，而它的防重入守卫会把 STARTING 当成「已经在启动了」直接
@@ -2585,6 +2588,35 @@ object DshRuntime {
             minAppVersion = if (appSatisfies(meta.minAppVersion)) "" else meta.minAppVersion,
         )
     }
+
+    /**
+     * DSH-Fusion：以官方 GitHub 仓库（deepseek-ai/deepseek-harness）为 dsh 版本真源。
+
+     * 查询官方仓库最新的 release tag（形如 `dsh-v0.2.0-rc.2`），解析出 dsh 版本号，
+     * 供与本地已装运行时内的引擎版本核对。查询走 [UpdateChecker.fetchApiJson]，
+     * 复用直连 + gh-proxy 镜像链（官方 GitHub 被限流/断连时镜像接得上）。
+
+     * @return 官方最新 dsh 版本号（如 `0.2.0-rc.2`）；查询失败返回 null。
+     */
+    suspend fun fetchOfficialDshVersion(): String? = withContext(Dispatchers.IO) {
+        val body = UpdateChecker.fetchApiJson(
+            "/repos/deepseek-ai/deepseek-harness/releases?per_page=10",
+        ) ?: return@withContext null
+        runCatching {
+            val arr = JSONArray(body)
+            for (i in 0 until arr.length()) {
+                val tag = arr.getJSONObject(i).optString("tag_name", "")
+                if (tag.startsWith("dsh-v")) return@runCatching tag.removePrefix("dsh-v")
+            }
+            null
+        }.getOrNull()
+    }
+
+    /**
+     * DSH-Fusion：本地已装运行的 dsh 引擎版本（安装时从 metadata.dsh 落盘）。
+     */
+    fun localDshVersion(): String =
+        prefs().getString(DshEnv.KEY_RUNTIME_DSH, "").orEmpty()
 
     /**
      * 列出仓库里**所有**可用的运行时版本（长按「更新」时用）。
