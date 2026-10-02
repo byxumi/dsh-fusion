@@ -16,11 +16,22 @@ name: Build DSH-Folk beta
 # 只有版本名带 -beta.N 和 prerelease 标记与正式版不同。
 
 on:
+  # DSH-Fusion：每个新版本（main 上实质代码变更）自动发布 beta 测试版。
+  # 只盯代码路径，文档/资源说明类的改动不触发，避免噪音刷屏 Releases。
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'build.gradle.kts'
+      - 'gradle/**'
+      - 'runtime-builder/**'
+      - 'scripts/patches/**'
+      - '.github/workflows/beta.yml'
   workflow_dispatch:
     inputs:
       target_version:
-        description: 'Version this beta leads to (e.g. 1.8.1)'
-        required: true
+        description: 'Version this beta leads to (e.g. 1.8.1). Leave empty on push-triggered runs (auto from baseVersionName).'
+        required: false
         type: string
       notes:
         description: 'Extra release notes (optional)'
@@ -56,6 +67,15 @@ jobs:
         id: v
         run: |
           TARGET="${{ inputs.target_version }}"
+          # DSH-Fusion: push 自动触发（无 inputs）→ 目标版本取 build.gradle.kts 的 baseVersionName()。
+          if [ -z "$TARGET" ]; then
+            TARGET="$(sed -n 's/.*fun baseVersionName(): String = "\([^"]*\)".*/\1/p' build.gradle.kts | head -1)"
+            if [ -z "$TARGET" ]; then
+              echo "::error::push 自动触发但无法从 build.gradle.kts 推导基准版本"
+              exit 1
+            fi
+            echo "::notice::自动触发：目标版本取基准 baseVersionName() = $TARGET"
+          fi
           # 允许四段式补丁版（1.9.2.2）。正式版的号已经从 10903 走到 109031/109032，
           # 三段的 beta（最高 10999）永远压不过它，装了正式版的用户会撞
           # INSTALL_FAILED_VERSION_DOWNGRADE —— 测试版通道等于失效。
@@ -240,8 +260,12 @@ jobs:
             printf 'Beta build from `%s` (run #%s).\n\n' "${GITHUB_SHA:0:7}" "$GITHUB_RUN_NUMBER"
             printf 'Signed with the release key, so it upgrades a release install in place.\n'
             printf 'Less tested than a release — report anything odd.\n'
-            if [ -n "${{ inputs.notes }}" ]; then
-              printf '\n%s\n' "${{ inputs.notes }}"
+            NOTES="${{ inputs.notes }}"
+            if [ -z "$NOTES" ]; then
+              NOTES="$(git log -1 --format='%s' 2>/dev/null || true)"
+            fi
+            if [ -n "$NOTES" ]; then
+              printf '\n%s\n' "$NOTES"
             fi
           } > notes.md
           gh release create "$TAG" \
