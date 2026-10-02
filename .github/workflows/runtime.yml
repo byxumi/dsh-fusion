@@ -1,7 +1,7 @@
 name: Build DSH runtime rootfs
 # 带上 flavor：同一通道的完整版与精简版是两个不同的 release 位置，
 # run 名字不带口味时两次运行在列表里完全重名，看不出哪次发了哪一份。
-run-name: Build DSH runtime (${{ inputs.channel }} / ${{ inputs.flavor }} / ${{ inputs.base_only == 'true' && 'base' || inputs.arch }})
+run-name: Build DSH runtime (${{ inputs.channel }} / ${{ inputs.flavor }} / ${{ inputs.base_only && 'base' || inputs.arch }})
 
 on:
   workflow_dispatch:
@@ -126,7 +126,7 @@ jobs:
       - name: Build rootfs
         env:
           DSH_VERSION: ${{ inputs.dsh_version }}
-          BASE_ONLY: ${{ inputs.base_only == 'true' && '1' || '0' }}
+          BASE_ONLY: ${{ inputs.base_only && '1' || '0' }}
           NODE_VER: ${{ inputs.node_version }}
           TARGET_ARCH: ${{ matrix.arch }}
           OUT: ${{ github.workspace }}/out
