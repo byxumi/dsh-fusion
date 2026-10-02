@@ -1,0 +1,283 @@
+name: Build DSH-Folk
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'app/**', 'gradle/**', 'build.gradle.kts', 'settings.gradle.kts', '.github/workflows/build.yml', '.github/actions/**' ]
+  pull_request:
+    branches: [ main, develop ]
+    paths: [ 'app/**', 'gradle/**', 'build.gradle.kts', 'settings.gradle.kts', '.github/workflows/build.yml', '.github/actions/**' ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'debug'
+        type: choice
+        options: [ debug, release, both ]
+
+# 同一分支的新推送取消上一次仍在跑的构建（Gradle 构建很吃 runner 时间）
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      build_debug: ${{ steps.set.outputs.debug }}
+      build_release: ${{ steps.set.outputs.release }}
+    steps:
+      - id: set
+        run: |
+          TYPE="${{ inputs.build_type }}"
+          # 非手动触发只出 debug：release 需要签名 secrets，PR 里拿不到
+          [ "${{ github.event_name }}" != "workflow_dispatch" ] && TYPE="debug"
+          DEBUG=false; RELEASE=false
+          case "$TYPE" in
+            debug)   DEBUG=true ;;
+            release) RELEASE=true ;;
+            both)    DEBUG=true; RELEASE=true ;;
+          esac
+          echo "debug=$DEBUG"     >> "$GITHUB_OUTPUT"
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+
+  build_debug:
+    name: Build Debug
+    needs: prepare
+    if: needs.prepare.outputs.build_debug == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # versionCode/branchName 由 git 元数据推导，需要完整历史
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-build-env
+
+      # 编译错误必须能从注解里读出来。细粒度 PAT 读不了 job 日志（logs 接口要 admin），
+      # 所以把 gradle 输出留一份到文件，失败时把错误行转成 GitHub 注解 ——
+      # 否则「构建失败」这四个字就是全部信息，只能靠本地复现去猜。
+      # pipefail 不能少：没有它，管道里的 tee 会把 gradle 的退出码吞掉，
+      # 于是编译失败的工作流会显示成绿色。
+      - run: |
+          set -o pipefail
+          ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-build.log
+
+      - name: Surface compile errors
+        if: failure()
+        run: |
+          # 先给编译错误本身（e: 开头是 Kotlin 的错误格式；w: 里带 error 的也算）
+          { grep -E "^(e:|w: .*error|FAILURE:|\* What went wrong)" gradle-build.log || true; } | head -60 | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
+          # 再给尾部 40 行兜底：Gradle 的失败原因不一定以 e: 开头
+          tail -40 gradle-build.log | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
+
+      # 拆包后每个 buildType 出两个 APK（arm64-v8a / x86_64）。原来这里 `head -1`
+      # 只收一个，会静默丢掉另一个架构；现在逐 ABI 收并断言恰好两个 —— 少于两个
+      # 说明 splits 配置退化成单包了，那是必须拦住的回归。
+      - name: Collect APKs
+        run: |
+          SHORT="${GITHUB_SHA::7}"
+          found=0
+          for abi in arm64-v8a x86_64; do
+            APK=$(find app/build/outputs/apk/debug -name "*${abi}*.apk" -type f | head -1)
+            if [ -z "$APK" ]; then
+              echo "::error::debug APK for ${abi} not produced"
+              continue
+            fi
+            OUT="DSH-Folk-Debug-${SHORT}-${abi}.apk"
+            mv "$APK" "$OUT"
+            sha256sum "$OUT" > "$OUT.sha256"
+            echo "  $OUT  $(stat -c %s "$OUT") bytes"
+            found=$((found + 1))
+          done
+          if [ "$found" -ne 2 ]; then
+            echo "::error::expected 2 debug APKs (one per ABI), got $found"
+            find app/build/outputs -type f -name "*.apk" || true
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-folk-debug-${{ github.sha }}
+          path: |
+            DSH-Folk-Debug-*.apk
+            DSH-Folk-Debug-*.apk.sha256
+          retention-days: 30
+
+  build_release:
+    name: Build Release
+    needs: prepare
+    if: needs.prepare.outputs.build_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-build-env
+
+      # 便宜的源码自检放在编译之前：两者都在毫秒级，而它们拦下的问题都要
+      # 一次完整构建（8 分钟）才暴露，且编译器的报错完全指不到真正的那一行。
+      # 版本说明那条：VERSION / baseVersionName / 条目文案三处不一致时宁可不发版；
+      # Kotlin 注释那条：块注释在 Kotlin 里可嵌套，注释体里一个多余的起始标记
+      # 会吞掉整个文件后半段，报出来的是一片「unresolved reference」（本项目踩过一次）。
+      #
+      # 另外几个原本只在本地跑，现在也进 CI —— 它们的判据全是纯文本/纯逻辑，成本是毫秒级：
+      #   check-strings 资源转义（裸撇号会让 aapt2 以一个和撇号毫无关系的 NPE 失败）；
+      #   check-i18n 多语言键集；check-refs 文档/代码互引；
+      #   check-native-logic 决策逻辑复刻（1.9.0 的「预装账本」死循环就属于这一类：
+      #   编译通过、真机才炸，而且每次启动都换个位置炸）；
+      #   check-native-caps 原生能力桥的一致性（每个 Cap 进分组、capOf 与路由互相覆盖、
+      #   映射表与资源串齐全、清单权限已声明）。它此前只在本地跑，期间自己的两处切片
+      #   标记失效都没人发现 —— 加权限这类改动全靠它兜，不能只留在本地；
+      #   check-bugreport-files 采集文件的归属（root shell 写入的文件必须先由应用建好）。
+      #   真机崩溃过：root 建的 dmesg.txt 属主是 root，应用自己再去裁剪就是 EACCES，
+      #   而崩溃发生在清理目录之前 —— 用户再点一次还是崩，只能清应用数据。
+      #   这类错误只在「有 root + 选了时间窗口」的真机上暴露，本地与编译都看不见。
+      #   check-text-clipping 限高又不给滚动的 Text：Text 拿到有界高度又没有 overflow
+      #   时多出来的行是静默裁掉的（用户看到的「更新内容显示不全」），而预览里的短文案
+      #   永远看不出问题。
+      #   check-backup-crypto 备份加密与补包链路（容器常量必须与插件逐字节一致、GCM 的
+      #   tag 在 header 里而不是密文尾部、补包后必须重算 checksums、encrypted=true 必须有
+      #   secrets.enc、旧的对话数据开关必须真没了）。它还**用 Node 的独立实现复算**嵌在
+      #   Kotlin 里的两条自检向量 —— 加密实现写错的后果是「包生成了、密码也对、谁都打不开」，
+      #   而那在 App 侧完全看不出来。
+      - name: Static source checks
+        run: |
+          node tools/check-changelog.js
+          node tools/check-kotlin-comments.js
+          node tools/check-strings.js
+          node tools/check-i18n.js
+          node tools/check-refs.js
+          node tools/check-native-logic.js
+          node tools/check-native-caps.js
+          node tools/check-web-shim.js
+          node tools/check-backup-logic.js
+          node tools/check-bugreport-files.js
+          node tools/check-text-clipping.js
+          node tools/check-backup-crypto.js
+          node tools/check-wizard-gate.js
+          node tools/check-cookie-samesite.js
+          node tools/check-plugin-update.js
+          node tools/check-race-channel.js
+          node tools/check-fs-scope.js
+          node tools/check-host-prompt.js
+          node tools/check-file-handoff.js
+          node tools/check-imports.js $(find app/src/main/java -name "*.kt")
+
+      # release 包必须真签名。缺任何一项就硬失败 —— 悄悄用 debug key 签出一个
+      # 「release」比构建失败危险得多：它装得上、看着正常，但和正式包签名不同，
+      # 之后无法覆盖升级，用户还得卸载重装。
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          # 仓库里这一项的 secret 名是 KEY_PRIVATE_PASSWORD（不是 KEY_PASSWORD）。
+          # 名字写错读出来是空串，Gradle 会拿空密码去开私钥然后失败。
+          KEY_PASSWORD: ${{ secrets.KEY_PRIVATE_PASSWORD }}
+        run: |
+          missing=""
+          [ -n "$KEYSTORE_BASE64" ]  || missing="$missing KEYSTORE_BASE64"
+          [ -n "$KEYSTORE_PASSWORD" ] || missing="$missing KEYSTORE_PASSWORD"
+          [ -n "$KEY_ALIAS" ]         || missing="$missing KEY_ALIAS"
+          [ -n "$KEY_PASSWORD" ]      || missing="$missing KEY_PRIVATE_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::missing release signing secrets:$missing"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > dsh-folk.jks
+          # 用 printf 而非 heredoc 展开，避免密码里的特殊字符被 shell 解释
+          {
+            printf 'KEYSTORE_FILE=../dsh-folk.jks\n'
+            printf 'KEYSTORE_PASSWORD=%s\n' "$KEYSTORE_PASSWORD"
+            printf 'KEY_ALIAS=%s\n' "$KEY_ALIAS"
+            printf 'KEY_PASSWORD=%s\n' "$KEY_PASSWORD"
+          } > keystore.properties
+
+      # 编译错误必须能从注解里读出来。细粒度 PAT 读不了 job 日志（logs 接口要 admin），
+      # 所以把 gradle 输出留一份到文件，失败时把错误行转成 GitHub 注解 ——
+      # 否则「构建失败」这四个字就是全部信息，只能靠本地复现去猜。
+      # pipefail 不能少：没有它，管道里的 tee 会把 gradle 的退出码吞掉，
+      # 于是编译失败的工作流会显示成绿色。
+      - run: |
+          set -o pipefail
+          ./gradlew assembleRelease --no-daemon --stacktrace 2>&1 | tee gradle-build.log
+
+      - name: Surface compile errors
+        if: failure()
+        run: |
+          # 先给编译错误本身（e: 开头是 Kotlin 的错误格式；w: 里带 error 的也算）
+          grep -E "^(e:|w: .*error|FAILURE:|\* What went wrong)" gradle-build.log | head -60 | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
+          # 再给尾部 40 行兜底：Gradle 的失败原因不一定以 e: 开头
+          tail -40 gradle-build.log | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
+
+      - name: Collect APKs
+        run: |
+          SHORT="${GITHUB_SHA::7}"
+          found=0
+          for abi in arm64-v8a x86_64; do
+            APK=$(find app/build/outputs/apk/release -name "*${abi}*.apk" -type f | head -1)
+            if [ -z "$APK" ]; then
+              echo "::error::release APK for ${abi} not produced"
+              continue
+            fi
+            OUT="DSH-Folk-Release-${SHORT}-${abi}.apk"
+            mv "$APK" "$OUT"
+            sha256sum "$OUT" > "$OUT.sha256"
+            echo "  $OUT  $(stat -c %s "$OUT") bytes"
+            found=$((found + 1))
+          done
+          if [ "$found" -ne 2 ]; then
+            echo "::error::expected 2 release APKs (one per ABI), got $found"
+            find app/build/outputs -type f -name "*.apk" || true
+            exit 1
+          fi
+
+      # 签名自检：debug key 的证书主体固定是 CN=Android Debug。真出现它说明
+      # keystore 没生效（Gradle 静默回退），必须在发包之前拦住。
+      # 用 keytool 而不是 apksigner：keytool 随 setup-java 一定在 PATH 上，
+      # 而 apksigner 的路径取决于 AGP 装了哪个 build-tools 版本，find 出来不稳。
+      #
+      # 拆包后**每个** APK 都要验：只验一个等于给另一个架构留了后门。
+      - name: Verify signer
+        run: |
+          checked=0
+          for apk in DSH-Folk-Release-*.apk; do
+            [ -f "$apk" ] || continue
+            echo "== $apk"
+            keytool -printcert -jarfile "$apk" > signer.txt
+            grep -E "Owner|Valid from" signer.txt || true
+            if grep -q "CN=Android Debug" signer.txt; then
+              echo "::error::$apk is signed with the Android debug key"
+              rm -f signer.txt
+              exit 1
+            fi
+            rm -f signer.txt
+            checked=$((checked + 1))
+          done
+          if [ "$checked" -ne 2 ]; then
+            echo "::error::expected to verify 2 release APKs, verified $checked"
+            exit 1
+          fi
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f dsh-folk.jks keystore.properties
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-folk-release-${{ github.sha }}
+          path: |
+            DSH-Folk-Release-*.apk
+            DSH-Folk-Release-*.apk.sha256
+          retention-days: 30

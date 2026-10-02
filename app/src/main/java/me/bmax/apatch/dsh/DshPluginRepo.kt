@@ -1,0 +1,1887 @@
+package me.bmax.apatch.dsh
+
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
+import me.bmax.apatch.R
+import me.bmax.apatch.util.appString
+import org.json.JSONArray
+import org.json.JSONObject
+
+/** 一个 DSH 插件条目。 */
+data class DshPlugin(
+    /**
+     * 目录里的稳定 id。与 npm 包名**不一定相同** —— 全量目录用 `owner/name`
+     * （不同作者的同名插件并不少见），dsh-market 用它自己的 id。
+     * 所以列表 key 用 id，安装/下载量一律用 [pkg]。
+     */
+    val id: String,
+    /** npm 包名；目录里没登记 npm 的条目为空（1284/2495 条如此）。 */
+    val pkg: String = "",
+    val name: String,
+    val version: String = "",
+    val description: String = "",
+    val author: String = "",
+    /** 上游仓库，形如 `owner/name`（用于取 star）。 */
+    val repo: String = "",
+    val homepage: String = "",
+    /** 已安装版本，未安装为空。 */
+    val installedVersion: String = "",
+    /** 近一周 npm 下载量，-1 表示未知。 */
+    val downloads: Long = -1L,
+    /** GitHub star，-1 表示未知。 */
+    val stars: Long = -1L,
+    /** dsh-market 上的点赞数，-1 表示未知。 */
+    val likes: Long = -1L,
+    val category: String = "",
+    /**
+     * 传给 `dsh plugin add` 的安装规格。
+     *
+     * 通常等于 [pkg]；目录里没登记 npm 的条目是 `github:owner/name`。
+     * 空表示没有可用的安装方式。
+     */
+    val installSpec: String = "",
+    /**
+     * 是否作为 profile 层生效。
+     *
+     * 判据是包名在 profile `package.json` 的 `dsh.profile.bundles` 里 —— dsh 只加载
+     * 这个列表；装了但没声明 `dsh.bundle.patch` 的依赖只是普通库，不是生效的插件。
+     */
+    val enabled: Boolean = true,
+    /**
+     * 这个 bundle 往 loader entry 列表里插的行 id（来自它自己 `dsh.bundle.patch` 的
+     * `insert[].id`）。空表示它不是 bundle 或解析不出 id —— 那种插件本来就不会被加载，
+     * 也就没有「关掉」可言。
+     */
+    val entryIds: List<String> = emptyList(),
+    /**
+     * 用户是否停用了这个插件（通过 profile 的 `cordis.patch.yml` 写 `disabled: true`）。
+     *
+     * 与 [enabled] 是两回事：enabled 表示「在 dsh.profile.bundles 里」，disabled 表示
+     * 「用户主动关掉了它的 loader entry」。两者可以同时为 true。
+     */
+    val disabled: Boolean = false,
+    /**
+     * 是否为 DSH-Folk 预装插件（见 [DshRuntime.SEED_PLUGINS]）。
+     *
+     * 只作展示标签，不参与安装/停用逻辑。
+     */
+    val seeded: Boolean = false,
+    /**
+     * 上游目录扫描出的能力清单（`capabilities[]`），10 类之一：
+     * fs-read / fs-write / env / network / llm / shell / dynamic-code /
+     * host-runtime / credentials / subagent。空表示目录没给（不代表没有）。
+     */
+    val capabilities: List<String> = emptyList(),
+    /**
+     * 上游目录的安全红线（`capabilityRedLines[]`），是**人读的告警原文**，如
+     * 「reads credentials/secrets AND has network access」「runs code at install time
+     * (postinstall)」「uses plaintext http:// to …」。非空即应在卡面/安装框醒目提示。
+     * 上游明确「收录 ≠ 背书」，这不是认证、只是事实披露。
+     */
+    val redLines: List<String> = emptyList(),
+    /** 能力/红线的扫描时间（`capabilityCheckedAt`，ISO 串）。 */
+    val capabilityCheckedAt: String = "",
+    /** 截图 URL 列表（`screenshots[]`，通常是 raw.githubusercontent 直链）。 */
+    val screenshots: List<String> = emptyList(),
+    /**
+     * 作者预编译的 release tgz 直链（`tarball`）。github-only 插件有它时可绕开 git clone
+     * 直接装 tgz（更快、更稳）。作为安装的 tgz 兜底传给 [install]。
+     */
+    val tarball: String = "",
+    /** 下载量统计窗口起（`downloadsStart`，YYYY-MM-DD）。 */
+    val downloadsStart: String = "",
+    /** 下载量统计窗口止（`downloadsEnd`，YYYY-MM-DD）。 */
+    val downloadsEnd: String = "",
+    /** 下载量最后核对日期（`downloadsCheckedAt`，YYYY-MM-DD）。 */
+    val downloadsCheckedAt: String = "",
+) {
+    val installed: Boolean get() = installedVersion.isNotEmpty()
+
+    /** 可一键安装：有 npm 包名或 github: 规格。 */
+    val installable: Boolean get() = pkg.isNotEmpty() || installSpec.isNotEmpty()
+
+    /** 传给安装命令的实参。 */
+    val addSpec: String get() = installSpec.ifEmpty { pkg }
+
+    /** 已安装且线上版本更高 → 可更新。 */
+    val updatable: Boolean
+        get() = installed && version.isNotEmpty() && compareVersions(version, installedVersion) > 0
+}
+
+/**
+ * 完整插件目录的一次快照。
+ *
+ * @param updated 目录自报的更新日期（`2026-08-29`）。
+ * @param categoryTitles 目录自带的分类标题，App 没内置该 slug 时用它兜底。
+ * @param offline 数据来自过期的本地缓存（三条线上源都失败）。
+ */
+data class PluginCatalog(
+    val updated: String,
+    val categoryTitles: Map<String, String>,
+    val plugins: List<DshPlugin>,
+    val offline: Boolean = false,
+)
+
+/**
+ * 插件商店分类。`slug` 与目录 `category` 字段一致，`label` 是内置字符串资源 id。
+ */
+data class PluginCategory(
+    val slug: String,
+    val label: Int,
+)
+
+/**
+ * DSH 插件数据源。
+ *
+ * 各来源只管一件事，缺一个不影响其它：
+ * - **全量目录**（[catalog]）是商店的数据源：`awesome-dsh-plugin.com/plugins.json`，
+ *   约 2600 条，自带分类 / 描述 / star / 下载量，所以商店列表**不需要**再逐包打
+ *   npm 或 GitHub API。走 npm 包 `dsh-plugin-catalog` 作为国内回落，与 DSH 官方
+ *   市场插件（dshmarket）同一条路径；
+ * - **dsh-market** 的 `manifest/plugins.json` 是**精选**列表（几十条），只用于
+ *   已安装页的点赞数与整表周下载量；
+ * - **npm registry** 提供最新版本号（`registry.npmjs.org/<pkg>/latest`），
+ *   只对已安装的少量包查，用来判断可更新；
+ * - **GitHub API** 提供 star 数（匿名 60 次/小时，缓存 6 小时并限并发），
+ *   仅在目录没给出 star 时兜底。
+ *
+ * 已安装列表来自容器内 profile 目录，走 proot 读，不依赖网络。
+ */
+object DshPluginRepo {
+    private const val TAG = "DSH-Folk-Plugins"
+
+    /** 容器内操作日志的前缀：把这些行与 pnpm / dsh 自己的输出区分开。 */
+    private const val LOG_PREFIX = "[DSH-Folk] "
+
+    /**
+     * 写一行带前缀的日志（跟随应用语言）。
+     *
+     * 这些行会流进插件页的安装日志与首页的启动日志（预装路径），两处都是给人读的。
+     * 用 [me.bmax.apatch.util.appString] 而不是 `apApp.getString`：应用内语言在 API 33
+     * 以下只改 Activity 的 Configuration，Application 的 Context 会解析成系统语言。
+     */
+    private fun line(onLine: (String) -> Unit, resId: Int, vararg args: Any) {
+        onLine(LOG_PREFIX + str(resId, *args))
+    }
+
+    /** 取本地化字符串；Application 还没起来时返回空串（只会发生在极早期）。 */
+    private fun str(resId: Int, vararg args: Any): String =
+        runCatching { me.bmax.apatch.apApp.appString(resId, *args) }.getOrDefault("")
+
+    /**
+     * 把一段文本包成 shell 的单引号字面量。
+     *
+     * 这些文案现在来自资源，翻译里出现 `'` 完全正常（英文 "don't"、法语 "l'app"）；
+     * 一个裸单引号会提前闭合字符串，把后面的内容变成可执行的 shell 代码。`'\''` 是
+     * POSIX 里唯一可靠的写法：闭合、插入转义的引号、再打开。
+     */
+    private fun shellQuoted(s: String): String = "'" + s.replace("'", "'\\''") + "'"
+
+    private const val MARKET_MANIFEST = "https://dsh-market.com/manifest/plugins.json"
+    private const val MARKET_STATS = "https://dsh-market.com/api/stats"
+    private const val MARKET_DOWNLOADS = "https://dsh-market.com/api/npm-downloads"
+    private const val NPM_SEARCH = "https://registry.npmjs.org/-/v1/search?size=100&text="
+    private const val NPM_DOWNLOADS_POINT = "https://api.npmjs.org/downloads/point/last-week/"
+
+    /** 全量目录的官方地址（GitHub Pages + CDN）。 */
+    private const val CATALOG_ORIGIN = "https://awesome-dsh-plugin.com/plugins.json"
+
+    /** 同一份目录发布成的 npm 包，用于国内回落。 */
+    private const val CATALOG_PACKAGE = "dsh-plugin-catalog"
+    private const val NPM_REGISTRY = "https://registry.npmjs.org"
+    private const val NPM_MIRROR_CN = "https://registry.npmmirror.com"
+    private const val CATALOG_CACHE_FILE = "plugin-catalog.json"
+
+    /**
+     * 插件页「远端版本/下载量」那一层的磁盘缓存（见 [fetchCatalogAndCache]）。
+     *
+     * 与 [CATALOG_CACHE_FILE]（商店页的完整目录快照）是两份东西：这份是**插件页**用的小表
+     * （已装插件的远端版本 + 展示字段），进页面先渲染它、再后台刷新。
+     */
+    private const val UPDATE_CACHE_FILE = "plugin-update-rows.json"
+    private const val UPDATE_CACHE_VERSION = 1
+
+    // tar 头布局：512 字节一块，name@0(100)、八进制 size@124(12)、type@156
+    private const val TAR_BLOCK = 512
+    private const val TAR_NAME_LEN = 100
+    private const val TAR_SIZE_OFF = 124
+    private const val TAR_SIZE_LEN = 12
+    private const val TAR_TYPE_OFF = 156
+
+    /** dsh 的 profile 名。web 界面就是这个 profile，插件必须装进它才会被加载。 */
+    private const val PROFILE = "web"
+    private const val PROFILE_DIR = "/root/.dsh/profiles/web"
+
+    /**
+     * 「装 npm 最新版」的显式版本标记（见 [install]）。
+     *
+     * 必须显式，不能靠空串走裸包名：pnpm 对**已声明过**的 registry 依赖，`add <裸包名>` 是空操作。
+     * 插件页的「更新」与预装包的最低版本门禁都用它。
+     */
+    const val VERSION_LATEST = "latest"
+
+    /**
+     * git **能力**已验证过的标记（不只是「git 这个文件在」）。
+     *
+     * 带 v2 后缀让 v1.5–v1.7 写过的旧标记自动失效：那时只探 `command -v git`，
+     * 而故障恰恰是 git 在、却因为缺动态库跑不起来 —— 沿用旧标记会直接跳过探测。
+     */
+    private const val GIT_READY_MARK = "/root/.dsh/.git-ready-v2"
+
+    /**
+     * 容器 git 用的 CA 根证书包（用容器 Node 的 tls.rootCertificates 导出，见 [ensureGitCa]）。
+     *
+     * proot 的 rootfs 没装 ca-certificates，git 的 gnutls/curl 后端一份根证书都没有，任何 https
+     * git 传输都验不过（报错 "server certificate verification failed. CAfile: none"）——不管走
+     * gh-proxy 还是直连 github。所以镜像重写做对了也没用，全栽在证书校验。
+     */
+    private const val GIT_CA_FILE = "/root/.dsh/.git-ca.pem"
+
+    /**
+     * 已知的全部线路前缀（含空串 = 直连 github）——**只用来清重写**，不再决定尝试顺序。
+     *
+     * 顺序现在由 [DshSource.rankedSources] 按测速结论给出（见 [installGitSpec]）；但 [clearGitRewrite]
+     * 必须无条件把这些前缀配过的 insteadOf 全清掉，否则换了顺序之后旧前缀的键会留在 `.gitconfig`
+     * 里继续生效。清单本身来自 [DshSource.allProxyPrefixes]（唯一事实来源），加线路不必改这里。
+     */
+    private fun ghMirrorPrefixes(): List<String> = DshSource.allProxyPrefixes()
+
+    /** git 的 insteadOf 键里那段被重写的源，覆盖 github 的几种等价写法。 */
+    private val GIT_REWRITE_BASES = listOf(
+        "https://github.com/",
+        "git+https://github.com/",
+    )
+
+    /** 动态加载器失败的输出签名（proot/proroot 下 exec 缺库时长这样）。 */
+    private val LDSO_FAILURE_MARKS = listOf(
+        "cannot find lib",
+        "proroot-ldso",
+        "error while loading shared libraries",
+    )
+
+    /** 验证通过的自制标记（`dsh web: http` 出现即写）。 */
+    private const val VERIFY_OK_MARK = "[DSH-Folk-verify-ok]"
+
+    /** 验证进程的输出落盘位置（不能走管道，见 [verifyBoot]）。 */
+    private const val VERIFY_LOG = "/root/.dsh/verify-boot.log"
+
+    /** 轮询次数上限，每轮 1s；比 [VERIFY_TIMEOUT_MS] 略小，让脚本自己先收尾。 */
+    private const val VERIFY_POLLS = 170
+
+    /**
+     * 验证等待上限。本环境实测约 25s 就打印就绪行，180s 是保守值 ——
+     * 误判的后果是插件被回滚、用户可关掉开关重装，不是数据损坏。
+     *
+     * 这是宿主侧的**兜底**：正常路径下脚本命中就绪行就自己退出（真机实测 3s 内）。
+     */
+    private const val VERIFY_TIMEOUT_MS = 180_000L
+
+    /** 插件树加载失败的日志签名（与 DshRuntime 那份同源，用于挑出关键行）。 */
+    private val VERIFY_FAILURE_MARKS = listOf(
+        "plugin tree failed to load",
+        "client bundles not found",
+        "failed to apply loader entry modules",
+        "ERR_PNPM",
+    )
+
+    private const val CACHE_TTL_MS = 6 * 60 * 60 * 1000L
+    /** 目录/下载量表变动没那么快，缓存 30 分钟，避免每次进页面都全量重拉。 */
+    private const val CATALOG_TTL_MS = 30 * 60 * 1000L
+
+    private val starCache = ConcurrentHashMap<String, Pair<Long, Long>>()      // repo -> (star, at)
+    private val versionCache = ConcurrentHashMap<String, Pair<String, Long>>() // pkg  -> (ver, at)
+
+    @Volatile private var downloadsTable: Map<String, Long> = emptyMap()
+    @Volatile private var downloadsAt: Long = 0L
+    @Volatile private var likesTable: Map<String, Long> = emptyMap()
+    @Volatile private var likesAt: Long = 0L
+
+    /** 同时最多这么多个网络请求，别把 GitHub 的匿名配额一次打光。 */
+    private val gate = Semaphore(6)
+
+    /** 拉线上插件目录并补齐版本 / 下载量 / star。 */
+    suspend fun fetchCatalog(): List<DshPlugin> = withContext(Dispatchers.IO) {
+        val base = fetchMarket().ifEmpty { fetchNpmFallback() }
+        if (base.isEmpty()) return@withContext emptyList()
+        // 已安装条目的 id 就是 npm 包名，目录条目的 id 是 market id ——
+        // 两者对 12/28 条并不相同，必须按 pkg 关联，否则「已安装」永远匹配不上
+        val installed = listInstalled().associateBy { it.pkg }
+        enrich(base.map { p ->
+            p.copy(installedVersion = installed[p.pkg]?.installedVersion ?: "")
+        })
+    }
+
+    /**
+     * 拉真目录并落盘缓存（插件页后台刷新用）。
+     *
+     * 拉失败（断网/目录源挂了）时**不覆盖**旧缓存 —— 旧快照里的版本号仍然能告诉用户「有新版可装」，
+     * 比清空成「什么都不知道」有用。返回空列表表示这次没拉到，调用方应保留现有显示。
+     */
+    suspend fun fetchCatalogAndCache(ctx: Context): List<DshPlugin> = withContext(Dispatchers.IO) {
+        val rows = fetchCatalog()
+        if (rows.isNotEmpty()) {
+            runCatching { File(ctx.cacheDir, UPDATE_CACHE_FILE).writeText(rowsToJson(rows)) }
+                .onFailure { Log.w(TAG, "插件页缓存写入失败: ${it.message}") }
+        }
+        rows
+    }
+
+    /**
+     * 上次成功拉到的目录行（进入插件页时**先渲染这一份**，再去后台拉真数据）。
+     *
+     * 为什么必须有：插件页每次进来都要把整份目录 + 每包的远端版本/下载量/star 重新拉一遍，
+     * 慢的时候页面空着等好几秒。有了它，「有没有新版本可更新」立刻就能看到（可能略旧，随即被
+     * 后台刷新纠正）。缓存损坏/不存在都当没有，不抛。
+     */
+    fun cachedCatalogRows(ctx: Context): List<DshPlugin> =
+        runCatching {
+            val f = File(ctx.cacheDir, UPDATE_CACHE_FILE)
+            if (!f.isFile) emptyList() else rowsFromJson(f.readText())
+        }.getOrElse {
+            Log.w(TAG, "插件页缓存读取失败: ${it.message}")
+            emptyList()
+        }
+
+    /** 目录行 → JSON（只存展示与「可更新」判定要用的字段）。 */
+    private fun rowsToJson(rows: List<DshPlugin>): String {
+        val arr = JSONArray()
+        for (r in rows) {
+            arr.put(
+                JSONObject()
+                    .put("id", r.id)
+                    .put("pkg", r.pkg)
+                    .put("name", r.name)
+                    .put("version", r.version)
+                    .put("description", r.description)
+                    .put("author", r.author)
+                    .put("repo", r.repo)
+                    .put("homepage", r.homepage)
+                    .put("downloads", r.downloads)
+                    .put("stars", r.stars)
+                    .put("likes", r.likes)
+                    .put("category", r.category)
+            )
+        }
+        return JSONObject()
+            .put("version", UPDATE_CACHE_VERSION)
+            .put("at", System.currentTimeMillis())
+            .put("items", arr)
+            .toString()
+    }
+
+    /** [rowsToJson] 的逆操作；版本不匹配或字段缺失都当没有缓存。 */
+    private fun rowsFromJson(text: String): List<DshPlugin> {
+        val o = JSONObject(text)
+        if (o.optInt("version") != UPDATE_CACHE_VERSION) return emptyList()
+        val arr = o.optJSONArray("items") ?: return emptyList()
+        return (0 until arr.length()).mapNotNull { i ->
+            val r = arr.optJSONObject(i) ?: return@mapNotNull null
+            val id = r.optString("id")
+            if (id.isEmpty()) return@mapNotNull null
+            DshPlugin(
+                id = id,
+                pkg = r.optString("pkg"),
+                name = r.optString("name").ifEmpty { id },
+                version = r.optString("version"),
+                description = r.optString("description"),
+                author = r.optString("author"),
+                repo = r.optString("repo"),
+                homepage = r.optString("homepage"),
+                downloads = r.optLong("downloads", -1L),
+                stars = r.optLong("stars", -1L),
+                likes = r.optLong("likes", -1L),
+                category = r.optString("category"),
+            )
+        }
+    }
+
+    /**
+     * 并发补齐版本、下载量、star、点赞（各自失败只让那一项保持 -1 / 空）。
+     *
+     * `version` 语义是**远端最新版**：非空即视为已知，不会再查 registry。
+     * 想让已安装条目算出 updatable，调用方必须先把 version 清空
+     * （`installedVersion` 不受影响）。
+     */
+    suspend fun enrich(list: List<DshPlugin>): List<DshPlugin> = coroutineScope {
+        // 下载量与点赞是整表接口，先各取一次
+        val downloads = async { downloadsTable() }
+        val likes = async { likesTable() }
+        val dlMap = downloads.await()
+        val likeMap = likes.await()
+
+        list.map { p ->
+            async {
+                gate.withPermit {
+                    p.copy(
+                        version = p.version.ifEmpty {
+                            if (p.pkg.isEmpty()) "" else latestVersionOf(p.pkg)
+                        },
+                        stars = if (p.repo.isEmpty()) -1L else starsOf(p.repo),
+                        downloads = p.pkg.takeIf { it.isNotEmpty() }
+                            ?.let { dlMap[it] ?: downloadsOf(it) } ?: -1L,
+                        likes = likeMap[p.id] ?: -1L,
+                    )
+                }
+            }
+        }.awaitAll()
+    }
+
+    /** dsh-market 目录（`manifest/plugins.json`）。 */
+    private fun fetchMarket(): List<DshPlugin> = runCatching {
+        val json = httpGet(MARKET_MANIFEST) ?: return@runCatching emptyList()
+        val arr = JSONObject(json).optJSONArray("items") ?: JSONArray()
+        (0 until arr.length()).mapNotNull { i ->
+            val o = arr.optJSONObject(i) ?: return@mapNotNull null
+            val id = o.optString("id").ifEmpty { o.optString("npm") }
+            if (id.isEmpty()) return@mapNotNull null
+            DshPlugin(
+                id = id,
+                pkg = o.optString("npm"),
+                name = o.optString("name").ifEmpty { id },
+                description = o.optString("description").ifEmpty { o.optString("descriptionEn") },
+                author = o.optString("author"),
+                repo = normalizeRepo(o.optString("repo")),
+                homepage = o.optString("repo"),
+                category = o.optString("category"),
+            )
+        }
+    }.getOrElse {
+        Log.w(TAG, "dsh-market 目录获取失败: ${it.message}")
+        emptyList()
+    }
+
+    /** dsh-market 不可用时回退 npm 搜索关键字 `dsh-plugin`。 */
+    private fun fetchNpmFallback(): List<DshPlugin> = runCatching {
+        val json = httpGet(NPM_SEARCH + "keywords:dsh-plugin") ?: return@runCatching emptyList()
+        val objs = JSONObject(json).optJSONArray("objects") ?: JSONArray()
+        (0 until objs.length()).mapNotNull { i ->
+            val pkg = objs.optJSONObject(i)?.optJSONObject("package") ?: return@mapNotNull null
+            val id = pkg.optString("name")
+            if (id.isEmpty()) return@mapNotNull null
+            DshPlugin(
+                id = id,
+                pkg = id,
+                name = id,
+                version = pkg.optString("version"),
+                description = pkg.optString("description"),
+                author = pkg.optJSONObject("author")?.optString("name") ?: "",
+                repo = normalizeRepo(pkg.optJSONObject("links")?.optString("repository") ?: ""),
+                homepage = pkg.optJSONObject("links")?.optString("homepage") ?: "",
+            )
+        }
+    }.getOrElse {
+        Log.w(TAG, "npm 搜索回退失败: ${it.message}")
+        emptyList()
+    }
+
+    /**
+     * 商店的分类列表，顺序即 tab 顺序（不含「全部」，由界面在开头单独加）。
+     *
+     * slug 与 [CATALOG_ORIGIN] 目录里 `category` 字段一致（实测 22 个）。标题优先用
+     * 内置字符串资源（能跟随应用语言），目录将来新增分类时回落到目录自带的
+     * `categories[slug]` 文案，不必改 App。
+     */
+    fun categories(): List<PluginCategory> = listOf(
+        PluginCategory("agi", R.string.dsh_plugin_cat_agi),
+        PluginCategory("ui", R.string.dsh_plugin_cat_ui),
+        PluginCategory("usage", R.string.dsh_plugin_cat_usage),
+        PluginCategory("theme", R.string.dsh_plugin_cat_theme),
+        PluginCategory("model", R.string.dsh_plugin_cat_model),
+        PluginCategory("identity", R.string.dsh_plugin_cat_identity),
+        PluginCategory("session", R.string.dsh_plugin_cat_session),
+        PluginCategory("memory", R.string.dsh_plugin_cat_memory),
+        PluginCategory("tools", R.string.dsh_plugin_cat_tools),
+        PluginCategory("wsl", R.string.dsh_plugin_cat_wsl),
+        PluginCategory("browser", R.string.dsh_plugin_cat_browser),
+        PluginCategory("vision", R.string.dsh_plugin_cat_vision),
+        PluginCategory("voice", R.string.dsh_plugin_cat_voice),
+        PluginCategory("docs", R.string.dsh_plugin_cat_docs),
+        PluginCategory("skill", R.string.dsh_plugin_cat_skill),
+        PluginCategory("workflow", R.string.dsh_plugin_cat_workflow),
+        PluginCategory("git", R.string.dsh_plugin_cat_git),
+        PluginCategory("notify", R.string.dsh_plugin_cat_notify),
+        PluginCategory("dev", R.string.dsh_plugin_cat_dev),
+        PluginCategory("security", R.string.dsh_plugin_cat_security),
+        PluginCategory("remote", R.string.dsh_plugin_cat_remote),
+        PluginCategory("market", R.string.dsh_plugin_cat_market),
+        PluginCategory("fun", R.string.dsh_plugin_cat_fun),
+    )
+
+    /**
+     * 完整插件目录。**商店的唯一数据源。**
+     *
+     * 为什么不是 npm search：`registry.npmjs.org/-/v1/search` 的 `text` 里，
+     * `keywords:` 限定词之后的自由文本只参与**排序**，不做过滤 —— 实测
+     * `text=keywords:dsh-plugin,dsh theme` 返回的 total 仍是 2577，只是主题类
+     * 被排到了前面。也就是说 npm 搜不出「某个词的全部命中」，只能给出前 N 个最相关。
+     * 而用户要的是「能搜到全部插件」，所以必须先把完整目录取下来，再本地检索。
+     *
+     * 这条路径与 DSH 官方市场插件（dshmarket）完全一致：
+     * 1. [CATALOG_ORIGIN] —— GitHub Pages 上的完整目录（约 2.2MB，gzip 后约 600KB）；
+     * 2. [CATALOG_PACKAGE] 的 npm 包 —— 目录也发布成 npm 包，因为公共 GitHub 代理
+     *    只接受 github.com 自己的域名、拿不到 Pages 域（官方注释实测 403），
+     *    而 npm 镜像在国内一定通；读的是 tarball 里的 `package/plugins.json`；
+     * 3. npmmirror 上的同一个包。
+     *
+     * 结果缓存到 cacheDir，TTL [CATALOG_TTL_MS]；三条源全挂时回落到过期缓存
+     * （目录是只增不减的列表，旧快照仍然可用）。
+     */
+    suspend fun catalog(ctx: Context, force: Boolean = false): PluginCatalog =
+        withContext(Dispatchers.IO) {
+            val cacheFile = File(ctx.cacheDir, CATALOG_CACHE_FILE)
+            val fresh = cacheFile.isFile &&
+                System.currentTimeMillis() - cacheFile.lastModified() < CATALOG_TTL_MS
+            if (!force && fresh) {
+                parseCatalog(runCatching { cacheFile.readText() }.getOrNull(), offline = false)
+                    ?.let { return@withContext it }
+            }
+
+            for (fetch in catalogSources()) {
+                val text = runCatching { fetch() }.getOrNull()
+                val parsed = parseCatalog(text, offline = false)
+                if (parsed != null) {
+                    runCatching { cacheFile.writeText(text!!) }
+                    return@withContext parsed
+                }
+            }
+
+            // 三条源都挂了：过期缓存也比空列表有用，标记成离线快照让界面能说明情况
+            Log.w(TAG, "插件目录三条源均失败，回落磁盘缓存")
+            parseCatalog(runCatching { cacheFile.readText() }.getOrNull(), offline = true)
+                ?: PluginCatalog(updated = "", categoryTitles = emptyMap(), plugins = emptyList(), offline = true)
+        }
+
+    /** 目录源，按顺序尝试。每个返回原始 JSON 文本或抛异常。 */
+    private fun catalogSources(): List<() -> String?> = listOf(
+        { httpGet(CATALOG_ORIGIN) },
+        { catalogFromNpm(NPM_REGISTRY) },
+        { catalogFromNpm(NPM_MIRROR_CN) },
+    )
+
+    /**
+     * 从 npm 包里取 `package/plugins.json`。
+     *
+     * 跟着 `dist.tarball` 走而不是自己拼 URL：镜像会把这个字段改写成自己的地址，
+     * 自己拼就会把下载弹回官方 registry，正好绕掉了用镜像的意义。
+     */
+    private fun catalogFromNpm(registry: String): String? {
+        val meta = httpGet("$registry/$CATALOG_PACKAGE/latest") ?: return null
+        val tarball = JSONObject(meta).optJSONObject("dist")?.optString("tarball")
+        if (tarball.isNullOrBlank()) return null
+        val gz = httpGetBytes(tarball) ?: return null
+        val bytes = fileFromTarball(gz, "package/plugins.json") ?: return null
+        return String(bytes, Charsets.UTF_8)
+    }
+
+    /**
+     * gzip tar 里取一个指定条目。
+     *
+     * 自己读而不是加依赖：格式就是 512 字节头（name@0、八进制 size@124、type@156），
+     * 为一个已知文件名写读取器比为插件运行时多加一个包更划算。
+     */
+    private fun fileFromTarball(gz: ByteArray, wanted: String): ByteArray? = runCatching {
+        val buf = java.util.zip.GZIPInputStream(gz.inputStream()).use { it.readBytes() }
+        var offset = 0
+        while (offset + TAR_BLOCK <= buf.size) {
+            val name = String(buf, offset, TAR_NAME_LEN, Charsets.UTF_8).substringBefore('\u0000')
+            // 连着两个空头才是结尾，但一个就足够停下
+            if (name.isEmpty()) break
+            val rawSize = String(buf, offset + TAR_SIZE_OFF, TAR_SIZE_LEN, Charsets.US_ASCII)
+                .substringBefore('\u0000').trim()
+            val size = rawSize.toLongOrNull(8) ?: break
+            if (size < 0) break
+            val type = buf[offset + TAR_TYPE_OFF].toInt().toChar()
+            offset += TAR_BLOCK
+            // '0' 与 NUL 都表示普通文件；目录、链接、pax 头一概跳过
+            if ((type == '0' || type == '\u0000') && name == wanted) {
+                return@runCatching buf.copyOfRange(offset, (offset + size).toInt())
+            }
+            offset += (((size + TAR_BLOCK - 1) / TAR_BLOCK) * TAR_BLOCK).toInt()
+        }
+        null
+    }.getOrNull()
+
+    /** JSONArray → 干净的字符串列表（跳过空串 / JSON null）。 */
+    private fun jsonStrings(arr: org.json.JSONArray?): List<String> {
+        if (arr == null) return emptyList()
+        val out = ArrayList<String>(arr.length())
+        for (i in 0 until arr.length()) {
+            val s = arr.optString(i)
+            if (s.isNotEmpty() && s != "null") out.add(s)
+        }
+        return out
+    }
+
+    /** 解析目录 JSON。结构不对（比如取到一个 HTML 错误页）时返回 null，让调用方换源。 */
+    private fun parseCatalog(text: String?, offline: Boolean): PluginCatalog? = runCatching {
+        if (text.isNullOrBlank()) return@runCatching null
+        val root = JSONObject(text)
+        val arr = root.optJSONArray("plugins") ?: return@runCatching null
+        if (arr.length() == 0) return@runCatching null
+
+        val zh = java.util.Locale.getDefault().language == "zh"
+        val titles = HashMap<String, String>()
+        root.optJSONObject("categories")?.let { cats ->
+            val keys = cats.keys()
+            while (keys.hasNext()) {
+                val slug = keys.next()
+                val o = cats.optJSONObject(slug) ?: continue
+                val label = (if (zh) o.optString("zh") else o.optString("en"))
+                    .ifBlank { o.optString("en") }
+                if (label.isNotBlank()) titles[slug] = label
+            }
+        }
+
+        val plugins = (0 until arr.length()).mapNotNull { i ->
+            val o = arr.optJSONObject(i) ?: return@mapNotNull null
+            val name = o.optString("name")
+            if (name.isEmpty()) return@mapNotNull null
+            val owner = o.optString("owner")
+            // npm 字段可能是 JSON null（1284/2495 条如此）：optString 会给出 "null"
+            val npm = o.optString("npm").takeIf { it.isNotEmpty() && it != "null" } ?: ""
+            val desc = o.optJSONObject("description")?.let { d ->
+                (if (zh) d.optString("zh") else d.optString("en")).ifBlank { d.optString("en") }
+            } ?: o.optString("description")
+            DshPlugin(
+                // owner/name 才唯一：不同作者的同名插件在目录里并不少见
+                id = if (owner.isEmpty()) name else "$owner/$name",
+                pkg = npm,
+                name = name,
+                description = desc,
+                author = owner,
+                repo = normalizeRepo(o.optString("url")),
+                homepage = o.optString("page").ifEmpty { o.optString("url") },
+                category = o.optString("category"),
+                // 目录自带这两个数字，商店列表不必再逐包打 npm / GitHub API
+                stars = if (o.isNull("stars")) -1L else o.optLong("stars", -1L),
+                downloads = if (o.isNull("downloads")) -1L else o.optLong("downloads", -1L),
+                // 目录已内联最新 npm 版本（2238/4353 条有）：商店卡片据此算「可更新」，
+                // 已安装页也优先用它、省掉逐包打 registry。语义是「远端最新版」。
+                version = o.optString("version").takeIf { it.isNotEmpty() && it != "null" } ?: "",
+                // 能力/红线：上游每日扫描的结果，安全信息的来源
+                capabilities = jsonStrings(o.optJSONArray("capabilities")),
+                redLines = jsonStrings(o.optJSONArray("capabilityRedLines")),
+                capabilityCheckedAt = o.optString("capabilityCheckedAt"),
+                screenshots = jsonStrings(o.optJSONArray("screenshots")),
+                tarball = o.optString("tarball").takeIf { it.isNotEmpty() && it != "null" } ?: "",
+                downloadsStart = o.optString("downloadsStart"),
+                downloadsEnd = o.optString("downloadsEnd"),
+                downloadsCheckedAt = o.optString("downloadsCheckedAt"),
+                // 没登记 npm 的条目用 install 命令里的 github: 规格安装
+                installSpec = o.optString("install").substringAfterLast(' ').ifEmpty { npm },
+            )
+        }
+        if (plugins.isEmpty()) return@runCatching null
+        PluginCatalog(
+            updated = root.optString("updated"),
+            categoryTitles = titles,
+            plugins = plugins,
+            offline = offline,
+        )
+    }.getOrNull()
+
+    /** dsh-market 的整表周下载量（key 是 npm 包名）。 */
+    private fun downloadsTable(): Map<String, Long> {
+        val now = System.currentTimeMillis()
+        if (downloadsTable.isNotEmpty() && now - downloadsAt < CATALOG_TTL_MS) return downloadsTable
+        val table = runCatching {
+            val json = httpGet(MARKET_DOWNLOADS) ?: return@runCatching emptyMap()
+            val o = JSONObject(json).optJSONObject("downloads") ?: return@runCatching emptyMap()
+            buildMap {
+                for (k in o.keys()) put(k, o.optLong(k, -1L))
+            }
+        }.getOrElse {
+            Log.w(TAG, "下载量表获取失败: ${it.message}")
+            emptyMap()
+        }
+        if (table.isNotEmpty()) {
+            downloadsTable = table
+            downloadsAt = now
+        }
+        return table
+    }
+
+    /** dsh-market 的点赞表（key 是目录 id）。 */
+    private fun likesTable(): Map<String, Long> {
+        val now = System.currentTimeMillis()
+        if (likesTable.isNotEmpty() && now - likesAt < CATALOG_TTL_MS) return likesTable
+        val table = runCatching {
+            val json = httpGet(MARKET_STATS) ?: return@runCatching emptyMap()
+            val o = JSONObject(json).optJSONObject("plugin") ?: return@runCatching emptyMap()
+            buildMap {
+                for (k in o.keys()) put(k, o.optLong(k, -1L))
+            }
+        }.getOrElse { emptyMap() }
+        if (table.isNotEmpty()) {
+            likesTable = table
+            likesAt = now
+        }
+        return table
+    }
+
+    /** 整表里没有这个包时的单包兜底查询。 */
+    fun downloadsOf(pkg: String): Long = runCatching {
+        val json = httpGet(NPM_DOWNLOADS_POINT + pkg) ?: return@runCatching -1L
+        JSONObject(json).optLong("downloads", -1L)
+    }.getOrDefault(-1L)
+
+    /** npm 上的最新版本号。 */
+    fun latestVersionOf(pkg: String): String {
+        versionCache[pkg]?.let { (v, at) ->
+            if (System.currentTimeMillis() - at < CACHE_TTL_MS) return v
+        }
+        val v = runCatching {
+            val json = httpGet("https://registry.npmjs.org/$pkg/latest") ?: return@runCatching ""
+            JSONObject(json).optString("version")
+        }.getOrDefault("")
+        if (v.isNotEmpty()) versionCache[pkg] = v to System.currentTimeMillis()
+        return v
+    }
+
+    /** GitHub star。repo 形如 `owner/name`。 */
+    fun starsOf(repo: String): Long {
+        starCache[repo]?.let { (v, at) ->
+            if (System.currentTimeMillis() - at < CACHE_TTL_MS) return v
+        }
+        val v = runCatching {
+            val json = httpGet("https://api.github.com/repos/$repo") ?: return@runCatching -1L
+            JSONObject(json).optLong("stargazers_count", -1L)
+        }.getOrDefault(-1L)
+        if (v >= 0) starCache[repo] = v to System.currentTimeMillis()
+        return v
+    }
+
+    // 容器内已安装插件：读 profile 的 package.json dependencies，再从 node_modules 取实际版本。
+    // 依赖清单才是权威来源 —— node_modules 里还躺着一大堆传递依赖，直接扫目录会把
+    // 上千个无关包全当成「已安装插件」。@deepseek-ai/dsh-base 之类出厂 bundle 不是依赖，
+    // 天然不会出现在这里。
+    // 注意不要把这段写成 KDoc：路径里的通配符会提前闭合块注释。
+    suspend fun listInstalled(): List<DshPlugin> = withContext(Dispatchers.IO) {
+        val script = "const fs=require('fs'),path=require('path');" +
+            "const dir=process.argv[1];" +
+            "let m;try{m=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'))}catch(e){process.exit(0)}" +
+            "const b=new Set((m.dsh&&m.dsh.profile&&m.dsh.profile.bundles)||[]);" +
+            "for(const n of Object.keys(m.dependencies||{})){" +
+            "let v='',d='';" +
+            "try{const q=JSON.parse(fs.readFileSync(path.join(dir,'node_modules',n,'package.json'),'utf8'));" +
+            "v=q.version||'';d=q.description||''}catch(e){}" +
+            "console.log([n,v,d,b.has(n)?'1':'0'].join('\\t'))}"
+        val out = DshRuntime.execRootfsForOutput(
+            "node -e \"$script\" " + PROFILE_DIR + " 2>/dev/null",
+            60_000,
+        )
+        val base = out.lines().mapNotNull { line ->
+            val parts = line.split('\t')
+            if (parts.size < 2 || parts[0].isBlank()) return@mapNotNull null
+            val pkg = parts[0].trim()
+            val ver = parts[1].trim()
+            DshPlugin(
+                id = pkg,
+                pkg = pkg,
+                name = pkg,
+                version = ver,
+                description = parts.getOrElse(2) { "" }.trim(),
+                installedVersion = ver,
+                // 缺这一列（旧格式输出）时按生效算，别把已装插件全标成停用
+                enabled = parts.getOrElse(3) { "1" }.trim() != "0",
+                seeded = DshRuntime.isSeedPlugin(pkg),
+            )
+        }.distinctBy { it.pkg }
+        // 停用状态与 loader entry id 是单独一层信息（profile cordis.patch.yml），
+        // 与「是否在 bundles 里」无关，合并进来才能让开关和「已停用」标签有据可依。
+        val entries = pluginEntries()
+        val disabled = disabledEntries()
+        base.map { p ->
+            val ids = entries[p.pkg] ?: emptyList()
+            p.copy(
+                entryIds = ids,
+                disabled = ids.isNotEmpty() && ids.all { it in disabled },
+            )
+        }
+    }
+
+    /** `command -v dsh` + readlink 出 dsh 真实入口，供容器内 node 脚本 `createRequire` 用。 */
+    private fun dshRealPrefix(): String =
+        "DSH_REAL=\$(readlink -f \"\$(command -v dsh)\" 2>/dev/null || command -v dsh); "
+
+    /**
+     * [pluginEntries] / [disabledEntries] 共用的 JS 片段：解析出 yaml 库。
+     *
+     * 三个锚点依次试：dsh 入口（最开始只有这一个）、profile 目录、以及容器里 node
+     * 自带的解析路径。**为什么要加**：只有一个锚点时，dsh 的依赖布局一变（0.1.5 的
+     * pnpm 布局把 yaml 挪进了嵌套 node_modules）就解析不到 —— 而调用方拿到的是
+     * `YAML=null` 后**每条 entry id 都为空**的静默结果，冲突检测整个失效。
+     * 真机症状就是「上游已内置的预装包怎么还在装」。
+     */
+    private val YAML_REQUIRE_JS = "let YAML=null;" +
+        "for(const a of [process.argv[1],require('path').join(process.argv[2]||'.','package.json'),null]){" +
+        "try{YAML=require('module').createRequire(a||process.cwd()+'/x.js')('yaml');break}catch(e){}" +
+        "}"
+
+    /** 递归收集 cordis patch 里所有对象的 `id` 字段（含 group/嵌套，带环保护）。 */
+    private val COLLECT_IDS_JS = "function collect(node,out,seen){" +
+        "if(!node||typeof node!=='object')return;if(seen.has(node))return;seen.add(node);" +
+        "if(Array.isArray(node)){for(const it of node){if(it&&typeof it==='object'&&typeof it.id==='string'&&it.id)out.add(it.id);collect(it,out,seen)}}" +
+        "else{for(const k of Object.keys(node))collect(node[k],out,seen)}}"
+
+    /**
+     * 把一个包的 `dsh.bundle.patch` 解析成 cordis patch 结构。
+     *
+     * **`patch` 通常是一个相对包目录的文件路径字符串**（dsh 自己的约定，例如
+     * `"./cordis.patch.yml"`），不是内联的 YAML 文本。原来的代码直接
+     * `YAML.parse(patch)` —— YAML 把 `"./cordis.patch.yml"` 解析回同一个字符串，
+     * [COLLECT_IDS_JS] 在字符串上一个 id 也收不到，于是**每个插件的 entryIds 都是空**，
+     * 插件页所有开关（`enabled = entryIds.isNotEmpty()`）全部变灰、无法停用。
+     * 真机上 dsh-base 的 patch 文件里有 78 个 id，被这一步整体丢掉。
+     *
+     * 所以：字符串按路径读文件再 parse；已经是对象/数组的直接用（少数插件内联声明）。
+     * 读不到 / 解析失败一律返回 null，由调用方按「无 entry」处理，不影响其余包。
+     */
+    private val LOAD_PATCH_JS = "function loadPatch(pkgDir,patch){" +
+        "if(patch==null||!YAML)return null;" +
+        "if(typeof patch==='string'){" +
+        "const f=path.resolve(pkgDir,patch);" +
+        "if(!fs.existsSync(f))return null;" +
+        "try{return YAML.parse(fs.readFileSync(f,'utf8'),{logLevel:'silent'})}catch(e){return null}}" +
+        "return patch}"
+
+    /**
+     * 每个已装 bundle 的 loader entry id 列表（key = npm 包名）。
+     *
+     * 关插件靠的是「在 profile 的 cordis.patch.yml 里给这些 id 写 disabled:true」，
+     * 而 id 只能从插件自己的 `dsh.bundle.patch`（`insert[].id`）里读 —— 那是它向
+     * loader 插行的声明。用容器里 dsh 自带的 yaml 库解析（createRequire(dsh 入口)），
+     * 避免我们再引入 YAML 依赖。解析失败的包输出空 id，不影响其余。
+     *
+     * @param includeCore 为 true 时**不跳过 `@deepseek-ai/` 作用域的核心包**。默认 false 是给
+     * 插件页用的：核心包不能被用户停用，也不需要出现在「谁的 entry id 能关」里。
+     * 判断「上游是否已内置某个 entry id」（比如 dsh 0.1.5 内置了 file-upload）时必须
+     * 传 true，否则会漏掉上游声明的 id，把三方包又预装一遍，制造 duplicate entry id。
+     */
+    suspend fun pluginEntries(includeCore: Boolean = false): Map<String, List<String>> =
+        withContext(Dispatchers.IO) {
+        // 跳过 @deepseek-ai/ 作用域的**核心**包（不该被用户停用），但**放行实验插件**
+        // （`@deepseek-ai/dsh-experimental-*`，如 dsh-experimental-auto-review）：它们是随 dsh
+        // 自带、面向用户的**可选开关**，也在 profile.bundles 里、自带 dsh.bundle.patch(entry id)，
+        // 却因为整段 @deepseek-ai/ 一律跳过而 entryIds 恒空→插件页开关变灰、报「读不到 entry id」。
+        val skipCore = if (includeCore) "" else
+            "if(n.startsWith('@deepseek-ai/')&&n.indexOf('dsh-experimental')<0)continue;"
+        val script = "const fs=require('fs'),path=require('path');" +
+            YAML_REQUIRE_JS + ";" +
+            "const dir=process.argv[2];" +
+            COLLECT_IDS_JS + ";" +
+            LOAD_PATCH_JS + ";" +
+            "let m;try{m=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'))}catch(e){process.exit(0)}" +
+            "const b=(m.dsh&&m.dsh.profile&&m.dsh.profile.bundles)||[];" +
+            "for(const n of b){" +
+            skipCore +
+            "let ids=[];" +
+            "try{const pkgDir=path.join(dir,'node_modules',n);" +
+            "const q=JSON.parse(fs.readFileSync(path.join(pkgDir,'package.json'),'utf8'));" +
+            "const doc=loadPatch(pkgDir,q.dsh&&q.dsh.bundle&&q.dsh.bundle.patch);" +
+            "if(doc){const s=new Set();collect(doc,s,new Set());ids=Array.from(s)}}catch(e){}" +
+            "if(!YAML)console.log('\\tNO_YAML');" +
+            "console.log(n+'\\t'+ids.join(','))}"
+        val out = DshRuntime.execRootfsForOutput(
+            dshRealPrefix() + "node -e \"$script\" \"\$DSH_REAL\" " + PROFILE_DIR + " 2>/dev/null",
+            60_000,
+        )
+        // yaml 解析不了时每个包的 entry id 都会是空的 —— 那种「成功但没内容」的结果
+        // 正是冲突检测失效的原因，必须吼一声而不能静默。
+        if (out.contains("NO_YAML")) {
+            Log.w(TAG, "pluginEntries: yaml 解析器在容器里加载失败，entry id 一律为空")
+        }
+        out.lines().mapNotNull { line ->
+            val i = line.indexOf('\t')
+            if (i < 0) return@mapNotNull null
+            val pkg = line.substring(0, i).trim()
+            if (pkg.isEmpty()) return@mapNotNull null
+            pkg to line.substring(i + 1).split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        }.toMap()
+    }
+
+    /** profile cordis.patch.yml 里当前被停用的 loader entry id 集合。 */
+    suspend fun disabledEntries(): Set<String> = withContext(Dispatchers.IO) {
+        val script = "const fs=require('fs'),path=require('path');" +
+            YAML_REQUIRE_JS + ";" +
+            "if(!YAML)process.exit(0);" +
+            "const f=path.join(process.argv[2],'cordis.patch.yml');" +
+            "if(!fs.existsSync(f))process.exit(0);" +
+            "let arr=[];try{const d=YAML.parse(fs.readFileSync(f,'utf8'),{logLevel:'silent'});if(Array.isArray(d))arr=d}catch(e){}" +
+            "for(const it of arr){if(it&&typeof it==='object'&&typeof it.id==='string'&&it.disabled===true)console.log(it.id)}"
+        val out = DshRuntime.execRootfsForOutput(
+            dshRealPrefix() + "node -e \"$script\" \"\$DSH_REAL\" " + PROFILE_DIR + " 2>/dev/null",
+            60_000,
+        )
+        out.lines().map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    }
+
+    /**
+     * 关/开一个插件的 loader entry：对 profile 的 `cordis.patch.yml` 做结构化读改写。
+     *
+     * - 绝不用模板整文件重写：文件里可能有用户自己的配置（如带凭据的 remote 行），
+     *   一律 YAML.parse → 改 → YAML.stringify 保留其余内容。
+     * - 写走「先 .tmp 再 rename」保证原子，避免半截写入。
+     * - YAML 解析失败时**不写**，宁可失败也不弄坏用户的 patch 层。
+     *
+     * @return 是否成功写入（成功时脚本 `process.exit(0)`，否则非零）
+     */
+    suspend fun setPluginDisabled(
+        pkg: String,
+        disabled: Boolean,
+        onLine: (String) -> Unit = {},
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (pkg.isBlank()) {
+            line(onLine, R.string.dsh_plug_log_no_pkg_toggle)
+            return@withContext false
+        }
+        val flag = if (disabled) "1" else "0"
+        val script = "const fs=require('fs'),path=require('path');" +
+            YAML_REQUIRE_JS + ";" +
+            "if(!YAML){console.log('NO_YAML');process.exit(1)}" +
+            "const dir=process.argv[2],pkg=process.argv[3],want=process.argv[4]==='1';" +
+            COLLECT_IDS_JS + ";" +
+            LOAD_PATCH_JS + ";" +
+            "let m;try{m=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'))}catch(e){console.log('NO_PROFILE');process.exit(1)}" +
+            "const b=(m.dsh&&m.dsh.profile&&m.dsh.profile.bundles)||[];" +
+            "if(b.indexOf(pkg)<0){console.log('NOT_BUNDLE');process.exit(1)}" +
+            "let ids=[];" +
+            "try{const pkgDir=path.join(dir,'node_modules',pkg);" +
+            "const q=JSON.parse(fs.readFileSync(path.join(pkgDir,'package.json'),'utf8'));" +
+            "const doc=loadPatch(pkgDir,q.dsh&&q.dsh.bundle&&q.dsh.bundle.patch);" +
+            "if(doc){const s=new Set();collect(doc,s,new Set());ids=Array.from(s)}}catch(e){}" +
+            "if(ids.length===0){console.log('NO_ENTRIES');process.exit(1)}" +
+            "const f=path.join(dir,'cordis.patch.yml');" +
+            "let arr=[];" +
+            "if(fs.existsSync(f)){try{const d=YAML.parse(fs.readFileSync(f,'utf8'),{logLevel:'silent'});if(Array.isArray(d))arr=d}catch(e){console.log('BAD_YAML');process.exit(1)}}" +
+            "for(const id of ids){const idx=arr.findIndex(function(e){return e&&typeof e==='object'&&e.id===id});" +
+            "if(want){if(idx>=0)arr[idx].disabled=true;else arr.push({id:id,disabled:true})}" +
+            "else{if(idx>=0){delete arr[idx].disabled;if(Object.keys(arr[idx]).length===1)arr.splice(idx,1)}}}" +
+            "fs.writeFileSync(f+'.tmp',YAML.stringify(arr,{lineWidth:0}),'utf8');fs.renameSync(f+'.tmp',f);" +
+            "console.log((want?'disabled ':'enabled ')+ids.length+' entry(ies) for '+pkg)"
+        val out = DshRuntime.execRootfsStreaming(
+            dshRealPrefix() + "node -e \"$script\" \"\$DSH_REAL\" " + PROFILE_DIR + " '$pkg' $flag" +
+                " 2>&1; echo \"" + EXIT_MARKER + " \$?\"",
+            60_000,
+            onLine,
+        )
+        val marker = out.lineSequence().lastOrNull { it.startsWith(EXIT_MARKER) }
+        val code = marker?.removePrefix(EXIT_MARKER)?.trim()?.toIntOrNull()
+        code == 0
+    }
+
+    /**
+     * 安装/更新一个插件。
+     *
+     * 必须走 `dsh plugin --profile web add`，不能自己 npm install：
+     * dsh 只加载 profile package.json 里 `dsh.profile.bundles` 列出的包，而这个列表是
+     * `dsh plugin` 成功后 reconcile 出来的（判据是包自己声明 `dsh.bundle.patch`）。
+     * 裸装进任何目录都只是躺在磁盘上，不会被加载。
+     *
+     * @param allowBuilds 用户已放行构建脚本的包名。非空时先写进 profile 的
+     *        `pnpm-workspace.yaml` 再装，用于 [pendingBuildApproval] 之后的重试。
+     */
+    /**
+     * 把用户从 GitHub 复制来的各种写法归一成 dsh plugin 能吃的 spec；认不出返回 null。
+     *
+     * 归一后仍交给 [install]，所以 `github:`/`git+`/tgz URL 都会照常走 [installGitSpec]
+     * 的 gh-proxy 镜像线路（受「GitHub 插件镜像」开关约束）。收下面这些：
+     *  - `owner/name`（裸仓库路径）                          → `github:owner/name`
+     *  - `github.com/owner/name` / `https://github.com/owner/name`(.git)(尾斜杠) → `github:owner/name`
+     *  - `https://github.com/owner/name/tree|commit/<ref>`   → `github:owner/name#<ref>`
+     *  - `github:owner/name` / `github:owner/name#<ref>`     → 原样（跟最新 / 指定 ref）
+     *  - `git+https://…` / 任意 `https://….tgz`（含 release 直链）→ 原样
+     * 其它（空、含空格、非 github 裸串）→ null，调用方提示格式不对，不硬塞。
+     */
+    fun normalizeInstallSpec(raw: String): String? {
+        val s = raw.trim()
+        if (s.isEmpty() || s.any { it.isWhitespace() }) return null
+        if (s.startsWith("github:") || s.startsWith("git+")) return s
+        if ((s.startsWith("https://") || s.startsWith("http://")) &&
+            (s.endsWith(".tgz") || s.endsWith(".tar.gz"))
+        ) return s
+        val ownerNameRef = parseGithubOwnerName(s) ?: return null
+        return "github:$ownerNameRef"
+    }
+
+    /** 从 github URL / 裸 owner/name 抽出 `owner/name` 或 `owner/name#ref`；抽不出返回 null。 */
+    private fun parseGithubOwnerName(input: String): String? {
+        var s = input
+            .removePrefix("git+")
+            .removePrefix("https://")
+            .removePrefix("http://")
+        val idx = s.indexOf("github.com/")
+        if (idx >= 0) s = s.substring(idx + "github.com/".length)
+        s = s.trim('/')
+        if (s.isEmpty()) return null
+        val parts = s.split('/')
+        if (parts.size < 2) return null
+        val nameRe = Regex("^[\\w.-]+$")
+        val owner = parts[0]
+        val name = parts[1].removeSuffix(".git")
+        if (!nameRe.matches(owner) || !nameRe.matches(name)) return null
+        val ref = if (parts.size >= 4 && (parts[2] == "tree" || parts[2] == "commit")) parts[3] else ""
+        return if (ref.isNotEmpty() && nameRe.matches(ref)) "$owner/$name#$ref" else "$owner/$name"
+    }
+
+    /**
+     * 装/更新一个插件。
+     *
+     * **[version] 传 [VERSION_LATEST] 才是「更新」的正确姿势**：`dsh plugin … add` 只是把参数
+     * 原样转给 pnpm，而对**已声明过**的 registry 依赖，`pnpm add <裸包名>` 是**空操作**
+     * （实测 pnpm 11：打印 "Already up to date"，已装版本与 package.json 里的范围都不动）。
+     * 真机症状就是「点更新→日志一切正常→版本不变」。显式 `@latest` 才会重新解析并改写范围 ——
+     * 这一步还顺带越过 caret 天花板：声明成 `^2.4.1` 时 3.0.0 永远进不来。
+     *
+     * git 规格（`github:`/`git+`）不接 `@版本`（要跟 ref 得写 `#ref`），而且裸规格本来就会重新
+     * 解析到默认分支最新提交（实测 pnpm 11：0.3.0 → 0.4.1），所以原样保留。
+     */
+    suspend fun install(
+        pkg: String,
+        version: String = "",
+        onLine: (String) -> Unit = {},
+        allowBuilds: List<String> = emptyList(),
+        fallbackTgz: String? = null,
+    ): String = withContext(Dispatchers.IO) {
+        if (pkg.isBlank()) return@withContext str(R.string.dsh_plug_log_no_pkg_install)
+        if (allowBuilds.isNotEmpty()) DshRuntime.allowProfileBuilds(allowBuilds, onLine)
+        val resolved = resolveSpec(pkg, onLine)
+        val isGit = resolved.startsWith("github:") || resolved.startsWith("git+")
+        val spec = if (isGit || version.isBlank()) resolved else "$resolved@$version"
+        val out = if (isGit) {
+            ensureGit(onLine)
+            installGitSpec(spec, fallbackTgz, onLine)
+        } else {
+            installRegistrySpec(spec, onLine)
+        }
+        out + repairIfLinkageBroken(onLine)
+    }
+
+    /**
+     * 装一个 npm（registry）规格：竞速开着就**先测速选 registry**，用 `--registry` 传给 pnpm。
+     *
+     * 为什么不写 `.npmrc`：那要动 rootfs 里的全局配置，而且换源得再改回来；`--registry` 只是这一次
+     * 命令的参数，失败就没了副作用（[DshRuntime.RACE_PLUGINS] 关掉时连这个参数都不传，行为与以前
+     * 完全一致）。npm 规格跟 gh-proxy 那套 git 重写毫无关系 —— 插件镜像开关从来管不到它们，
+     * 国内装 dsh-config-manager / dsh-web-mobile 只能干等官方源，这就是本条要解决的问题。
+     *
+     * 回退链：测速排序里的每条 registry 依次试（官方源永远在列表尾），全失败再用**不带 --registry**
+     * 的原命令试最后一次 —— 那是「用户自己在容器里配过源」的情形，不该被我们覆盖。
+     */
+    private suspend fun installRegistrySpec(spec: String, onLine: (String) -> Unit): String {
+        // 没绑定 context 就没法读测速缓存：退回原命令（等于竞速未生效），不冒险猜源
+        val ctx = DshRuntime.appContextOrNull()
+        if (ctx == null || !DshRuntime.raceEnabled(DshRuntime.RACE_PLUGINS)) {
+            return dshPlugin("add ${importFlag()}'$spec'", 900_000, onLine)
+        }
+        var last = ""
+        for (registry in DshSource.rankedNpmRegistries(ctx)) {
+            line(onLine, R.string.dsh_plug_log_npm_registry_try, registry)
+            last = dshPlugin("add ${importFlag()}--registry '$registry' '$spec'", 900_000, onLine)
+            if (exitOk(last)) return last
+        }
+        // 全部 registry 都没成：再按原命令试最后一次（不带 --registry，即用户自己在容器里配的源）
+        last = dshPlugin("add ${importFlag()}'$spec'", 900_000, onLine)
+        return last
+    }
+
+    /**
+     * 装一个 git/github 规格：**按测速结论**逐条线路试，全失败再落 tgz 兜底。
+     *
+     * pnpm 对 `github:` 规格走 git 传输，而国内直连 github 的 clone 常年失败。这里在**不改
+     * spec、不动 pnpm 解析**的前提下，给容器 git 配一层 `insteadOf`，把 github 流量导到线路前缀上，
+     * 某条装成（退出码 0）即返回；空前缀那条等于直连 github，兜底垫底。全部失败且给了 [fallbackTgz]
+     * 时，最后用 tgz 直链（纯 HTTP、绕开 git）再试一次——直链本身也走一遍线路前缀。
+     *
+     * 线路顺序来自 [DshSource.rankedSources]（测速最快在前，结果带缓存与兜底顺序）。竞速通道关掉
+     * （总开关或「插件」分开关）时，只按原样直连一次、不做任何重写，给能直连 github 的用户留一条
+     * 干净路径。
+     */
+    private suspend fun installGitSpec(
+        spec: String,
+        fallbackTgz: String?,
+        onLine: (String) -> Unit,
+    ): String {
+        ensureGitCa(onLine)
+        if (!DshRuntime.raceEnabled(DshRuntime.RACE_PLUGINS)) {
+            clearGitRewrite()
+            return dshPlugin("add ${importFlag()}'$spec'", 900_000, onLine)
+        }
+        val prefixes = racePrefixes()
+        var last = ""
+        for (prefix in prefixes) {
+            applyGitRewrite(prefix)
+            if (prefix.isNotEmpty()) line(onLine, R.string.dsh_plug_log_gh_mirror_try, prefix)
+            else line(onLine, R.string.dsh_plug_log_gh_direct_try)
+            last = dshPlugin("add ${importFlag()}'$spec'", 900_000, onLine)
+            if (exitOk(last)) { clearGitRewrite(); return last }
+        }
+        // git 全线路都没成：有 tgz 直链就绕开 git 再试（同样按线路顺序）
+        if (!fallbackTgz.isNullOrBlank()) {
+            clearGitRewrite() // tgz 是纯 HTTP 下载，不需要（也不该）带 git 重写
+            for (prefix in prefixes) {
+                val url = prefix + fallbackTgz
+                line(onLine, R.string.dsh_plug_log_gh_tgz_try, url)
+                last = dshPlugin("add ${importFlag()}'$url'", 900_000, onLine)
+                if (exitOk(last)) return last
+            }
+        }
+        clearGitRewrite()
+        return last
+    }
+
+    /**
+     * 当前该按什么顺序试线路前缀（含空前缀 = 直连 github）。
+     *
+     * 测速结论不可用（全不可达/还没测过）时 [DshSource.rankedSources] 会给 [DshSource] 的
+     * 兜底顺序，所以这里不需要再兜一层。测速本身在 IO 线程上跑（调用方都在 withContext(IO) 里）。
+     */
+    private fun racePrefixes(): List<String> =
+        DshSource.rankedSources().map { DshSource.proxyPrefix(it) }
+
+    /** 从安装输出判断这次是不是成功（退出码 0）。没有标记行按失败处理。 */
+    private fun exitOk(out: String): Boolean =
+        out.lineSequence().lastOrNull { it.startsWith(EXIT_MARKER) }
+            ?.removePrefix(EXIT_MARKER)?.trim()?.toIntOrNull() == 0
+
+    /**
+     * 给容器 git 喂一份 CA 根证书，让它能校验 https（gh-proxy 与 github 都要）。
+     *
+     * 用容器里的 Node（dsh 就靠它跑，`node` 在 PATH）导出 `tls.rootCertificates`——和 pnpm 用的
+     * 是**同一套 Mozilla 根证书**，不降级安全（不 sslVerify=false）、不 apt 装包（不依赖网络、
+     * 不改 rootfs），只落一份 pem + 一行全局 git 配置。写全局是必须的：pnpm 在子进程里 fork git，
+     * 只有 `~/.gitconfig` 能被继承（与 [applyGitRewrite] 同理）。幂等：pem 已在就只重设配置，
+     * 仅首次生成时打一行日志。
+     */
+    private fun ensureGitCa(onLine: (String) -> Unit) {
+        // JS 里用单引号避开外层双引号；'\\n' 在 Kotlin 里是字面 \n，经 shell 双引号原样传给 node
+        val js = "const fs=require('fs'),tls=require('tls');" +
+            "fs.writeFileSync(process.argv[1],tls.rootCertificates.join('\\n')+'\\n')"
+        val cmd = "if [ -s '$GIT_CA_FILE' ]; then :; else " +
+            "node -e \"$js\" '$GIT_CA_FILE' && echo DSH_CA_GENERATED; fi; " +
+            "git config --global http.sslCAInfo '$GIT_CA_FILE'"
+        val out = DshRuntime.execRootfsForOutput(cmd, 60_000)
+        if (out.contains("DSH_CA_GENERATED")) line(onLine, R.string.dsh_plug_log_git_ca)
+    }
+
+    /**
+     * 启动不变量入口：把 [ensureGitCa] 从「只在 App 装 git 源插件时跑」提升为「每次启动前跑」。
+     *
+     * 为什么必须在启动时重跑：CA 配置那行写在 `/root/.gitconfig`，而它**不在跨运行时更新的
+     * 保留清单**里（保留的是 `root/.dsh`/`root/.local`/`.l2s`），所以更新运行时后这行就没了
+     * （PEM 在 `/root/.dsh` 下还在）。此后只要 dsh 自身 reconcile profile 依赖、或 App 的启动
+     * 自愈跑 `dsh plugin`（都不走 [installGitSpec] 那条会调 [ensureGitCa] 的路径）去 https 克隆
+     * `github:` 插件，git 就撞「一份根证书都没有」（CAfile: none → server certificate
+     * verification failed）。在服务启动前无条件重设，任何 git 路径都拿得到 CA。幂等且很快
+     * （PEM 已在就只重写一行配置）。运行时侧也会把 CA bundle 直接烤进 rootfs 作双保险。
+     */
+    fun ensureGitCaAtStartup() = ensureGitCa {}
+
+    /**
+     * 给容器全局 git 配 `insteadOf`，把 github 流量重写到 [prefix]（空串=清空重写）。
+     *
+     * 写全局是**必须**的：pnpm 在自己的子进程里 fork git，命令行传不进去，只有
+     * `~/.gitconfig` 能被继承。每次装前重设、装后清掉，不给用户留下持久的重写。
+     */
+    private fun applyGitRewrite(prefix: String) {
+        clearGitRewrite()
+        if (prefix.isEmpty()) return
+        // git config 键 url.<URL>.insteadOf：首点分 section、末点分变量名，中间整段当子节
+        // 逐字保留（点/冒号/斜杠都行）。这些 URL 无 shell 元字符，双引号成一个 token 即可。
+        val cmds = GIT_REWRITE_BASES.joinToString("; ") { base ->
+            "git config --global \"url.$prefix$base.insteadOf\" \"$base\""
+        }
+        DshRuntime.execRootfsForOutput(cmds, 30_000)
+    }
+
+    /** 清掉上面配的所有 github insteadOf 重写（幂等，节点不存在时静默返回）。 */
+    private fun clearGitRewrite() {
+        val cmds = buildString {
+            for (prefix in ghMirrorPrefixes()) {
+                if (prefix.isEmpty()) continue
+                for (base in GIT_REWRITE_BASES) {
+                    append("git config --global --unset-all \"url.$prefix$base.insteadOf\" 2>/dev/null; ")
+                }
+            }
+            append("true")
+        }
+        DshRuntime.execRootfsForOutput(cmds, 30_000)
+    }
+
+    /**
+     * 从安装输出里认出「pnpm 拦下了构建脚本」，并取出待放行的包名。
+     *
+     * pnpm 11 起，带 install/postinstall/prepare 脚本的依赖默认**不执行**，
+     * 而且这不是警告 —— 实测 `pnpm add` 直接以退出码 1 失败，输出（stdout）里是：
+     *
+     * ```
+     * [ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: better-sqlite3@11.10.0, esbuild@0.28.2
+     * Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+     * ```
+     *
+     * 而 `pnpm approve-builds` 是交互式的（要在 TTY 里按方向键勾选），在容器里跑不了，
+     * 所以只能由我们把包名写进 `pnpm-workspace.yaml` 的 `allowBuilds`。
+     *
+     * 执行别人的构建脚本等于在容器里跑任意代码，因此**必须让用户点头**，
+     * 不能静默放行 —— 这也是这个函数只负责「识别 + 报出名单」的原因。
+     *
+     * @return 需要放行的包名（不带版本号；allowBuilds 的键就是裸包名），无则空
+     */
+    fun pendingBuildApproval(output: String): List<String> {
+        if (!output.contains("ERR_PNPM_IGNORED_BUILDS") &&
+            !output.contains("Ignored build scripts")
+        ) {
+            return emptyList()
+        }
+        val line = output.lineSequence()
+            .firstOrNull { it.contains("Ignored build scripts") }
+            ?: return emptyList()
+        return line.substringAfter("Ignored build scripts:", "")
+            .split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            // 去掉版本号：`esbuild@0.28.2` → `esbuild`，`@scope/pkg@1.2.3` → `@scope/pkg`
+            .map { spec ->
+                val at = spec.lastIndexOf('@')
+                if (at > 0) spec.substring(0, at) else spec
+            }
+            .filter { it.isNotEmpty() }
+            .distinct()
+    }
+
+    /**
+     * git 规格安装前确保容器里的 git **真的能跑**。
+     *
+     * 目录里 2663 条有 1357 条（51%）的 install 是 `github:` 规格，而 ubuntu-base
+     * 里没有 git —— pnpm 直接报 `git ls-remote failed: git executable not found`。
+     *
+     * 探的是能力而不是「文件在不在」。r1 运行时给 git 漏了 libcurl 的 8 个传递依赖：
+     * `command -v git` 有、`git --version` 也有（本体只链 libpcre2/libz/libc），
+     * 但 pnpm 真正 exec 的 `git-remote-https` 一跑就
+     * `cannot find libnghttp2.so.14 (needed by libcurl-gnutls.so.4)`。
+     * 只探路径的旧实现对这种情况完全无效，所以这里直接让 git 走一次 https 传输：
+     * 连 127.0.0.1:1（必然拒连）—— 不需要外网，却会完整加载 git-remote-https
+     * 及其全部动态库。缺库时输出是加载器错误，库齐时是连接错误，两者好区分。
+     *
+     * apt 在 proot 下不保证成功（builder 当初正是因为这个才改成预解包 python3），
+     * 所以失败也继续往下走原安装命令 —— 用户至少能看到完整报错，
+     * 而不是一句没有上下文的 `git executable not found`。
+     */
+    private fun ensureGit(onLine: (String) -> Unit) {
+        if (probeGit().ok) return
+
+        line(onLine, R.string.dsh_plug_log_git_repair)
+        // git 缺失 → 装 git；git 在但加载失败 → 缺的是 libcurl 一族，
+        // --reinstall 让 apt 自己把依赖补齐（比手写包名可靠）
+        DshRuntime.execRootfsStreaming(
+            "apt-get update -qq 2>&1 | tail -5; " +
+                "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends " +
+                "git libcurl3t64-gnutls 2>&1 | tail -40; " +
+                "DEBIAN_FRONTEND=noninteractive apt-get install -y --reinstall " +
+                "libcurl3t64-gnutls 2>&1 | tail -20",
+            600_000,
+            onLine,
+        )
+
+        val after = probeGit()
+        if (after.ok) {
+            line(onLine, R.string.dsh_plug_log_git_fixed)
+        } else {
+            line(onLine, R.string.dsh_plug_log_git_still_broken, after.reason)
+        }
+    }
+
+    private data class GitProbe(val ok: Boolean, val reason: String)
+
+    /**
+     * 探测 git 能否完成一次 https 传输。
+     *
+     * 命中标记文件就跳过（这个探测要 fork 一次 git + 加载十几个库，
+     * 每装一个 git 插件都跑一遍没必要）。
+     */
+    private fun probeGit(): GitProbe {
+        val out = DshRuntime.execRootfsForOutput(
+            "test -f '$GIT_READY_MARK' && { echo MARKED; exit 0; }; " +
+                "command -v git >/dev/null 2>&1 || { echo NO_GIT; exit 0; }; " +
+                // 必然连不上，目的只是把 git-remote-https 及其依赖完整加载一遍
+                "git ls-remote https://127.0.0.1:1/probe.git 2>&1 | tail -5",
+            120_000,
+        )
+        if (out.contains("MARKED")) return GitProbe(true, str(R.string.dsh_plug_git_verified))
+        if (out.contains("NO_GIT")) return GitProbe(false, str(R.string.dsh_plug_git_absent))
+        val ldso = LDSO_FAILURE_MARKS.firstOrNull { out.contains(it, ignoreCase = true) }
+        if (ldso != null) return GitProbe(false, str(R.string.dsh_plug_git_missing_lib, ldso))
+        // 走到这里说明 git-remote-https 成功加载并真的尝试了连接（然后被拒）
+        runCatching {
+            DshRuntime.execRootfsForOutput(
+                "mkdir -p \"\$(dirname '$GIT_READY_MARK')\" && touch '$GIT_READY_MARK'",
+                30_000,
+            )
+        }
+        return GitProbe(true, str(R.string.dsh_plug_git_ok))
+    }
+
+    /**
+     * 把目录给的 `github:owner/name` 规格换成 npm 包名 —— **仅当能证明是同一个包**。
+     *
+     * 起因：目录里 `dsh-web-mobile` 的 npm 字段是 null，商店因此发
+     * `add github:mexiaosqwq/dsh-web-mobile`（容器没 git → 失败），而这个包其实在
+     * npm 上有（2.3.0，repository 指向同一个仓库），用户在终端手敲
+     * `add dsh-web-mobile` 就成功了。目录数据陈旧。
+     *
+     * **必须校验 repository**：实测抽 60 条 github: 条目，23 条在 npm 上有同名包，
+     * 其中只有 1 条 repo 对得上 —— 另外 22 条是**别的作者的同名包**（例如目录里
+     * `dsh-skin-switcher` 属 tsdfy，npm 上那个是 zhtx2024 的）。照名安装等于装错东西，
+     * 比装不上更糟。校验后命中率约 2%，这条回退只解决"目录漏登记 npm"这一种情况，
+     * 不能替代容器里的 git。
+     *
+     * 探测失败、超时、repo 不匹配 —— 一律沿用原 git 规格。
+     */
+    private fun resolveSpec(spec: String, onLine: (String) -> Unit): String {
+        if (!spec.startsWith("github:")) return spec
+        val ownerName = spec.removePrefix("github:")
+        // 只处理干净的 owner/name；带 #path: / #ref 的子目录规格换不成 npm 名
+        if (!Regex("^[\\w.-]+/[\\w.-]+$").matches(ownerName)) return spec
+        specCache[ownerName]?.let { return it.ifEmpty { spec } }
+        val name = ownerName.substringAfter('/')
+        val resolved = runCatching {
+            val json = httpGet("$NPM_REGISTRY/$name/latest") ?: return@runCatching ""
+            val o = JSONObject(json)
+            val repo = o.optJSONObject("repository")?.optString("url")
+                ?: o.optString("repository")
+            if (repo.contains(ownerName, ignoreCase = true)) name else ""
+        }.getOrDefault("")
+        specCache[ownerName] = resolved
+        if (resolved.isEmpty()) return spec
+        line(onLine, R.string.dsh_plug_log_npm_instead_of_git, name, ownerName)
+        return resolved
+    }
+
+    /** `github:owner/name` → 已核实的 npm 名；空串表示核实过但不可用。 */
+    private val specCache = mutableMapOf<String, String>()
+
+    /** 卸载一个插件（同样交给 dsh plugin，才会从 bundles 里摘掉）。 */
+    suspend fun uninstall(
+        pkg: String,
+        onLine: (String) -> Unit = {},
+    ): String = withContext(Dispatchers.IO) {
+        if (pkg.isBlank()) return@withContext str(R.string.dsh_plug_log_no_pkg_remove)
+        // remove 不从 store 导入文件，不需要 importFlag
+        dshPlugin("remove '$pkg'", 600_000, onLine)
+    }
+
+    /** 本地安装：宿主 tgz 路径已由调用方复制进容器可见位置。 */
+    suspend fun installLocal(
+        containerPath: String,
+        onLine: (String) -> Unit = {},
+    ): String = withContext(Dispatchers.IO) {
+        // 绝对路径原样传给 pnpm（dsh 只重写相对路径 spec），tgz 装完同样会被 reconcile
+        val out = dshPlugin("add ${importFlag()}'$containerPath'", 900_000, onLine)
+        out + repairIfLinkageBroken(onLine)
+    }
+
+    /**
+     * 安装命令上的导入方式标志（带尾随空格，无需时为空串）。
+     *
+     * 为什么命令行和 pnpm-workspace.yaml 两处都要：profile **首次**初始化时
+     * `pnpm-workspace.yaml` 是 dsh 在同一次 `dsh plugin` 调用里现写的，我们来不及
+     * 提前追加（抢先创建会把 dsh 的模板弄丢，见 DshRuntime.ensureProfilePnpmSettings），
+     * 那一次只有 CLI 标志能覆盖。之后由 workspace 配置长期生效，也覆盖用户在终端页
+     * 手敲的 pnpm。
+     *
+     * 位置放在子命令之后、包名之前：已实测 dsh 的 anchorPathSpec 只重写 `./`、`../`
+     * 开头的相对路径 spec，不碰 `--` 开头的参数。
+     */
+    private fun importFlag(): String =
+        if (DshRuntime.linkBecomesSymlink()) "--package-import-method copy " else ""
+
+    /**
+     * 装完顺手检查依赖是不是被 l2s 装成了指向内容存储的符号链接；是就立刻重建。
+     *
+     * 为什么装完就修而不是只给个按钮：症状出现在**下一次启动服务**时
+     * （`MissingClientBundleError`），用户很难从「装好了」推断出「要重建依赖」。
+     *
+     * npmrc 里的 `package-import-method=copy` 只影响**新**安装，已经装坏的包必须
+     * 重跑一次才会变成真实副本，所以两者必须同时存在。
+     */
+    private suspend fun repairIfLinkageBroken(onLine: (String) -> Unit): String {
+        if (!DshRuntime.linkBecomesSymlink()) return ""
+        if (!storeLinkageBroken()) return ""
+        line(onLine, R.string.dsh_plug_log_relink_repair)
+        return "\n" + repairStore(onLine)
+    }
+
+    /**
+     * profile 依赖里是否有包的 realpath 落在 pnpm 内容存储内。
+     *
+     * 这正是插件起不来的判据：dsh 用 `require.resolve(<pkg>/package.json)` 定位包，
+     * Node 默认 realpath，链接被 l2s 改写后就解析成 `<store>/files/<xx>/<hash>`，
+     * 再拼相对的 `./lib/client.cjs` 必然 ENOENT（CAS 里只有扁平哈希文件）。
+     *
+     * 只认 `/pnpm/store/`：若 pnpm 将来改了 CAS 布局，这里退化成「不修」，
+     * 不会反过来误触发一次几分钟的重建。
+     */
+    suspend fun storeLinkageBroken(): Boolean = withContext(Dispatchers.IO) {
+        val script = "const fs=require('fs'),path=require('path');" +
+            "const dir=process.argv[1];" +
+            "let m;try{m=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'))}catch(e){process.exit(0)}" +
+            "for(const n of Object.keys(m.dependencies||{})){" +
+            "try{const r=fs.realpathSync(path.join(dir,'node_modules',n,'package.json'));" +
+            "if(r.includes('/pnpm/store/')){console.log('BROKEN');break}}catch(e){}}"
+        val out = DshRuntime.execRootfsForOutput(
+            "node -e \"$script\" " + PROFILE_DIR + " 2>/dev/null",
+            120_000,
+        )
+        out.contains("BROKEN")
+    }
+
+    /**
+     * 重建 profile 依赖：**先清空 node_modules 再重装**。
+     *
+     * 不能只用 `pnpm install --force`。已实测：lockfile 与 node_modules 都满足时
+     * `--force` 只报 `Already up to date` 就退出（真机日志里 561ms 就跑完了），
+     * 它的语义是「跳过 up-to-date 检查、重新解析」，不是「重新导入已就位的文件」。
+     * 删掉 node_modules 后重装才真正换成 copy 导入（实测 nlink 从 3 变 1）。
+     *
+     * **保留 pnpm-lock.yaml**：删掉它会让所有依赖重新解析版本，可能把用户装好的
+     * 东西升到别的版本。留着则解析结果不变，只是重新导入。
+     *
+     * 走 [dshPlugin] 而不是直接调 pnpm：`dsh plugin` 会把参数原样转发给 pnpm，
+     * 同时保留它自己的 bundles reconcile —— 绕过它会让 `dsh.profile.bundles`
+     * 与实际安装状态失步。
+     *
+     * 超时给到 15 分钟：copy 模式下几十个依赖全量复制比硬链接慢得多。
+     */
+    suspend fun repairStore(onLine: (String) -> Unit = {}): String = withContext(Dispatchers.IO) {
+        // 删之前确认这确实是个已初始化的 profile：目录异常时不对着空路径递归删。
+        // 路径写死为常量，不接受任何外部输入拼接。
+        val probe = DshRuntime.execRootfsForOutput(
+            "test -f '$PROFILE_DIR/package.json' && echo OK",
+            30_000,
+        )
+        if (!probe.contains("OK")) {
+            line(onLine, R.string.dsh_plug_log_profile_missing, PROFILE_DIR)
+            return@withContext str(R.string.dsh_plug_log_profile_missing_short)
+        }
+        line(onLine, R.string.dsh_plug_log_clearing_modules)
+        DshRuntime.execRootfsForOutput("rm -rf '$PROFILE_DIR/node_modules'", 120_000)
+        dshPlugin("install ${importFlag()}".trimEnd(), 900_000, onLine)
+    }
+
+    /**
+     * 在容器内全局安装 dsh-config-manager 的**独立 CLI**。
+     *
+     * 与装插件是两回事：插件只启用 GUI（回环 HTTP API），不会产生
+     * `dsh-config-manager` 命令 —— 命令来自这个包的 `bin` 字段，要 `npm i -g`。
+     *
+     * `--omit=peer` 必须带：它声明了 16 个 `@deepseek-ai/…` peerDependencies，
+     * 而离线 CLI 一个都不用（运行时依赖只有 js-yaml，已实测 peer 全缺时
+     * `snapshots` / `help` 均正常退出 0）。不带这个标志会在手机上白装十几个包。
+     *
+     * 走 npm 而不是 [dshPlugin]：这是全局命令，不属于任何 profile。
+     */
+    suspend fun installRescueCli(onLine: (String) -> Unit = {}): String = withContext(Dispatchers.IO) {
+        line(onLine, R.string.dsh_plug_log_installing_rescue_cli)
+        DshRuntime.execRootfsStreaming(
+            "npm install -g dsh-config-manager@latest --omit=peer --registry=$NPM_REGISTRY 2>&1; " +
+                "echo \"$EXIT_MARKER \$?\"; " +
+                "command -v dsh-config-manager >/dev/null 2>&1 && " +
+                "echo " + shellQuoted(LOG_PREFIX + str(R.string.dsh_plug_log_cli_ready)) + " || " +
+                "echo " + shellQuoted(LOG_PREFIX + str(R.string.dsh_plug_log_cli_missing)),
+            900_000,
+            onLine,
+        )
+    }
+
+    // ────────────────────────── 安装后验证 / 回滚 ──────────────────────────
+
+    /** profile `dsh.profile.bundles` 当前列表（判定安装带来了哪个新包）。 */
+    /**
+     * profile 声明的 bundle 清单，以及每个包在 `node_modules` 里**是否真的存在**。
+     *
+     * 为什么要两者：`bundles` 只是 profile package.json 里的一行声明，`dsh plugin remove`
+     * 之外的路径（换运行时、profile 被重建、pnpm 装了一半）都可能让声明留着而包已经不在
+     * 磁盘上。只按声明判断「装上了」，就会把坏掉的安装当成好的，永远不再补装
+     * （预装插件「失败后再也不重试」的死胡同就是这么形成的）。
+     *
+     * 一次 exec 同时拿两件事：进容器跑 node 是秒级开销，分成两次调用会翻倍。
+     */
+    suspend fun bundleState(): BundleState = withContext(Dispatchers.IO) {
+        val script = "const fs=require('fs'),path=require('path');" +
+            "const dir=process.argv[1];" +
+            "try{const m=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'));" +
+            "for(const b of (m.dsh&&m.dsh.profile&&m.dsh.profile.bundles)||[]){" +
+            "let ok='0';" +
+            "try{ok=fs.existsSync(path.join(dir,'node_modules',b,'package.json'))?'1':'0'}catch(e){}" +
+            "console.log(b+'\\t'+ok)}}catch(e){}"
+        val out = DshRuntime.execRootfsForOutput("node -e \"$script\" $PROFILE_DIR 2>/dev/null", 60_000)
+        val declared = mutableListOf<String>()
+        val present = mutableSetOf<String>()
+        for (line in out.lines()) {
+            val i = line.indexOf('\t')
+            val pkg = (if (i < 0) line else line.substring(0, i)).trim()
+            if (pkg.isEmpty()) continue
+            declared += pkg
+            if (i >= 0 && line.substring(i + 1).trim() == "1") present += pkg
+        }
+        BundleState(declared = declared, present = present)
+    }
+
+    /**
+     * 把**解析不到**的包从 profile 的 `bundles` 与 `dependencies` 里摘掉，返回被摘掉的包名。
+     *
+     * ## 为什么 App 必须自己摘
+     *
+     * `dsh plugin remove` 的 reconcile 只在「这个包**当时**还是依赖」时才摘 bundles 条目
+     * （上游条件 `wasDependency && !stillBundle`）。一旦包先被别的路径删掉 —— pnpm 半途
+     * 失败、进程被杀、上一次修复只做了一半 —— 那条声明就永远留在 `dsh.profile.bundles` 里，
+     * 而 dsh 启动时解析不到它就直接退出：
+     * `dsh: cannot resolve profile bundle "X" from the dsh installation or <profile>`，
+     * 用户看到的是「服务进程已退出」+ 自动切回 proot，重启多少次都一样。
+     * 1.9.0 升级运行时后先撞「duplicate loader entry id」、再撞这个，就是这一串。
+     *
+     * ## 判据必须与 dsh 一致
+     *
+     * dsh 用的是 `createRequire(anchor).resolve.paths(pkg)` + `existsSync(<searchPath>/<pkg>/package.json)`，
+     * 锚点顺序是「dsh 安装目录 → profile 目录」，且**不要求包在 exports 里暴露 package.json**。
+     * 所以这里也用同一套，绝不能用 `require.resolve(pkg + '/package.json')`：那要求包导出
+     * package.json，会把健康的新式包误判成「解析不到」进而摘掉声明。
+     *
+     * @param candidates 只处理这些包名；调用方传预装清单，保证用户自装的插件不被自动改动。
+     */
+    suspend fun pruneUnresolvableBundles(candidates: Set<String>): Set<String> =
+        withContext(Dispatchers.IO) {
+            if (candidates.isEmpty()) return@withContext emptySet()
+            val script = "const fs=require('fs'),path=require('path');" +
+                "const {createRequire}=require('module');" +
+                "const installAnchor=process.argv[1],dir=process.argv[2];" +
+                "const want=new Set(process.argv.slice(3));" +
+                "let m;try{m=JSON.parse(fs.readFileSync(path.join(dir,'package.json'),'utf8'))}catch(e){process.exit(0)}" +
+                "const anchors=[installAnchor,path.join(dir,'package.json')];" +
+                "function resolves(pkg){for(const a of anchors){let ps=[];" +
+                "try{ps=createRequire(a).resolve.paths(pkg)||[]}catch(e){}" +
+                "for(const sp of ps){if(fs.existsSync(path.join(sp,pkg,'package.json')))return true}}return false}" +
+                "const bundles=(m.dsh&&m.dsh.profile&&m.dsh.profile.bundles)||[];" +
+                "const deps=Object.keys(m.dependencies||{});" +
+                "const drop=new Set();" +
+                "for(const b of bundles)if(want.has(b)&&!resolves(b))drop.add(b);" +
+                "for(const d of deps)if(want.has(d)&&!resolves(d))drop.add(d);" +
+                "if(drop.size===0)process.exit(0);" +
+                "// 两个地方都要摘：留着 dependencies 的话下次 pnpm install 会把它装回来，" +
+                "// 而 reconcile 又会把 bundles 条目加回去，等于没修。\n" +
+                "m.dsh=Object.assign({},m.dsh);m.dsh.profile=Object.assign({},m.dsh.profile);" +
+                "m.dsh.profile.bundles=bundles.filter((b)=>!drop.has(b));" +
+                "for(const d of drop)delete m.dependencies[d];" +
+                "if(Object.keys(m.dependencies).length===0)delete m.dependencies;" +
+                "try{fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify(m,void 0,2)+'\\n')}catch(e){}" +
+                "console.log(Array.from(drop).join(','))"
+            val args = candidates.joinToString(" ") { "'$it'" }
+            val out = DshRuntime.execRootfsForOutput(
+                dshRealPrefix() + "node -e \"$script\" \"\$DSH_REAL\" " + PROFILE_DIR + " $args 2>/dev/null",
+                60_000,
+            )
+            out.lines()
+                .flatMap { it.split(',') }
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .toSet()
+        }
+
+    /** [bundleState] 的结果：声明的清单 + 其中在 node_modules 里真实存在的那部分。 */
+    data class BundleState(val declared: List<String>, val present: Set<String>)
+
+    /** profile 声明的 bundle 清单（不校验磁盘上是否还在，见 [bundleState]）。 */
+    suspend fun bundles(): List<String> = bundleState().declared
+
+    /**
+     * 用 `dsh web --port 0` 就地验证插件树能不能结算。
+     *
+     * 判据可靠：`dsh web: http://…` 这一行只在 loader 结算之后才打印 ——
+     * dsh-web-app 里是 `settled.then(() => announceReady())`，插件树没结算就永远
+     * 不会有这行。实测 `--port 0` 会挑一个系统空闲端口（例如 38689），不碰 3080。
+     *
+     * 为什么就地验证而不是在临时 DSH_HOME 里试装：`packageImportMethod: copy`
+     * 已经关掉了 CAS 去重，复制整个真实 profile 的依赖（真机上两百多个包）会实打实
+     * 多占几百 MB，手机上不可接受；而只按模板建轻量组合又测不出与用户已装插件的冲突，
+     * 那恰恰是主要价值。代价是失败时真实 profile 被短暂改动过 —— 但新插件要重启才
+     * 生效，验证期间正在跑的服务不受影响，回滚也是我们自己发起的确定动作。
+     *
+     * **不能用 `node … | while read` 那种管道**：`while` 里 break 只结束了读循环，
+     * 而 `dsh web` 打完就绪行就一直在提供 HTTP 服务、不再写 stdout，所以它既收不到
+     * SIGPIPE 也不会退出；bash 要等齐整条管道的所有进程，于是自己也不退出，
+     * 宿主侧的读流拿不到 EOF —— 界面就卡在「验证中」直到 [VERIFY_TIMEOUT_MS] 兜底
+     * （真机表现：装完插件对话框卡住，强杀应用后发现其实早装好了）。
+     *
+     * 改成：后台起 node 并把输出重定向到文件，主循环轮询文件增量转发，命中就绪行后
+     * 显式 kill 掉它。这样 bash 自己掌握 node 的生命周期，命中即退出。
+     */
+    suspend fun verifyBoot(onLine: (String) -> Unit): String? = withContext(Dispatchers.IO) {
+        line(onLine, R.string.dsh_plug_log_verifying)
+        val script = buildString {
+            append("export DSH_HOME=/root/.dsh; export BROWSER=true; ")
+            append("mkdir -p /root/workspace /root/.dsh 2>/dev/null; cd /root/workspace; ")
+            append("DSH_REAL=\$(readlink -f \"\$(command -v dsh)\" 2>/dev/null || command -v dsh); ")
+            append("LOG='$VERIFY_LOG'; : > \"\$LOG\"; ")
+            // 后台跑，输出进文件：绝不能让它待在管道里（见 KDoc）
+            append("node --expose-internals \"\$DSH_REAL\" web --port 0 > \"\$LOG\" 2>&1 & ")
+            append("PID=\$!; SENT=0; OK=0; I=0; ")
+            append("while [ \$I -lt $VERIFY_POLLS ]; do ")
+            append("I=\$((I+1)); ")
+            // 增量转发：只吐新增的行，界面才有实时进度
+            append("TOTAL=\$(wc -l < \"\$LOG\" 2>/dev/null | tr -d ' '); [ -n \"\$TOTAL\" ] || TOTAL=0; ")
+            append("if [ \"\$TOTAL\" -gt \"\$SENT\" ]; then tail -n +\$((SENT+1)) \"\$LOG\"; SENT=\$TOTAL; fi; ")
+            append("if grep -q '^dsh web: http' \"\$LOG\" 2>/dev/null; then OK=1; break; fi; ")
+            // 进程提前退出 = 启动失败，再收一次尾巴就够了
+            append("kill -0 \"\$PID\" 2>/dev/null || break; ")
+            append("sleep 1; done; ")
+            append("TOTAL=\$(wc -l < \"\$LOG\" 2>/dev/null | tr -d ' '); [ -n \"\$TOTAL\" ] || TOTAL=0; ")
+            append("[ \"\$TOTAL\" -gt \"\$SENT\" ] && tail -n +\$((SENT+1)) \"\$LOG\"; ")
+            append("kill \"\$PID\" 2>/dev/null; sleep 1; kill -9 \"\$PID\" 2>/dev/null; ")
+            append("[ \"\$OK\" = 1 ] && echo '$VERIFY_OK_MARK'; true")
+        }
+        val out = DshRuntime.execRootfsStreaming(script, VERIFY_TIMEOUT_MS, onLine)
+        // 收尾：node 可能有子孙进程没随 kill 一起走
+        runCatching {
+            DshRuntime.execRootfsForOutput("pkill -f 'web --port 0' 2>/dev/null; true", 30_000)
+        }
+        if (out.contains(VERIFY_OK_MARK)) return@withContext null
+        val key = out.lineSequence().firstOrNull { l ->
+            VERIFY_FAILURE_MARKS.any { l.contains(it, ignoreCase = true) }
+        }
+        key ?: str(R.string.dsh_plug_verify_timeout)
+    }
+
+    /**
+     * 回滚一次失败的安装。
+     *
+     * 包名必须取 `dsh.profile.bundles` 的新增项，不能用安装规格：
+     * `github:owner/name` 装出来的包名跟规格根本不是一回事，拿规格去 remove 会失败。
+     */
+    suspend fun rollback(pkg: String, onLine: (String) -> Unit): Boolean =
+        withContext(Dispatchers.IO) {
+            if (pkg.isBlank()) return@withContext false
+            line(onLine, R.string.dsh_plug_log_rollback, pkg)
+            val out = dshPlugin("remove '$pkg'", 600_000, onLine)
+            val marker = out.lineSequence().lastOrNull { it.startsWith(EXIT_MARKER) }
+            val code = marker?.removePrefix(EXIT_MARKER)?.trim()?.toIntOrNull()
+            val ok = code == 0
+            if (!ok) line(onLine, R.string.dsh_plug_log_rollback_failed, pkg)
+            ok
+        }
+
+    /** 暂存目录在容器里的绝对路径。 */
+    private const val INCOMING_GUEST = "/root/.dsh/incoming"
+
+    /**
+     * 把用户选的 .tgz 落进容器可见目录，返回容器内绝对路径；失败返回 null。
+     *
+     * 容器只看得到 rootfs 内的路径，SAF 的 content:// Uri 更是传不进去，所以必须先拷。
+     *
+     * 校验不能省：`openInputStream` 对已撤销授权 / 已删除的 Uri 会返回 **null**，
+     * 而 `?.use {}` 在 null 时整块跳过且不抛异常 —— 原来两处调用点因此会把一个不存在
+     * 或 0 字节的路径交给 `dsh plugin add`，用户看到的是 pnpm 的一句 ENOENT。
+     *
+     * 顺带清掉上次留下的暂存文件：每次本地安装都写一个带时间戳的新文件，
+     * 装完谁也不删，rootfs 里会一直堆着。
+     */
+    fun stageTarball(ctx: Context, uri: Uri): String? {
+        val dir = File(DshEnv.dshHome(ctx), "incoming")
+        if (!dir.isDirectory && !dir.mkdirs()) return null
+        // 只留这一次的文件：tgz 动辄几 MB，堆在 rootfs 里没人清
+        runCatching { dir.listFiles()?.forEach { it.delete() } }
+        val dst = File(dir, "local-plugin-${System.currentTimeMillis()}.tgz")
+        val ok = runCatching {
+            val input = ctx.contentResolver.openInputStream(uri) ?: return@runCatching false
+            input.use { src -> dst.outputStream().use { src.copyTo(it) } }
+            dst.isFile && dst.length() > 0L
+        }.getOrDefault(false)
+        if (!ok) {
+            runCatching { dst.delete() }
+            return null
+        }
+        return "$INCOMING_GUEST/${dst.name}"
+    }
+
+    /**
+     * 跑一条 `dsh plugin --profile <PROFILE> <args>`。
+     *
+     * dsh 是 wrapper 脚本，和启动 web 一样得先 readlink 出真正的 bin.js 再交给 node
+     * （`--expose-internals` 只能作为命令行参数传）。pnpm 装包要几分钟，输出只留尾部。
+     */
+    /** 成功与否的唯一可靠依据：这一行里的退出码。 */
+    const val EXIT_MARKER = "[DSH-Folk-exit]"
+
+    /**
+     * dsh 的 `plugin` 子命令找不到 pnpm 时打印的那行（随后以 127 退出）。
+     *
+     * 判据来自上游实现：`spawnSync("pnpm", …)` 返回 `error.code === "ENOENT"`。
+     * 真机上还有一种更隐蔽的成因：pnpm 12 的 npm 包把 bin 换成了**无 shebang** 的 sh
+     * 启动器（真正的二进制靠 postinstall 下载，而异架构构建必须 --ignore-scripts），
+     * 容器里执行它拿不到预期的 ENOEXEC 兜底，于是 dsh 直接看到 ENOENT。
+     * 也就是说这行输出几乎总意味着「运行时里的 pnpm 不可用」，而不是插件本身坏了。
+     */
+    const val NO_PNPM = "pnpm not found on PATH"
+
+    /**
+     * 跑 `dsh plugin --profile web <args>` 并回读输出，逐行回调 onLine。
+     *
+     * 结尾必须带退出码：不带的话只能靠在输出里找 "pnpm failed" 之类的字样猜
+     * 成败——pnpm 换个措辞就会把失败当成功（表现为「装好了但插件不在」）。
+     */
+    private fun dshPlugin(
+        args: String,
+        timeoutMs: Long,
+        onLine: (String) -> Unit = {},
+    ): String {
+        // 给界面看的那一路先过过滤（pnpm 的 peer WARN 块、Progress 刷屏、退出标记），
+        // 返回的原始输出一个字不动：repairIfLinkageBroken 之类要靠它解析。
+        val filter = DshPluginLogFilter()
+        val out = DshRuntime.execRootfsStreaming(
+            "export DSH_HOME=/root/.dsh; cd /root; " +
+                "if ! command -v dsh >/dev/null 2>&1; then echo " +
+                shellQuoted(LOG_PREFIX + str(R.string.dsh_plug_log_no_dsh)) + "; exit 1; fi; " +
+                "if ! command -v pnpm >/dev/null 2>&1; then echo " +
+                shellQuoted(LOG_PREFIX + str(R.string.dsh_plug_log_no_pnpm)) + "; exit 1; fi; " +
+                "DSH_REAL=\$(readlink -f \"\$(command -v dsh)\" 2>/dev/null || command -v dsh); " +
+                // 不再接 `| tail -30`：输出现在是逐行流式回调的，界面自己保留
+                // 滚动日志；而 tail 会把 pnpm 的输出攒到结束才一次吐出来，正好把
+                // 实时进度堵死。失败时也不再因为被截而丢掉关键报错行。
+                "node --expose-internals \"\$DSH_REAL\" plugin --profile " + PROFILE + " " + args +
+                " 2>&1; " +
+                "echo \"" + EXIT_MARKER + " \$?\"",
+            timeoutMs,
+            { line -> filter.accept(line, onLine) },
+        )
+        reportFiltered(filter.finish(), onLine)
+        return out.ifBlank { str(R.string.dsh_plug_no_output) }
+    }
+
+    /**
+     * 把过滤后的摘要报给界面。
+     *
+     * 只报「这次到底装了什么/成没成」，不报 pnpm 的 peer 噪音 —— 那些 peer 由 dsh
+     * 运行时提供（profile 的 node_modules 里本来就没有，上游注释写得很清楚），
+     * 每装一个插件铺一屏红字只会让人以为装坏了。
+     */
+    private fun reportFiltered(summary: DshPluginLogFilter.Summary, onLine: (String) -> Unit) {
+        if (!summary.hasSomething) return
+        if (summary.exitCode != 0) {
+            line(onLine, R.string.dsh_plug_log_exit_code, summary.exitCode)
+        }
+        if (summary.packages.isNotEmpty()) {
+            if (summary.duration.isEmpty()) {
+                line(onLine, R.string.dsh_plug_log_summary, summary.packages)
+            } else {
+                line(onLine, R.string.dsh_plug_log_summary_done, summary.packages, summary.duration)
+            }
+        }
+        if (summary.peerBlockFolded) line(onLine, R.string.dsh_plug_log_peer_note)
+    }
+
+    private fun httpGet(url: String): String? = runCatching {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.connectTimeout = 12_000
+        conn.readTimeout = 12_000
+        conn.instanceFollowRedirects = true
+        conn.setRequestProperty("Accept", "application/json")
+        conn.setRequestProperty("User-Agent", "DSH-Folk")
+        if (conn.responseCode !in 200..299) {
+            conn.disconnect()
+            return@runCatching null
+        }
+        conn.inputStream.bufferedReader().use { it.readText() }
+    }.getOrNull()
+
+    /** 二进制下载（目录的 npm tarball 回落用）。超时给得宽些：几百 KB 的包。 */
+    private fun httpGetBytes(url: String): ByteArray? = runCatching {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.connectTimeout = 15_000
+        conn.readTimeout = 30_000
+        conn.instanceFollowRedirects = true
+        conn.setRequestProperty("User-Agent", "DSH-Folk")
+        if (conn.responseCode !in 200..299) {
+            conn.disconnect()
+            return@runCatching null
+        }
+        conn.inputStream.use { it.readBytes() }
+    }.getOrNull()
+
+    /** 各种 repository 写法统一成 `owner/name`。 */
+    private fun normalizeRepo(raw: String): String {
+        if (raw.isBlank()) return ""
+        var s = raw.trim()
+            .removePrefix("git+")
+            .removePrefix("git://")
+            .removePrefix("https://")
+            .removePrefix("http://")
+            .removePrefix("ssh://git@")
+            .removePrefix("git@")
+            .removeSuffix(".git")
+        s = s.replace("github.com:", "github.com/")
+        val idx = s.indexOf("github.com/")
+        if (idx >= 0) s = s.substring(idx + "github.com/".length)
+        val parts = s.split('/').filter { it.isNotBlank() }
+        return if (parts.size >= 2) "${parts[0]}/${parts[1]}" else ""
+    }
+}
+
+/**
+ * semver 比较（够用版）：先比 major.minor.patch，相同再比预发布标识。
+ *
+ * 预发布必须参与比较，否则 `1.0.0-rc.1` 与 `1.0.0` 会判成相等 —— 用户装着 rc
+ * 却看不到正式版的更新。规则同 semver：有预发布标识的版本小于没有的，
+ * 都有则按点分段逐段比（数字段按数值，其余按字典序）。
+ */
+internal fun compareVersions(a: String, b: String): Int {
+    fun clean(v: String) = v.trim().removePrefix("v").substringBefore('+')
+    fun core(v: String) = clean(v).substringBefore('-')
+    fun pre(v: String) = clean(v).substringAfter('-', "")
+
+    val pa = core(a).split('.')
+    val pb = core(b).split('.')
+    for (i in 0 until maxOf(pa.size, pb.size)) {
+        // 缺的段按 0 补：1.0 与 1.0.0 是同一个版本，别比出 -1
+        val sa = pa.getOrNull(i) ?: "0"
+        val sb = pb.getOrNull(i) ?: "0"
+        val x = sa.toIntOrNull()
+        val y = sb.toIntOrNull()
+        if (x == null || y == null) {
+            val c = sa.compareTo(sb)
+            if (c != 0) return c
+        } else if (x != y) {
+            return x.compareTo(y)
+        }
+    }
+
+    val qa = pre(a)
+    val qb = pre(b)
+    if (qa == qb) return 0
+    // 正式版 > 预发布版
+    if (qa.isEmpty()) return 1
+    if (qb.isEmpty()) return -1
+    val ra = qa.split('.')
+    val rb = qb.split('.')
+    for (i in 0 until maxOf(ra.size, rb.size)) {
+        val x = ra.getOrNull(i)
+        val y = rb.getOrNull(i)
+        if (x == null) return -1
+        if (y == null) return 1
+        val nx = x.toIntOrNull()
+        val ny = y.toIntOrNull()
+        val c = if (nx != null && ny != null) nx.compareTo(ny) else x.compareTo(y)
+        if (c != 0) return c
+    }
+    return 0
+}

@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">桌面应用名称</string>
+
+    <string name="home">首页</string>
+
+    <string name="failure">失败</string>
+
+
+
+    <string name="settings_nav_layout_title">导航布局设置</string>
+    <string name="settings_nav_layout_summary">隐藏或显示导航的部分组件</string>
+    <string name="settings_nav_scheme">导航方案设置</string>
+    <string name="settings_nav_mode_auto">自动传统导航栏</string>
+    <string name="settings_nav_mode_bottom">始终底部导航栏</string>
+    <string name="settings_nav_mode_rail">始终侧边导航栏</string>
+    <string name="settings_nav_mode_floating">悬浮底部导航栏</string>
+    <string name="settings_floating_auto_hide">自动隐藏悬浮底栏</string>
+    <string name="settings_floating_auto_hide_summary">无操作3秒后自动隐藏悬浮底栏</string>
+    <string name="settings_floating_swipe_hide">滑动隐藏悬浮底栏</string>
+    <string name="settings_floating_swipe_hide_summary">向下滑动时隐藏底栏，向上滑动时显示底栏</string>
+    <string name="settings_navbar_glass_effect">毛玻璃效果</string>
+    <string name="settings_navbar_glass_effect_summary">为悬浮导航栏应用毛玻璃视觉效果</string>
+    <string name="settings_navbar_glass_blur_strength">模糊强度</string>
+    <string name="settings_navbar_glass_transparency">背景透明度</string>
+    <string name="settings_navbar_glass_highlight_strength">高光强度</string>
+    <string name="settings_navbar_glass_specular">镜面反射</string>
+    <string name="settings_navbar_glass_specular_summary">在导航栏顶部启用镜面高光效果</string>
+    <string name="settings_navbar_glass_inner_glow">内发光</string>
+    <string name="settings_navbar_glass_inner_glow_summary">在导航栏底部启用微光效果</string>
+    <string name="settings_navbar_glass_border">玻璃边框</string>
+    <string name="settings_navbar_glass_border_summary">在导航栏周围启用微妙的边框描边</string>
+    <string name="settings_compact_rounded_bar">紧凑圆角风格</string>
+    <string name="settings_compact_rounded_bar_summary">使用圆角紧凑间距的胶囊形悬浮底栏</string>
+    <string name="settings_stats_top_layout">顶部布局</string>
+    <string name="settings_stats_top_layout_list">列表样式</string>
+    <string name="settings_stats_top_layout_grid">网格样式</string>
+
+    <string name="reboot">重启</string>
+    <string name="settings">设置</string>
+    <string name="reboot_recovery">重启到 Recovery</string>
+    <string name="reboot_bootloader">重启到 Bootloader</string>
+    <string name="reboot_download">重启到 Download</string>
+    <string name="reboot_edl">重启到 EDL</string>
+    <string name="reboot_fastbootd">重启到 FastbootD</string>
+    <string name="about">关于</string>
+    <string name="developer_and_maintainer">开发者 | 维护者</string>
+    <string name="settings_app_language">语言</string>
+    <string name="system_default">系统默认</string>
+
+    <string name="settings_grid_working_card_hide_check">隐藏状态图标</string>
+    <string name="settings_grid_working_card_hide_check_summary">隐藏工作卡片上的对号或警告图标</string>
+    <string name="settings_grid_working_card_hide_text">隐藏状态文字</string>
+    <string name="settings_grid_working_card_hide_text_summary">隐藏工作卡片上的"工作中"或"未安装"文字</string>
+    <string name="settings_grid_working_card_hide_mode">隐藏工作模式</string>
+    <string name="settings_grid_working_card_hide_mode_summary">隐藏工作卡片上的"Full"或"Half"文字</string>
+
+    <string name="settings_folkx_engine_title">FolkX动画引擎</string>
+    <string name="settings_folkx_engine_summary">在顶层页面切换时使用丝滑的物理弹簧动画</string>
+    <string name="settings_folkx_animation_type">动画类型</string>
+    <string name="settings_folkx_animation_speed">动画速度</string>
+    <string name="settings_folkx_animation_linear">线性运动</string>
+    <string name="settings_folkx_animation_spatial">空间运动</string>
+    <string name="settings_folkx_animation_fade">渐隐渐显</string>
+    <string name="settings_folkx_animation_vertical">垂直滑动</string>
+    <string name="settings_folkx_animation_diagonal">对角滑动</string>
+
+    <string name="send_log">发送日志</string>
+    <string name="settings_clean_storage">清理资源与缓存</string>
+    <string name="settings_clean_storage_summary">删除已下载主题、导入媒体、音效和缓存</string>
+    <string name="settings_clean_storage_confirm">将删除以下内容：\n\n• 已下载的主题\n• 导入的音乐\n• 导入的音效\n• 全部临时缓存文件\n\n应用设置、DSH 运行时、会话、插件、模型配置和无线 ADB 密钥都会保留。随后会重建相关资源目录。是否继续？</string>
+    <string name="settings_clean_storage_done">清理完成</string>
+    <string name="github">GitHub</string>
+
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">内核版本</string>
+    <string name="home_fingerprint">指纹</string>
+
+    <string name="home_selinux_status">SELinux 状态</string>
+    <string name="home_selinux_status_disabled">已禁用</string>
+    <string name="home_selinux_status_enforcing">强制执行</string>
+    <string name="home_selinux_status_permissive">宽容模式</string>
+    <string name="home_selinux_status_unknown">未知</string>
+
+
+    <string name="home_device_info">设备</string>
+    <string name="home_system_version">系统版本</string>
+
+
+
+    <string name="apm_remove">移除</string>
+    <string name="apm_update">更新</string>
+
+
+
+    <string name="enable_web_debugging">启用 WebView 调试</string>
+    <string name="enable_web_debugging_summary">可用于调试 WebUI。请仅在需要时启用。</string>
+    <string name="apm_enable_module_banner">启用模块横幅</string>
+    <string name="apm_enable_module_banner_summary">为支持的模块显示横幅图片</string>
+    <string name="apm_enable_folk_banner">自定义模块横幅</string>
+    <string name="apm_enable_folk_banner_summary">长按模块卡片自选横幅图片</string>
+    <string name="apm_banner_api_mode">API模式</string>
+    <string name="apm_banner_api_mode_summary">使用随机图API或本地目录为模块提供横幅</string>
+    <string name="apm_banner_api_source">配置API源</string>
+    <string name="apm_banner_api_source_hint">输入API地址或本地路径</string>
+    <string name="apm_banner_api_source_saved">API源已保存</string>
+    <string name="apm_banner_api_source_not_configured">未配置</string>
+    <string name="apm_banner_api_url_configured">API地址已配置</string>
+    <string name="apm_banner_local_dir_configured">本地目录已配置</string>
+    <string name="apm_banner_clear_cache">清除缓存</string>
+    <string name="apm_banner_cache_cleared">横幅缓存已清除</string>
+    <string name="apm_banner_api_config_title">配置API源</string>
+    <string name="apm_banner_api_config_desc">输入随机图API地址或本地目录路径，每个模块将获得唯一的横幅图片。</string>
+    <string name="apm_banner_api_examples_title">示例：</string>
+    <string name="apm_banner_api_examples">API: https://picsum.photos/800/400\n本地: /sdcard/Pictures/Banners</string>
+    <!-- API 接口市场 -->
+    <string name="apm_api_marketplace_title">API 接口市场</string>
+    <string name="apm_api_preview">预览</string>
+    <string name="apm_api_apply">应用</string>
+    <string name="apm_api_preview_title">API 预览</string>
+    <string name="apm_api_preview_failed">预览加载失败</string>
+    <string name="apm_api_url_label">API 地址：</string>
+    <string name="apm_api_apply_success">API 源已成功应用</string>
+    <string name="apm_api_verifying">验证中…</string>
+    <string name="apm_api_retry">重试</string>
+    <string name="apm_api_empty">暂无 API 源</string>
+    <string name="settings_banner_custom_opacity">横幅透明度</string>
+    <string name="settings_banner_custom_opacity_summary">自定义横幅透明度，不再跟随壁纸模式</string>
+    <string name="settings_banner_opacity">横幅不透明度</string>
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">反馈或建议</string>
+    <string name="home_more_menu_about">关于</string>
+    <string name="home_more_menu_music_play">播放音乐</string>
+    <string name="home_more_menu_music_pause">暂停音乐</string>
+
+    <!-- Plugin strings -->
+
+    
+
+    
+    
+
+    <string name="amber_theme">琥珀色</string>
+    <string name="blue_theme">蓝色</string>
+    <string name="blue_grey_theme">蓝灰色</string>
+    <string name="brown_theme">大地</string>
+    <string name="cyan_theme">碧湖</string>
+    <string name="deep_orange_theme">夕阳</string>
+    <string name="deep_purple_theme">星夜</string>
+    <string name="green_theme">森林</string>
+    <string name="indigo_theme">深海</string>
+    <string name="light_blue_theme">海洋</string>
+    <string name="light_green_theme">春草</string>
+    <string name="lime_theme">新叶</string>
+    <string name="orange_theme">晨曦</string>
+    <string name="pink_theme">桃夭</string>
+    <string name="purple_theme">薰衣</string>
+    <string name="red_theme">烈焰</string>
+    <string name="sakura_theme">樱花</string>
+    <string name="teal_theme">翡翠</string>
+    <string name="yellow_theme">金穗</string>
+    <string name="ink_wash_theme">水墨风</string>
+
+    <string name="theme_color">主题颜色</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_system">系统</string>
+
+    <string name="about_powered_by">由 %1$s 提供支持</string>
+    
+    <!-- Loading Strings -->
+    <string name="loading_themes">正在加载主题…</string>
+    <string name="loading_apis">正在加载 API 源…</string>
+    <string name="retry">重试</string>
+
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">崩溃报告</string>
+    <string name="crash_handle_copy">复制</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">应用版本: %s</string>
+    <string name="about_github">GitHub</string>
+
+    <string name="settings_app_dpi">应用 DPI</string>
+    <string name="dpi_apply_settings">应用</string>
+
+<string name="settings_app_title">应用名称</string>
+    <string name="app_title_custom">自定义</string>
+    <string name="settings_custom_app_title">设置应用名字</string>
+    <string name="custom_app_title_dialog_title">自定义应用名称</string>
+    <string name="custom_app_title_dialog_hint">请输入应用名称</string>
+    <string name="custom_app_title_dialog_confirm">确定</string>
+    <string name="cancel">取消</string>
+    <string name="settings_custom_background">自定义背景</string>
+    <string name="settings_custom_background_enabled">已启用自定义背景</string>
+    <string name="settings_custom_background_opacity">卡片不透明度</string>
+    <string name="settings_custom_background_blur">背景模糊</string>
+    <string name="settings_custom_background_dim">背景暗度</string>
+    <string name="settings_custom_background_dual_dim">启用双切暗色适配</string>
+    <string name="settings_custom_background_dual_dim_desc">根据亮色和暗色主题自动调整背景暗度</string>
+    <string name="settings_custom_background_day_dim">白天模式暗度</string>
+    <string name="settings_custom_background_night_dim">夜间模式暗度</string>
+    <string name="settings_multi_background_mode">启用多背景模式</string>
+    <string name="settings_multi_background_mode_summary">为不同页面设置不同的背景图片</string>
+    <string name="settings_select_home_background">首页背景</string>
+    <string name="settings_select_kernel_background">插件商店背景</string>
+    <string name="settings_select_superuser_background">终端页背景</string>
+    <string name="settings_select_system_module_background">插件页背景</string>
+    <string name="settings_select_settings_background">设置页面背景</string>
+
+    <string name="settings_advanced_title_style">高级标题样式</string>
+    <string name="settings_advanced_title_style_summary">使用自定义图片替换顶部标题</string>
+    <string name="settings_advanced_title_style_enabled">高级标题样式已启用</string>
+    <string name="settings_select_title_image">选择标题图片</string>
+    <string name="settings_title_image_permission_required">请先授予存储权限才能选择标题图片</string>
+    <string name="settings_background_permission_required">请先授予存储权限才能选择背景图片</string>
+    <string name="settings_title_image_selected">已选择标题图片</string>
+    <string name="settings_title_image_saved">标题图片保存成功</string>
+    <string name="settings_title_image_error">保存标题图片失败</string>
+    <string name="settings_clear_title_image">清除标题图片</string>
+    <string name="settings_clear_title_image_confirm">确定要清除标题图片吗？</string>
+    <string name="settings_title_image_cleared">标题图片已清除</string>
+    <string name="settings_title_image_day_opacity">白天模式透明度</string>
+    <string name="settings_title_image_night_opacity">夜间模式透明度</string>
+    <string name="settings_title_image_dim">背景暗度</string>
+    <string name="settings_title_image_offset_x">水平位置</string>
+
+    <!-- Font Settings -->
+    <string name="settings_custom_font">自定义字体</string>
+    <string name="settings_select_font_file">选择字体文件</string>
+    <string name="settings_custom_font_enabled">已启用自定义字体</string>
+    <string name="settings_custom_font_summary">使用自定义 TTF 字体</string>
+    <string name="settings_font_selected">已选择自定义字体</string>
+    <string name="settings_custom_font_error">保存字体文件失败</string>
+    <string name="settings_custom_font_saved">自定义字体保存成功</string>
+    <string name="settings_clear_font">恢复默认字体</string>
+    <string name="settings_clear_font_confirm">确定要恢复默认字体吗？</string>
+    <string name="settings_font_cleared">已恢复默认字体</string>
+    <string name="settings_select_background_image">选择背景图片</string>
+    <string name="settings_custom_background_summary">设置自定义背景图片</string>
+    <string name="settings_custom_background_saved">背景保存成功</string>
+    <string name="settings_custom_background_error">保存背景失败</string>
+    <string name="settings_crop_not_supported">当前设备不支持裁剪，已保存原图</string>
+    <string name="settings_crop_dialog_title">裁剪壁纸</string>
+    <string name="settings_crop_dialog_message">是否裁剪图片？</string>
+    <string name="settings_crop_dialog_crop">是</string>
+    <string name="settings_crop_dialog_direct">否</string>
+    <string name="settings_background_selected">已选择背景</string>
+    <string name="settings_background_image_cleared">已移除背景</string>
+    <string name="settings_clear_background">清除背景</string>
+    <string name="settings_clear_background_confirm">确定要清除背景图片吗？</string>
+
+    <string name="settings_alt_icon">备用图标</string>
+    <string name="alt_icon_summary">使用备选启动器图标</string>
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">视频背景</string>
+    <string name="settings_video_background_summary">使用视频作为背景</string>
+    <string name="settings_select_video">选择视频</string>
+    <string name="settings_video_selected">已选择视频</string>
+    <string name="settings_clear_video_background">清除视频壁纸</string>
+    <string name="settings_clear_video_background_confirm">确定要清除视频壁纸吗？</string>
+    <string name="settings_video_volume">视频音量</string>
+    
+
+    <!-- 隐藏设定字符串 -->
+    <string name="home_hide_fingerprint">隐藏指纹信息</string>
+    <string name="home_hide_fingerprint_summary">在信息卡片中隐藏指纹信息</string>
+    <!-- KPM AutoLoad Strings -->
+    
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">欢迎使用 DSH-Folk</string>
+    <string name="welcome_desc_1">在手机上跑 DeepSeek Harness。DSH-Folk 会下载一份 Linux 运行时，用容器把它拉起来，再把 Web UI 交到你手上。</string>
+    <string name="welcome_title_2">高度自定义</string>
+    <string name="welcome_desc_2">从主题颜色、背景、字体到音效、震动，一切都可以自由定制。原有的 FolkPatch / APatch theme.json 依然可以直接导入。</string>
+    <string name="welcome_title_3">运行方式与权限</string>
+    <string name="welcome_desc_3">首页可以切换 proot / proroot 两种容器后端。DSH-Folk 不打内核补丁，只探测并复用设备上已有的 root、Shizuku 或无线 ADB。</string>
+    <string name="welcome_title_4">准备好了吗？</string>
+    <string name="welcome_desc_4">回到首页点启动，DSH-Folk 会自动下载运行时、拉起 dsh web，并把访问地址显示给你。</string>
+    <string name="welcome_prev">上一步</string>
+    <string name="welcome_next">下一步</string>
+    <string name="welcome_skip">跳过</string>
+    <string name="welcome_got_it">开始使用</string>
+
+    <!-- 本次更新（每次升级后弹一次，见 util/Changelog.kt） -->
+    <string name="changelog_warning">由于测试人数不足，本次运行时更新不保证您的数据保留，请做好备份再更新运行时！</string>
+    <string name="changelog_title">%1$s 更新了什么</string>
+    <string name="changelog_got_it">知道了</string>
+    <string-array name="changelog_items">
+        <item>正式版：汇总自 1.9.5 以来的改进，并适配 dsh 0.2.0 运行时。</item>
+        <item>新增「分享 / 以…打开」处理：可选用途——备份文件（或从文件恢复）、导入主题、交给 DSH。交给 DSH 时可选工作区：文件复制进去、提示词放进剪贴板，也可以直接在该工作区开一个新会话并把文件插好。</item>
+        <item>新增「把手机存储挂进 DSH 工作区」（独立子开关，默认关）：挂载后 agent 能直接读写你指定的手机目录；对不支持原子写的目录，会通过宿主提示词告知模型改用 edit 或终端，避免 write 静默失败。</item>
+        <item>适配 dsh 0.2.0：启动不再去拉系统浏览器；云备份插件升级到 0.2.0 兼容版（0.5.0 在新运行时下会被 dsh 整包跳过，导致云备份不可用）；插件市场种子版本抬到新旧运行时都兼容的版本。</item>
+        <item>修复「服务就绪后自动打开页面」只在第一次生效，以及从分享入口进来时 DSH 页面会把原界面挤到后台的问题。</item>
+        <item>修复宿主提示词整段消失（插件 patch 行被压平后不再生效），以及 dsh-fs 的若干问题：改挂载名单后偶发栈溢出、拒绝改 no_access、移动端键盘遮挡输入框。</item>
+        <item>新增精简版运行时通道：设置里多一个「使用精简版运行时」开关（与「接受测试版」正交，两者可自由组合），对应 runtime-slim-latest。精简版砍掉类型声明、sourcemap、文档、测试夹具与 LibreOffice 引擎，下载体积约小 63MB（169MB vs 232MB）；代价是无法进行文档预览与转换。</item>
+    </string-array>
+
+    
+
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- Auto Backup Strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">首页布局样式</string>
+    <string name="settings_home_layout_default">ListUI</string>
+    <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
+    <string name="settings_home_layout_circle">CircleUI</string>
+    <string name="settings_home_layout_dashboard_pro">DashboardUI</string>
+    <string name="settings_save_theme">保存主题</string>
+    <string name="settings_import_theme">导入主题</string>
+    <string name="settings_theme_saved">主题已保存</string>
+    <string name="settings_theme_imported">主题已导入</string>
+    <string name="settings_theme_save_failed">保存主题失败</string>
+    <string name="settings_theme_import_failed">导入主题失败</string>
+    <string name="settings_reset_theme">恢复主题</string>
+    <string name="settings_reset_theme_confirm">确定要将所有主题设置恢复为默认值吗？这将清除所有自定义背景、字体、音乐和音效。</string>
+    <string name="settings_theme_reset">主题已恢复默认</string>
+    <string name="settings_theme_reset_failed">恢复主题失败</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">导出主题</string>
+    <string name="theme_import_title">导入主题</string>
+    <string name="theme_name">主题名称</string>
+    <string name="theme_type">主题类型</string>
+    <string name="theme_type_phone">手机</string>
+    <string name="theme_type_tablet">平板</string>
+    <string name="theme_version">版本</string>
+    <string name="theme_author">作者</string>
+    <string name="theme_description">描述</string>
+    <string name="theme_export_action">导出</string>
+    <string name="theme_import_action">导入</string>
+    <string name="theme_import_confirm">确定要导入此主题吗？</string>
+
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">工作卡片背景</string>
+    <string name="settings_grid_working_card_background_enabled">自定义卡片背景已启用</string>
+    <string name="settings_grid_working_card_background_summary">为工作卡片设置自定义背景图片</string>
+    <string name="settings_grid_working_card_background_selected">背景已选择</string>
+    <string name="settings_grid_working_card_dual_opacity">启用双切透明度适配</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">根据亮色和暗色主题自动调整卡片透明度</string>
+    <string name="settings_grid_working_card_day_opacity">白天模式透明度</string>
+    <string name="settings_grid_working_card_night_opacity">夜间模式透明度</string>
+    <string name="settings_clear_grid_working_card_background">清除卡片背景</string>
+    <string name="settings_clear_grid_working_card_background_confirm">确定要清除卡片背景图片吗？</string>
+    <string name="settings_grid_working_card_background_saved">卡片背景保存成功</string>
+    <string name="settings_grid_working_card_background_error">卡片背景保存失败</string>
+    <string name="settings_grid_working_card_background_cleared">卡片背景已清除</string>
+
+    <!-- FocusUI卡片壁纸 -->
+    <string name="focus_card_background_title">卡片壁纸</string>
+    <string name="focus_card_background_clear">清除卡片壁纸</string>
+    <string name="focus_card_background_clear_confirm">确定要清除该卡片的壁纸吗？</string>
+    <string name="focus_card_background_saved">卡片壁纸保存成功</string>
+    <string name="focus_card_background_error">卡片壁纸保存失败</string>
+    <string name="focus_card_background_cleared">卡片壁纸已清除</string>
+    <string name="focus_card_permission_required">请先授予存储权限才能选择壁纸</string>
+    <string name="settings_focus_card_background">FocusUI 卡片壁纸</string>
+    <string name="settings_focus_card_background_enabled">FocusUI 卡片壁纸已开启，长按卡片管理壁纸</string>
+    <string name="settings_focus_card_background_summary">启用 FocusUI 卡片壁纸及长按壁纸管理</string>
+    <string name="settings_focus_card_dual_dim">启用昼夜双暗度</string>
+    <string name="settings_focus_card_dual_dim_desc">自动根据明暗主题调整卡片壁纸暗度</string>
+    <string name="settings_focus_card_day_dim">日间模式卡片壁纸暗度</string>
+    <string name="settings_focus_card_night_dim">夜间模式卡片壁纸暗度</string>
+    <string name="settings_focus_card_opacity">卡片壁纸透明度</string>
+    <string name="settings_focus_card_dual_opacity">启用昼夜双透明度</string>
+    <string name="settings_focus_card_dual_opacity_desc">自动根据明暗主题调整卡片壁纸透明度</string>
+    <string name="settings_focus_card_day_opacity">日间模式卡片壁纸透明度</string>
+    <string name="settings_focus_card_night_opacity">夜间模式卡片壁纸透明度</string>
+    <string name="settings_focus_card_kernel">内核卡片</string>
+    <string name="settings_focus_card_app">应用卡片</string>
+    <string name="settings_focus_card_device">设备状态卡片</string>
+    <string name="settings_focus_card_storage">存储卡片</string>
+    <string name="settings_focus_card_wallpaper_selected">已设置壁纸</string>
+    <string name="dashboard_card_background_title">仪表盘卡片壁纸</string>
+    <string name="settings_dashboard_card_background">仪表盘卡片壁纸</string>
+    <string name="settings_dashboard_card_background_enabled">仪表盘壁纸已开启，长按仪表盘卡片管理壁纸</string>
+    <string name="settings_dashboard_card_background_summary">为 DashboardUI 仪表盘卡片启用壁纸</string>
+    <string name="dashboard_card_background_clear">清除仪表盘壁纸</string>
+    <string name="dashboard_card_background_clear_confirm">确定要清除仪表盘卡片壁纸吗？</string>
+    <string name="dashboard_card_background_saved">仪表盘壁纸保存成功</string>
+    <string name="dashboard_card_background_error">仪表盘壁纸保存失败</string>
+    <string name="dashboard_card_background_cleared">仪表盘壁纸已清除</string>
+    <string name="dashboard_card_background_restore">恢复默认壁纸</string>
+    <string name="dashboard_card_background_restored">已恢复默认壁纸</string>
+    <string name="settings_dashboard_card_dual_dim">启用昼夜双暗度</string>
+    <string name="settings_dashboard_card_dual_dim_desc">自动根据明暗主题调整仪表盘壁纸暗度</string>
+    <string name="settings_dashboard_card_day_dim">白天模式仪表盘壁纸暗度</string>
+    <string name="settings_dashboard_card_night_dim">夜间模式仪表盘壁纸暗度</string>
+    <string name="settings_dashboard_card_opacity">仪表盘壁纸透明度</string>
+    <string name="settings_dashboard_card_dual_opacity">启用昼夜双透明度</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">自动根据明暗主题调整仪表盘壁纸透明度</string>
+    <string name="settings_dashboard_card_day_opacity">白天模式仪表盘壁纸透明度</string>
+    <string name="settings_dashboard_card_night_opacity">夜间模式仪表盘壁纸透明度</string>
+
+    <!-- Biometric Strings -->
+    <string name="action_biometric">生物识别认证</string>
+    <string name="msg_biometric">请验证您的生物识别身份</string>
+    <string name="msg_enable_biometric">启用生物识别认证以在打开应用时要求验证？</string>
+    <string name="settings_biometric_login">生物识别认证</string>
+    <string name="settings_biometric_login_summary">打开应用时要求生物识别认证</string>
+    <string name="settings_strong_biometric">强力生物识别</string>
+    <string name="settings_strong_biometric_summary">安装、卸载或禁用模块时需要验证</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">主题商店</string>
+    <string name="theme_source_official">官方</string>
+    <string name="theme_source_third_party">第三方</string>
+    <string name="theme_store_author">作者: %s</string>
+    <string name="theme_store_version">版本: %s</string>
+    <string name="theme_source">来源</string>
+    <string name="theme_store_download">下载</string>
+    <string name="theme_store_search_hint">搜索主题...</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">自动检查更新</string>
+    <string name="settings_auto_update_check_summary">应用启动时自动检查更新</string>
+    <string name="settings_beta_update">接受测试版更新</string>
+    <string name="settings_beta_update_summary">连 GitHub Actions 构建的预发布版一起提示。它用正式版的签名，可以直接覆盖安装，之后的正式版也能装回来 —— 代价只是它「新」得多于「稳」。</string>
+    <string name="update_beta_badge">测试版</string>
+    <string name="update_beta_warning">这是一个预发布版本：比上一个正式版新，也比它测试得少。它可以直接覆盖当前版本，之后的正式版也能装回来。</string>
+    <string name="settings_check_update">检查更新</string>
+    <string name="update_available_title">有可用更新</string>
+    <string name="update_available_message">检测到您的版本过低，是否要下载新版本？</string>
+    <string name="update_action">更新</string>
+    <string name="update_close">关闭</string>
+    <string name="update_latest">您已是最新版本</string>
+    <string name="update_check_failed">检查更新失败：网络不可用或 GitHub 接口限流</string>
+    <string name="update_in_app">应用内更新</string>
+    <string name="update_download_now">开始下载</string>
+    <string name="update_open_browser">用浏览器打开</string>
+    <string name="update_speed_testing">正在测试下载渠道…</string>
+    <string name="update_channel_result">%1$d ms · %2$s</string>
+    <string name="update_channel_recommended">%1$s（推荐）</string>
+    <string name="update_channel_unreachable">不可达</string>
+    <string name="update_all_channels_down">所有下载渠道都不可达</string>
+    <string name="update_downloading">下载中 %1$d%% · %2$s</string>
+    <string name="update_verifying">正在校验…</string>
+    <string name="update_ready">校验通过，可以安装了。</string>
+    <string name="update_verify_failed">下载或校验失败，已丢弃该安装包</string>
+    <string name="update_no_asset">这个版本没有附带 APK，请改用浏览器下载</string>
+    <string name="update_no_checksum">这个版本没有 .sha256 校验文件，不安装未校验的包</string>
+    <string name="update_install">安装</string>
+    <string name="update_install_permission_needed">请先允许安装未知应用，然后再点「安装」</string>
+    <string name="update_notes_title">更新内容</string>
+    <!--折叠选项-->
+    <string name="settings_category_general">常规</string>
+    <string name="settings_category_appearance">外观</string>
+    <string name="settings_category_behavior">行为</string>
+    
+    <!-- Appearance Sub-Categories -->
+    <string name="settings_appearance_font">字体设置</string>
+    <string name="settings_appearance_theme">主题设置</string>
+
+    <string name="settings_nav_custom_icons">自定义导航图标</string>
+    <string name="settings_nav_custom_icons_summary">用自定义图片替换底部导航栏图标</string>
+    <string name="nav_icon_home">首页图标</string>
+    <string name="nav_icon_superuser">终端图标</string>
+    <string name="nav_icon_apm">插件图标</string>
+    <string name="nav_icon_settings">设置图标</string>
+    <string name="nav_icon_clear">重置为默认</string>
+    <string name="nav_icon_custom_selected">自定义</string>
+    <string name="nav_icon_default">默认</string>
+    <string name="nav_icon_cleared">图标已重置为默认</string>
+    <string name="nav_icon_set">图标已更新</string>
+    <string name="nav_icon_set_failed">图标保存失败</string>
+
+    <string name="settings_theme_mode">模式配置</string>
+    <string name="settings_theme_mode_summary">在内置主题商店和浏览器兼容模式之间切换</string>
+    <string name="theme_mode_builtin">内置模式</string>
+    <string name="theme_mode_builtin_desc">使用内置主题商店浏览、下载和应用主题</string>
+    <string name="theme_mode_compat">兼容模式</string>
+    <string name="theme_mode_compat_desc">使用浏览器直接下载主题（适用于导入有问题的设备）</string>
+    <string name="theme_mode_onboarding_title">选择主题模式</string>
+    <string name="theme_mode_onboarding_msg">您希望如何浏览和安装主题？您可以在设置中随时更改。</string>
+    <string name="theme_mode_builtin_label">内置商店</string>
+    <string name="theme_mode_compat_label">浏览器模式</string>
+    <string name="theme_mode_switched">主题模式已切换为%s</string>
+    <string name="theme_mode_current">当前：%s</string>
+    <string name="theme_mode_switch_title">切换主题模式</string>
+    <string name="theme_mode_switch_msg">更改模式将影响您浏览和安装主题的方式。是否继续？</string>
+    <string name="settings_appearance_banner">横幅设置</string>
+    <string name="settings_appearance_layout">布局设置</string>
+    <string name="settings_appearance_background">背景设置</string>
+    <string name="settings_appearance_night_mode">夜间模式设置</string>
+    <string name="settings_amoled_theme">AMOLED 纯黑主题</string>
+    <string name="settings_amoled_theme_desc">为深色模式使用纯黑背景</string>
+    <string name="settings_switch_icon">启用按钮指示器</string>
+    <string name="settings_switch_icon_desc">为开关按钮添加状态指示图标</string>
+    <string name="settings_discrete_slider">离散滑块</string>
+    <string name="settings_discrete_slider_desc">在滑块轨道上显示刻度标记</string>
+    <string name="settings_category_security">安全</string>
+    <string name="settings_category_function">功能</string>
+    <string name="settings_category_permissions">权限</string>
+
+    <!-- 背景音乐字符串 -->
+    <string name="settings_background_music">背景音乐</string>
+    <string name="settings_background_music_summary">应用在前台时播放背景音乐</string>
+    <string name="settings_background_music_playing">正在播放: %s</string>
+    <string name="settings_background_music_enabled">背景音乐已启用</string>
+    <string name="settings_select_music_file">选择音乐文件</string>
+    <string name="settings_music_selected">音乐已选择</string>
+    <string name="settings_clear_music">清除音乐</string>
+    <string name="settings_clear_music_confirm">确定要清除背景音乐吗？</string>
+    <string name="settings_music_auto_play">自动播放</string>
+    <string name="settings_music_auto_play_summary">应用打开时自动播放音乐</string>
+    <string name="settings_music_looping">循环播放</string>
+    <string name="settings_music_looping_summary">循环播放当前歌曲</string>
+    <string name="settings_music_volume">音量</string>
+    <string name="settings_music_saved">音乐文件已保存</string>
+    <string name="settings_music_save_error">保存音乐文件失败</string>
+    <string name="settings_music_cleared">音乐已清除</string>
+    <string name="settings_category_multimedia">多媒体</string>
+    <string name="settings_category_general_summary">语言、更新、动效、图标与名称、DPI</string>
+    <string name="settings_category_appearance_summary">主题、颜色、布局、背景、字体</string>
+    <string name="settings_category_behavior_summary">Web 调试、信息复制、首页卡片、插件角标</string>
+    <string name="settings_category_security_summary">权限通道、原生能力、无线 ADB 与生物识别</string>
+    <string name="settings_category_backup_summary">DSH 配置导出导入、WebDAV 同步</string>
+    <string name="settings_category_function_summary">容器运行、自启动、网络、运行时文件与数据目录</string>
+    <string name="settings_category_permissions_summary">权限通道、原生能力、存储访问与无线 ADB</string>
+    <string name="settings_category_multimedia_summary">背景音乐、音效、振动</string>
+    <string name="settings_music_playback_control">播放控制</string>
+
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">筛选主题</string>
+    <string name="theme_store_filter_author">作者</string>
+    <string name="theme_store_filter_author_hint">输入作者名称</string>
+    <string name="theme_store_filter_source">来源</string>
+    <string name="theme_store_filter_source_all">全部</string>
+    <string name="theme_store_filter_type">设备类型</string>
+    <string name="theme_store_filter_apply">应用</string>
+    <string name="theme_store_filter_reset">重置</string>
+
+    <!-- My Themes Page -->
+    <string name="my_themes_title">我的主题</string>
+    <string name="my_themes_empty">暂无主题</string>
+    <string name="my_themes_empty_action">去逛逛</string>
+    <string name="my_themes_apply">应用主题</string>
+    <string name="my_themes_delete">删除主题</string>
+    <string name="my_themes_delete_confirm">确定要删除此主题吗？</string>
+    <string name="my_themes_deleted">主题已删除</string>
+    <string name="my_themes_applied">主题已应用</string>
+    <string name="my_themes_apply_failed">应用失败，文件可能已损坏。长按主题删除后重新下载</string>
+
+    <!-- Download Dialog -->
+    <string name="theme_download_title">正在下载主题</string>
+    <string name="theme_download_completed">下载完成</string>
+    <string name="theme_download_failed">下载失败</string>
+    <string name="theme_download_progress">进度</string>
+    <string name="theme_download_file">主题文件</string>
+    <string name="theme_download_image">预览图片</string>
+    <string name="theme_download_cancel">取消</string>
+    <string name="theme_download_pause">暂停</string>
+    <string name="theme_download_apply">应用主题</string>
+    <string name="theme_download_go_to_my_themes">我的主题</string>
+    <string name="theme_download_finalizing">正在完成...</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">需要权限</string>
+    <string name="file_picker_permission_desc">为了浏览文件，请授予\'所有文件访问\'权限。</string>
+    <string name="file_picker_grant_permission">授予权限</string>
+    <string name="file_picker_cancel">取消</string>
+    <string name="file_picker_internal_storage">内部存储</string>
+    <string name="file_picker_no_files">无文件</string>
+    <string name="file_picker_filtered_files">仅显示 %1$s 文件</string>
+    <string name="file_picker_close">关闭文件选择器</string>
+
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">设备状态</string>
+    <string name="home_device_status_battery_temp">电池温度</string>
+    <string name="home_device_status_cpu_load">CPU 负载</string>
+    <string name="home_device_status_battery_level">电池电量</string>
+    <string name="home_storage_title">存储信息</string>
+    <string name="home_storage_internal">内部存储</string>
+    <string name="home_storage_ram">运行内存</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">交换文件</string>
+    <string name="home_info_auth_auth">已认证</string>
+    <string name="home_info_auth_na">不可用</string>
+    <string name="home_info_device_model">设备型号</string>
+
+    <string name="settings_list_card_hide_status_badge">使用经典表情</string>
+    <string name="settings_list_card_hide_status_badge_summary">首页的状态徽章即刻变身经典表情</string>
+    <string name="settings_list_info_show_icons">信息区图标</string>
+    <string name="settings_list_info_show_icons_summary">在信息卡片中为每个信息项显示前置图标</string>
+    <string name="settings_custom_badge_text">自选角标文字</string>
+    <string name="settings_custom_badge_text_summary">修改角标的文本显示，仅供娱乐</string>
+
+    <!-- Install Mode Select -->
+
+
+    <!-- 超级用户应用操作弹窗 -->
+
+    <!-- SU Audit Log -->
+
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">角标统计设置</string>
+    <string name="enable_badge_count_summary">配置导航项的角标统计显示</string>
+    
+    <string name="settings_sound_effect">点击音效</string>
+    <string name="settings_sound_effect_summary">点击时播放音效</string>
+    <string name="settings_sound_effect_enabled">已启用</string>
+    <string name="settings_sound_effect_playing">当前选择: %s</string>
+    <string name="settings_sound_effect_source">音效来源</string>
+    <string name="settings_sound_effect_source_local">本地文件</string>
+    <string name="settings_sound_effect_source_preset">预设</string>
+    <string name="settings_sound_effect_preset_title">预设音效</string>
+    <string name="settings_select_sound_effect">选择音效文件</string>
+    <string name="settings_sound_effect_selected">已选择音效文件</string>
+    <string name="settings_sound_effect_scope">生效范围</string>
+    <string name="settings_sound_effect_scope_global">全局 (任何位置)</string>
+    <string name="settings_sound_effect_scope_bottom_bar">仅底栏</string>
+    <string name="settings_clear_sound_effect">清除音效</string>
+    <string name="settings_clear_sound_effect_confirm">确定要清除音效吗？</string>
+    <string name="settings_sound_effect_cleared">音效已清除</string>
+
+    <string name="settings_startup_sound">启动音效</string>
+    <string name="settings_startup_sound_summary">应用启动时播放音效</string>
+    <string name="settings_startup_sound_enabled">已启用启动音效</string>
+    <string name="settings_startup_sound_playing">正在播放: %s</string>
+    <string name="settings_select_startup_sound">选择启动音效</string>
+    <string name="settings_startup_sound_selected">已选择启动音效</string>
+    <string name="settings_clear_startup_sound">清除启动音效</string>
+    <string name="settings_clear_startup_sound_confirm">确定要清除启动音效吗？</string>
+    <string name="settings_startup_sound_cleared">启动音效已清除</string>
+    <string name="settings_sound_effect_save_failed">保存音效文件失败</string>
+    <string name="settings_startup_sound_save_failed">保存启动音效失败</string>
+
+    <string name="settings_vibration">震动触感</string>
+    <string name="settings_vibration_summary">在触摸事件时震动</string>
+    <string name="settings_vibration_enabled">启用震动</string>
+    <string name="settings_vibration_intensity">震动强度</string>
+    <string name="settings_vibration_scope">震动范围</string>
+    <string name="settings_vibration_scope_global">全局(任意位置)</string>
+    <string name="settings_vibration_scope_bottom_bar">仅底部栏</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">备份</string>
+    <string name="settings_enable_cloud_backup">同步到 WebDAV</string>
+    <string name="settings_enable_cloud_backup_summary">导出 DSH 配置后自动上传一份到 WebDAV（需先配置服务地址）</string>
+    <string name="settings_configure_webdav">配置 WebDAV 服务</string>
+    <string name="webdav_config_title">WebDAV 配置</string>
+    <string name="webdav_url">WebDAV 地址</string>
+    <string name="webdav_username">用户名</string>
+    <string name="webdav_password">密码</string>
+    <string name="webdav_test_success">测试成功</string>
+    <string name="webdav_test_failed">测试失败: %s</string>
+    <string name="save">保存</string>
+    <string name="test">测试</string>
+    <string name="webdav_path_label">路径 (例如 /Backup)</string>
+    <string name="webdav_view_logs">查看日志</string>
+    <string name="webdav_backup_logs_title">备份日志</string>
+    <string name="webdav_no_logs">暂无日志</string>
+    <string name="webdav_clear_logs">清除</string>
+    <string name="close">关闭</string>
+
+    <!-- Script Library Strings -->
+
+    <!-- Umount Service -->
+    <string name="settings_predictive_back">预测性返回手势</string>
+    <string name="settings_predictive_back_summary">启用 Android 14+ 的预测性返回手势动画</string>
+
+    <string name="home_device_status_battery_charging">充电中</string>
+    <string name="home_device_status_cpu_temp">CPU 温度</string>
+    <string name="home_device_status_memory_trend">内存趋势</string>
+    <string name="home_device_status_cpu_freq">CPU 频率</string>
+    <string name="home_network_rx">下载</string>
+    <string name="home_network_tx">上传</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">GPU 负载</string>
+
+
+
+    <string name="settings_search_title">设置搜索</string>
+    <string name="settings_search_empty_hint">输入以搜索所有设置项…</string>
+    <string name="settings_no_results">未找到结果</string>
+
+    <!-- 色彩生成 -->
+    <string name="color_generation_classic">经典</string>
+    <string name="color_generation_custom">自定义</string>
+
+    <!-- 色彩标准 -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- 色彩风格 -->
+    <string name="color_style_tonal_spot">色调</string>
+    <string name="color_style_vibrant">活力</string>
+    <string name="color_style_content">内容</string>
+    <string name="color_style_expressive">表现</string>
+    <string name="color_style_rainbow">彩虹</string>
+    <string name="color_style_fruit_salad">果盘</string>
+    <string name="color_style_monochrome">单色</string>
+    <string name="color_style_neutral">中性</string>
+    <string name="color_style_fidelity">保真</string>
+    <string name="settings_info_copy">长按复制信息</string>
+    <string name="settings_info_copy_summary">长按首页信息栏中的条目即可复制其内容</string>
+    <string name="home_info_copied">%1$s 已复制</string>
+</resources>

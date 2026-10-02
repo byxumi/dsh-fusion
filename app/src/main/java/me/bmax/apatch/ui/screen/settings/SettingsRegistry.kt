@@ -1,0 +1,179 @@
+package me.bmax.apatch.ui.screen.settings
+
+import androidx.annotation.StringRes
+import android.content.res.Resources
+import me.bmax.apatch.R
+
+enum class SettingCategory(
+    val key: String,
+    @StringRes val labelResId: Int,
+) {
+    GENERAL("general", R.string.settings_category_general),
+    APPEARANCE("appearance", R.string.settings_category_appearance),
+    BEHAVIOR("behavior", R.string.settings_category_behavior),
+    SECURITY("security", R.string.settings_category_security),
+    BACKUP("backup", R.string.settings_category_backup),
+    MODULE("module", R.string.dsh_plugins),
+    MULTIMEDIA("multimedia", R.string.settings_category_multimedia),
+    FUNCTION("function", R.string.settings_category_function),
+}
+
+/**
+ * 不属于任何设置分类页、需要直接跳到独立页面的搜索结果。
+ *
+ * 「主题商店 / 保存主题 / 导入主题」从外观页搬到主题商店页之后，这几条如果还按
+ * 分类跳外观页，落地页里根本没有对应的 item key，高亮会静默失效 —— 用户看到的就是
+ * 「搜到了，点进去什么也没发生」。
+ */
+enum class SettingsTarget {
+    THEME_STORE,
+}
+
+data class SettingEntry(
+    val key: String,
+    @StringRes val titleResId: Int,
+    @StringRes val summaryResId: Int? = null,
+    val category: SettingCategory,
+    val directTarget: SettingsTarget? = null,
+)
+
+/** Pre-resolved searchable text for fast filtering without repeated resource lookups. */
+data class ResolvedEntry(
+    val entry: SettingEntry,
+    val title: String,
+    val summary: String,
+    val categoryName: String,
+)
+
+object SettingsRegistry {
+    val allSettings: List<SettingEntry> by lazy {
+        buildList {
+            // === General ===
+            add(SettingEntry("general_language", R.string.settings_app_language, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_check_update", R.string.settings_check_update, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_auto_update", R.string.settings_auto_update_check, R.string.settings_auto_update_check_summary, SettingCategory.GENERAL))
+            add(SettingEntry("general_beta_update", R.string.settings_beta_update, R.string.settings_beta_update_summary, SettingCategory.GENERAL))
+            add(SettingEntry("general_folkx_engine", R.string.settings_folkx_engine_title, R.string.settings_folkx_engine_summary, SettingCategory.GENERAL))
+            add(SettingEntry("general_folkx_animation_type", R.string.settings_folkx_animation_type, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_folkx_animation_speed", R.string.settings_folkx_animation_speed, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_predictive_back", R.string.settings_predictive_back, R.string.settings_predictive_back_summary, SettingCategory.GENERAL))
+            add(SettingEntry("general_alt_icon", R.string.settings_alt_icon, R.string.alt_icon_summary, SettingCategory.GENERAL))
+            add(SettingEntry("general_app_title", R.string.settings_app_title, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_custom_app_title", R.string.settings_custom_app_title, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_desktop_app_name", R.string.desktop_app_name, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_dpi", R.string.settings_app_dpi, category = SettingCategory.GENERAL))
+            add(SettingEntry("general_send_log", R.string.send_log, category = SettingCategory.GENERAL))
+
+            // === Appearance ===
+            add(SettingEntry("appearance_amoled_theme", R.string.settings_amoled_theme, R.string.settings_amoled_theme_desc, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_switch_icon", R.string.settings_switch_icon, R.string.settings_switch_icon_desc, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_discrete_slider", R.string.settings_discrete_slider, R.string.settings_discrete_slider_desc, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_home_layout", R.string.settings_home_layout_style, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_stats_top_layout", R.string.settings_stats_top_layout, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_nav_layout", R.string.settings_nav_layout_title, R.string.settings_nav_layout_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_nav_scheme", R.string.settings_nav_scheme, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass", R.string.settings_navbar_glass_effect, R.string.settings_navbar_glass_effect_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass_blur", R.string.settings_navbar_glass_blur_strength, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass_transparency", R.string.settings_navbar_glass_transparency, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass_highlight", R.string.settings_navbar_glass_highlight_strength, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass_specular", R.string.settings_navbar_glass_specular, R.string.settings_navbar_glass_specular_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass_glow", R.string.settings_navbar_glass_inner_glow, R.string.settings_navbar_glass_inner_glow_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_navbar_glass_border", R.string.settings_navbar_glass_border, R.string.settings_navbar_glass_border_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_floating_auto_hide", R.string.settings_floating_auto_hide, R.string.settings_floating_auto_hide_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_floating_swipe_hide", R.string.settings_floating_swipe_hide, R.string.settings_floating_swipe_hide_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_list_card_badge", R.string.settings_list_card_hide_status_badge, R.string.settings_list_card_hide_status_badge_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_custom_badge_text_list", R.string.settings_custom_badge_text, category = SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_list_info_icons", R.string.settings_list_info_show_icons, R.string.settings_list_info_show_icons_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_advanced_title", R.string.settings_advanced_title_style, R.string.settings_advanced_title_style_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_custom_background", R.string.settings_custom_background, R.string.settings_custom_background_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_video_background", R.string.settings_video_background, R.string.settings_video_background_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_multi_background", R.string.settings_multi_background_mode, R.string.settings_multi_background_mode_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_grid_card_bg", R.string.settings_grid_working_card_background, R.string.settings_grid_working_card_background_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_grid_card_check", R.string.settings_grid_working_card_hide_check, R.string.settings_grid_working_card_hide_check_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_grid_card_text", R.string.settings_grid_working_card_hide_text, R.string.settings_grid_working_card_hide_text_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_grid_card_mode", R.string.settings_grid_working_card_hide_mode, R.string.settings_grid_working_card_hide_mode_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_banner", R.string.apm_enable_module_banner, R.string.apm_enable_module_banner_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_folk_banner", R.string.apm_enable_folk_banner, R.string.apm_enable_folk_banner_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_banner_api_mode", R.string.apm_banner_api_mode, R.string.apm_banner_api_mode_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_banner_opacity", R.string.settings_banner_custom_opacity, R.string.settings_banner_custom_opacity_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_custom_font", R.string.settings_custom_font, R.string.settings_custom_font_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_theme_store", R.string.theme_store_title, category = SettingCategory.APPEARANCE, directTarget = SettingsTarget.THEME_STORE))
+            add(SettingEntry("appearance_theme_store_mode", R.string.settings_theme_mode, R.string.settings_theme_mode_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_save_theme", R.string.settings_save_theme, category = SettingCategory.APPEARANCE, directTarget = SettingsTarget.THEME_STORE))
+            add(SettingEntry("appearance_import_theme", R.string.settings_import_theme, category = SettingCategory.APPEARANCE, directTarget = SettingsTarget.THEME_STORE))
+            add(SettingEntry("appearance_terminal_bg_alpha", R.string.settings_terminal_bg_alpha, R.string.settings_terminal_bg_alpha_summary, SettingCategory.APPEARANCE))
+            add(SettingEntry("appearance_reset_theme", R.string.settings_reset_theme, category = SettingCategory.APPEARANCE))
+
+            // === Behavior ===
+            add(SettingEntry("behavior_web_debugging", R.string.enable_web_debugging, R.string.enable_web_debugging_summary, SettingCategory.BEHAVIOR))
+            add(SettingEntry("behavior_info_copy", R.string.settings_info_copy, R.string.settings_info_copy_summary, SettingCategory.BEHAVIOR))
+            add(SettingEntry("behavior_hide_fingerprint", R.string.home_hide_fingerprint, R.string.home_hide_fingerprint_summary, SettingCategory.BEHAVIOR))
+            add(SettingEntry("behavior_badge_count", R.string.enable_badge_count, R.string.enable_badge_count_summary, SettingCategory.BEHAVIOR))
+
+            // === Security ===
+            add(SettingEntry("security_biometric_login", R.string.settings_biometric_login, R.string.settings_biometric_login_summary, SettingCategory.SECURITY))
+            add(SettingEntry("security_strong_biometric", R.string.settings_strong_biometric, R.string.settings_strong_biometric_summary, SettingCategory.SECURITY))
+
+            // === Backup ===
+            add(SettingEntry("backup_dsh_config", R.string.dsh_backup_section, R.string.dsh_backup_summary, SettingCategory.BACKUP))
+            add(SettingEntry("backup_rescue_cli", R.string.dsh_backup_rescue_section, R.string.dsh_backup_rescue_cmds_title, SettingCategory.BACKUP))
+            // 云备份现在是一整块卡片（item key = backup_cloud），只在检测到 dsh-folk-cloud
+            // 插件时显示；WebDAV 配置是卡片里的一个按钮，不再是独立可滚动项，故不再单列搜索项。
+            add(SettingEntry("backup_cloud", R.string.dsh_bk_cloud_title, R.string.dsh_bk_cloud_desc, SettingCategory.BACKUP))
+
+            // === Plugin ===
+            add(SettingEntry("module_disable_update", R.string.dsh_plugin_disable_update_check, R.string.dsh_plugin_disable_update_check_summary, SettingCategory.MODULE))
+            add(SettingEntry("module_more_info", R.string.dsh_plugin_more_info, R.string.dsh_plugin_more_info_summary, SettingCategory.MODULE))
+            add(SettingEntry("module_sort_opt", R.string.dsh_plugin_sort_updatable_first, R.string.dsh_plugin_sort_updatable_first_summary, SettingCategory.MODULE))
+
+            // === Multimedia ===
+            add(SettingEntry("multimedia_bg_music", R.string.settings_background_music, R.string.settings_background_music_summary, SettingCategory.MULTIMEDIA))
+            add(SettingEntry("multimedia_music_auto_play", R.string.settings_music_auto_play, R.string.settings_music_auto_play_summary, SettingCategory.MULTIMEDIA))
+            add(SettingEntry("multimedia_music_looping", R.string.settings_music_looping, R.string.settings_music_looping_summary, SettingCategory.MULTIMEDIA))
+            add(SettingEntry("multimedia_music_volume", R.string.settings_music_volume, category = SettingCategory.MULTIMEDIA))
+            add(SettingEntry("multimedia_sound_effect", R.string.settings_sound_effect, R.string.settings_sound_effect_summary, SettingCategory.MULTIMEDIA))
+            add(SettingEntry("multimedia_startup_sound", R.string.settings_startup_sound, R.string.settings_startup_sound_summary, SettingCategory.MULTIMEDIA))
+            add(SettingEntry("multimedia_vibration", R.string.settings_vibration, R.string.settings_vibration_summary, SettingCategory.MULTIMEDIA))
+
+            // === Function ===
+            add(SettingEntry("function_run_mode", R.string.dsh_run_mode, R.string.dsh_run_mode_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_autostart", R.string.dsh_autostart, R.string.dsh_autostart_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_auto_start_service", R.string.dsh_auto_start_service, R.string.dsh_auto_start_service_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_auto_open_webui", R.string.dsh_auto_open_webui, R.string.dsh_auto_open_webui_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_port", R.string.dsh_port_title, R.string.dsh_port_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_lan", R.string.dsh_lan_title, R.string.dsh_lan_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_gh_mirror", R.string.dsh_race_title, R.string.dsh_race_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_webui_mode", R.string.dsh_webui_mode, R.string.dsh_webui_mode_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_webui_compat", R.string.dsh_webui_compat_section, category = SettingCategory.FUNCTION))
+            add(SettingEntry("function_runtime", R.string.dsh_runtime_section, R.string.dsh_runtime_management_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_repair_plugins", R.string.dsh_plugin_repair, R.string.dsh_plugin_repair_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_verify_install", R.string.dsh_verify_after_install, R.string.dsh_verify_after_install_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_open_data_dir", R.string.dsh_docs_open_title, R.string.dsh_docs_open_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_grant_docs_mt", R.string.dsh_docs_grant_title, R.string.dsh_docs_grant_summary, SettingCategory.FUNCTION))
+            add(SettingEntry("function_clean_storage", R.string.settings_clean_storage, R.string.settings_clean_storage_summary, SettingCategory.FUNCTION))
+
+            // === Permissions ===
+            add(SettingEntry("function_permission", R.string.dsh_perm_section, R.string.dsh_perm_summary, SettingCategory.SECURITY))
+            // 严格程度就在权限通道那张卡里，但用户会按「严格」「宽松」这些词去搜 —— 单列一条
+            add(SettingEntry("function_permission", R.string.dsh_priv_strictness_title, R.string.dsh_priv_strictness_summary, SettingCategory.SECURITY))
+            add(SettingEntry("function_native_bridge", R.string.dsh_native_section, R.string.dsh_native_summary, SettingCategory.SECURITY))
+            add(SettingEntry("function_wireless_adb", R.string.dsh_adb_section, R.string.dsh_adb_summary, SettingCategory.SECURITY))
+        }
+    }
+
+    /** Resolve all strings once for fast search filtering. Called once per screen composition. */
+    fun resolveAll(resources: Resources): List<ResolvedEntry> {
+        return allSettings.map { entry ->
+            ResolvedEntry(
+                entry = entry,
+                title = safeGetString(resources, entry.titleResId),
+                summary = entry.summaryResId?.let { safeGetString(resources, it) } ?: "",
+                categoryName = safeGetString(resources, entry.category.labelResId),
+            )
+        }
+    }
+
+    private fun safeGetString(res: Resources, id: Int): String {
+        return try { res.getString(id) } catch (_: Exception) { "" }
+    }
+}

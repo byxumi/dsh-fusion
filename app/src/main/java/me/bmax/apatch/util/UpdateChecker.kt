@@ -1,0 +1,359 @@
+package me.bmax.apatch.util
+
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
+import me.bmax.apatch.BuildConfig
+import me.bmax.apatch.dsh.DshSource
+import org.json.JSONArray
+import org.json.JSONObject
+
+/**
+ * 应用自身的更新检查。
+ *
+ * FolkPatch 原来查的是它自己的服务端（folk.mysqil.com/api/version，返回裸 versionCode）。
+ * DSH-Folk 没有服务端，改为直接读 GitHub 的 latest release：
+ *  - tag 形如 `v1.6` / `1.6`，与 `versionName` 比较；
+ *  - 版本号比较走 [me.bmax.apatch.dsh.compareVersions]（含预发布标识）；
+ *  - 匿名 GitHub API 限流 60/h，所以沿用 FolkApiClient 的 TTL 缓存。
+ *
+ * 必须先验 tag 长得像版本号：同一个仓库里还有 `runtime-latest` 这个滚动 tag（容器
+ * 运行时的发布位），仓库里没有正式版本发布时 `releases/latest` 返回的就是它 ——
+ * 而 compareVersions("runtime-latest", "1.6") > 0（首段不是数字，按字典序比），
+ * 于是每次启动都弹「有新版本」。
+ *
+ * **结果必须区分「没有更新」与「查不到」**：原来 [checkUpdate] 一律返回 Boolean，
+ * 任何失败（限流 403、断网、DNS 失败）都落成 false，界面报「您已是最新版本」——
+ * 用户看到的是一句肯定的错误结论，而不是「检查失败」。匿名配额只有 60/h，而插件
+ * 商店那边也在打 GitHub（star / 目录），配额烧完这条路就静默失效了。
+ */
+object UpdateChecker {
+    private const val TAG = "UpdateChecker"
+    private const val LATEST_PATH = "/repos/IPF-Sinon/DSH-Folk/releases/latest"
+    /**
+     * 列表路径。
+     *
+     * 取 30 条而不是 10：开了测试版通道之后，每次 Actions 构建都会多一个 prerelease，
+     * 十条很快就全是测试版 —— 那时**关着**测试版的用户在这一页里找不到任何正式版。
+     * （`releases/latest` 本身会跳过 prerelease，所以正式版通道主要靠它；这一条是它
+     * 拿不到时的退路，退路也必须管用。）
+     */
+    private const val LIST_PATH = "/repos/IPF-Sinon/DSH-Folk/releases?per_page=30"
+    private const val API_BASE = "https://api.github.com"
+    private const val RELEASES_URL = "https://github.com/IPF-Sinon/DSH-Folk/releases"
+
+    /**
+     * 直连之外的备用入口。
+     *
+     * 已实测 gh-proxy 能代理 api.github.com（返回同样的 JSON），而它不共享 GitHub
+     * 对本机 IP 的匿名配额 —— 直连被限流时正好接得上。
+     */
+    private val API_MIRRORS = listOf(
+        "https://v6.gh-proxy.org/https://api.github.com",
+        "https://gh-proxy.com/https://api.github.com",
+        "https://ghproxy.net/https://api.github.com",
+        "https://github.moeyy.xyz/https://api.github.com",
+    )
+
+    /**
+     * 「接受测试版更新」的 prefs 键。
+     *
+     * 键放在这里而不是设置页：检查逻辑和界面都要用它，而字面量各写一份是这类 bug 的
+     * 经典来源 —— 开关写进一个键、检查读另一个键，界面看起来完全正常。
+     */
+    const val KEY_ACCEPT_BETA = "accept_beta_update"
+
+    /** 版本 tag：可选 v 前缀 + 至少两段数字 + 可选预发布后缀。 */
+    private val VERSION_TAG = Regex("""^[vV]?\d+(\.\d+)+([-+].*)?$""")
+
+    /** 检查结果。[failure] 只在真的查不到时非空，不能与「已是最新」混为一谈。 */
+    data class Status(
+        val hasUpdate: Boolean,
+        val latestTag: String = "",
+        /** APK 资产的下载地址；空表示这次没找到可直装的包，UI 应退回浏览器。 */
+        val apkUrl: String = "",
+        val apkName: String = "",
+        val apkSize: Long = 0,
+        /** 期望的 sha256（来自同名 .sha256 资产）；空表示无法校验。 */
+        val sha256: String = "",
+        /** release 正文，给对话框显示更新内容。 */
+        val notes: String = "",
+        /**
+         * 这次找到的是不是测试版。
+         *
+         * 必须让界面知道：测试版和正式版的更新提示长得一样，而用户按下「更新」之后装上的
+         * 东西风险完全不同。不标出来就等于偷偷把人推上测试通道。
+         */
+        val isPrerelease: Boolean = false,
+        val failure: String? = null,
+    ) {
+        /** 能不能走应用内更新：要有包，也要有校验值 —— 不校验就装是不可接受的。 */
+        val canInstallInApp: Boolean get() = apkUrl.isNotEmpty() && sha256.isNotEmpty()
+    }
+
+    /** 用户主动检查前取消自动检查遗留的网络请求，再从头发起一次。 */
+    suspend fun checkManually(acceptBeta: Boolean = false): Status {
+        FolkApiClient.cancelInFlightRequests()
+        return check(acceptBeta)
+    }
+
+    /**
+     * @param acceptBeta 是否接受测试版（GitHub 的 prerelease）。默认 false ——
+     *   这条通道必须由用户明确打开，见设置里那个开关。
+     */
+    suspend fun check(acceptBeta: Boolean = false): Status = withContext(Dispatchers.IO) {
+        var lastError: String? = null
+
+        // 顺序取决于通道，这不是小事：`releases/latest` **定义上**跳过 prerelease，
+        // 所以开着测试版时先问它，会拿到正式版、判定「已是最新」然后直接返回，
+        // 列表根本没机会被看一眼 —— 开关看起来毫无作用。
+        val paths = if (acceptBeta) listOf(LIST_PATH, LATEST_PATH) else listOf(LATEST_PATH, LIST_PATH)
+
+        for (path in paths) {
+            val fetched = fetchFirstRelease(path, acceptBeta)
+            if (fetched == null) {
+                lastError = "all update sources failed for $path"
+                continue
+            }
+            val (base, release) = fetched
+            val tag = release.optString("tag_name").trim()
+            Log.d(TAG, "remote=$tag local=${BuildConfig.VERSION_NAME} via $base")
+            val newer = me.bmax.apatch.dsh.compareVersions(tag, BuildConfig.VERSION_NAME) > 0
+            if (!newer) return@withContext Status(hasUpdate = false, latestTag = tag)
+
+            val asset = pickApkAsset(release)
+            return@withContext Status(
+                hasUpdate = true,
+                latestTag = tag,
+                apkUrl = asset?.url.orEmpty(),
+                apkName = asset?.name.orEmpty(),
+                apkSize = asset?.size ?: 0L,
+                sha256 = asset?.let { fetchSha256(it.shaUrl) }.orEmpty(),
+                notes = release.optString("body").trim(),
+                isPrerelease = release.optBoolean("prerelease"),
+            )
+        }
+
+        // 走到这里 = 每条路都没拿到可用的版本 tag
+        Status(hasUpdate = false, failure = lastError ?: "no release found")
+    }
+
+    /**
+     * 竞速拉取一个 GitHub API 路径，返回第一个成功的响应体（都不行时 null）。
+     *
+     * 给运行时版本列表用：它要点名列出所有 release，而列表路径在 `check()` 里已被
+     * 解析成「最新的那一个」，拿不到全量。入口集合与 [fetchFirstRelease] 完全一致 ——
+     * 直连被匿名限流时 gh-proxy 那几条镜像接得上。
+     */
+    suspend fun fetchApiJson(path: String): String? = supervisorScope {
+        val pending = (listOf(API_BASE) + API_MIRRORS).map { base ->
+            async {
+                FolkApiClient.fetchJson(
+                    base + path,
+                    ttlMs = 10 * 60 * 1000L,
+                    maxRetries = 1,
+                    forceRefresh = true,
+                ).getOrNull()
+            }
+        }.toMutableList()
+
+        while (pending.isNotEmpty()) {
+            val completed = select<Pair<kotlinx.coroutines.Deferred<String?>, String?>> {
+                pending.forEach { candidate -> candidate.onAwait { candidate to it } }
+            }
+            pending.remove(completed.first)
+            val body = completed.second
+            if (!body.isNullOrBlank()) {
+                pending.forEach { it.cancel() }
+                return@supervisorScope body
+            }
+        }
+        null
+    }
+
+    private suspend fun fetchFirstRelease(path: String, acceptBeta: Boolean): Pair<String, JSONObject>? =
+        supervisorScope {
+            val pending = (listOf(API_BASE) + API_MIRRORS).map { base ->
+                base to async {
+                    FolkApiClient.fetchJson(
+                        base + path,
+                        ttlMs = 30 * 60 * 1000L,
+                        maxRetries = 1,
+                        forceRefresh = true,
+                    ).getOrNull()?.let { body ->
+                        runCatching { newestVersionRelease(body, acceptBeta) }.getOrNull()
+                    }
+                }
+            }.toMutableList()
+
+            while (pending.isNotEmpty()) {
+                val completed = select<Pair<Pair<String, kotlinx.coroutines.Deferred<JSONObject?>>, JSONObject?>> {
+                    pending.forEach { candidate ->
+                        candidate.second.onAwait { candidate to it }
+                    }
+                }
+                pending.remove(completed.first)
+                val release = completed.second
+                if (release != null && release.optString("tag_name").isNotBlank()) {
+                    pending.forEach { it.second.cancel() }
+                    return@supervisorScope completed.first.first to release
+                }
+            }
+            null
+        }
+
+    private data class ApkAsset(
+        val name: String,
+        val url: String,
+        val size: Long,
+        /** 同名 + `.sha256` 的资产地址；空 = 这个 release 没带校验文件。 */
+        val shaUrl: String,
+    )
+
+    /**
+     * 从 release 的 assets 里挑**本机架构**的 APK，并配对它的 `.sha256`。
+     *
+     * 1.7.6 起按 ABI 拆包，一个 release 里同时有 `…-arm64-v8a.apk` 与 `…-x86_64.apk`。
+     * 原来「取第一个 .apk」会把 arm64 包发给 x86_64 用户（装上也起不了容器），所以
+     * 这里按 [DshSource.runtimeArch] 精确匹配文件名里的 ABI。
+     *
+     * 三种情形：
+     * - 有本机 ABI 的包 → 用它；
+     * - 整个 release 里**没有任何**带 ABI 后缀的包 → 那是 1.7.5 及更早的单包 release，
+     *   回退到「第一个 .apk」，与旧行为一致；
+     * - 只有别的架构的包 → 返回 null，让 UI 退回浏览器下载。**绝不**退而求其次发一个
+     *   装不上/跑不起来的包。
+     *
+     * sha256 仍严格按「同名 + .sha256」配对，不去猜别的命名：配错了校验值等于没校验，
+     * 而校验失败会阻止安装 —— 宁可退回浏览器下载。
+     */
+    private fun pickApkAsset(release: JSONObject): ApkAsset? {
+        val assets = release.optJSONArray("assets") ?: return null
+        val byName = HashMap<String, JSONObject>()
+        val apks = ArrayList<JSONObject>()
+        for (i in 0 until assets.length()) {
+            val a = assets.optJSONObject(i) ?: continue
+            val name = a.optString("name")
+            byName[name] = a
+            if (name.endsWith(".apk", ignoreCase = true)) apks.add(a)
+        }
+        if (apks.isEmpty()) return null
+
+        val arch = DshSource.runtimeArch()
+        val abiTagged = apks.filter { hasAbiTag(it.optString("name")) }
+        val a = when {
+            // 本机架构的包
+            abiTagged.any { it.optString("name").contains(arch, ignoreCase = true) } ->
+                abiTagged.first { it.optString("name").contains(arch, ignoreCase = true) }
+            // 旧 release（没有任何 ABI 后缀）：单包，沿用旧行为
+            abiTagged.isEmpty() -> apks.first()
+            // 只有别的架构 → 不发错包
+            else -> return null
+        }
+
+        val name = a.optString("name")
+        return ApkAsset(
+            name = name,
+            url = a.optString("browser_download_url"),
+            size = a.optLong("size", 0L),
+            shaUrl = byName["$name.sha256"]?.optString("browser_download_url").orEmpty(),
+        )
+    }
+
+    /** 文件名里是否带我们已知的 ABI 标记（用来区分拆包 release 与旧的单包 release）。 */
+    private fun hasAbiTag(name: String): Boolean =
+        KNOWN_ABIS.any { name.contains(it, ignoreCase = true) }
+
+    /** 拆包会出现在资产名里的 ABI。只列本项目实际发布的两个。 */
+    private val KNOWN_ABIS = listOf("arm64-v8a", "x86_64")
+
+    /**
+     * 拉 `.sha256` 文件并取出十六进制摘要。
+     *
+     * 内容形如 `<hex>  <filename>`（sha256sum 的输出），所以取第一段。
+     * 不是 64 位十六进制就返回空 —— 宁可让 UI 退回浏览器，也不拿一个可疑的
+     * 期望值去比对（那等于没校验）。
+     *
+     * 直连 `github.com/releases/download/…` 会 302 到
+     * `release-assets.githubusercontent.com`（Azure blob），国内直连经常超时；
+     * 而 APK 下载那边（[AppUpdater]）走的是 gh-proxy 镜像。校验值必须跟着走
+     * 同一批镜像，否则「包下得来、校验值拿不到」照样被 [Status.canInstallInApp]
+     * 判成不能应用内更新。每个候选只试一次（串行、命中即返回），控制总超时。
+     */
+    private suspend fun fetchSha256(url: String): String {
+        if (url.isEmpty()) return ""
+        // 校验值必须跟 APK 走同一批候选：原来只写死 v6 + axisnow 两条（新增线路永远排不进去，
+        // 线路一挂这里就先失败）。竞速关掉时只取原址，与「未勾选＝直连」一致。
+        val candidates = if (AppUpdater.raceEnabled()) {
+            DshSource.proxyCandidates(url)
+        } else {
+            listOf(url)
+        }
+        for (c in candidates) {
+            val body = FolkApiClient.fetchJson(c, ttlMs = 30 * 60 * 1000L, maxRetries = 0)
+                .getOrNull().orEmpty()
+            val hex = body.trim().substringBefore(' ').trim()
+            if (hex.length == 64 && hex.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }) {
+                return hex.lowercase()
+            }
+        }
+        return ""
+    }
+
+    /**
+     * 从 latest 对象或 releases 数组里挑出最新的**版本形** release。
+     *
+     * 数组按发布时间倒序，但不能只取第一个：`runtime-latest` 也在同一个列表里。
+     *
+     * [acceptBeta] 为 false 时把测试版整个排除掉，**两道判断都要**：
+     *  - `prerelease` 标记 —— 正常发布流程会设它；
+     *  - tag 里的预发布后缀（`1.8.1-beta.3` 的 `-beta.3`）—— 万一发布时忘了勾那个
+     *    复选框，仍然不会把测试版推给正式版通道的用户。漏一道的代价是所有人都被
+     *    推上测试版，而那正是这个开关要防的事。
+     */
+    private fun newestVersionRelease(body: String, acceptBeta: Boolean): JSONObject? {
+        val trimmed = body.trimStart()
+        if (trimmed.startsWith("[")) {
+            val arr = JSONArray(trimmed)
+            var best: JSONObject? = null
+            var bestTag = ""
+            for (i in 0 until arr.length()) {
+                val o = arr.optJSONObject(i) ?: continue
+                if (o.optBoolean("draft")) continue
+                val tag = o.optString("tag_name").trim()
+                if (!VERSION_TAG.matches(tag)) continue
+                if (!acceptBeta && isBeta(o, tag)) continue
+                if (bestTag.isEmpty() || me.bmax.apatch.dsh.compareVersions(tag, bestTag) > 0) {
+                    best = o
+                    bestTag = tag
+                }
+            }
+            return best
+        }
+        val o = JSONObject(trimmed)
+        val tag = o.optString("tag_name").trim()
+        if (!VERSION_TAG.matches(tag)) return null
+        if (!acceptBeta && isBeta(o, tag)) return null
+        return o
+    }
+
+    /** 这个 release 是不是测试版：`prerelease` 标记，或 tag 带预发布后缀。 */
+    private fun isBeta(release: JSONObject, tag: String): Boolean =
+        release.optBoolean("prerelease") || tag.substringAfter('-', "").isNotEmpty()
+
+    fun openUpdateUrl(context: Context) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(RELEASES_URL))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Cannot open releases page", e)
+        }
+    }
+}

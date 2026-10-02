@@ -1,0 +1,670 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">Имя настольного приложения</string>
+
+    <string name="home">Главная</string>
+
+
+    <string name="failure">Ошибка</string>
+
+
+
+    <string name="settings_nav_layout_title">Настройки макета навигации</string>
+    <string name="settings_nav_layout_summary">Скрыть или показать некоторые компоненты навигации</string>
+    <string name="settings_nav_scheme">Схема навигации</string>
+    <string name="settings_nav_mode_auto">Автоматически Традиционный</string>
+    <string name="settings_nav_mode_bottom">Всегда нижняя панель</string>
+    <string name="settings_nav_mode_rail">Всегда боковая панель</string>
+    <string name="settings_nav_mode_floating">Плавающая нижняя панель</string>
+    <string name="settings_floating_auto_hide">Автоскрытие панели</string>
+    <string name="settings_floating_auto_hide_summary">Автоматически скрывать плавающую панель через 3 секунды</string>
+    <string name="settings_floating_swipe_hide">Скрытие при прокрутке</string>
+    <string name="settings_floating_swipe_hide_summary">Скрывать панель при прокрутке вниз, показывать при прокрутке вверх</string>
+    <string name="settings_navbar_glass_effect">Эффект матового стекла</string>
+    <string name="settings_navbar_glass_effect_summary">Применить эффект матового стекла к плавающей панели навигации</string>
+    <string name="settings_navbar_glass_blur_strength">Сила размытия</string>
+    <string name="settings_navbar_glass_transparency">Прозрачность фона</string>
+    <string name="settings_navbar_glass_highlight_strength">Интенсивность блика</string>
+    <string name="settings_navbar_glass_specular">Зеркальное отражение</string>
+    <string name="settings_navbar_glass_specular_summary">Включить зеркальный блик в верхней части панели навигации</string>
+    <string name="settings_navbar_glass_inner_glow">Внутреннее свечение</string>
+    <string name="settings_navbar_glass_inner_glow_summary">Включить мягкое свечение в нижней части панели навигации</string>
+    <string name="settings_navbar_glass_border">Стеклянная рамка</string>
+    <string name="settings_navbar_glass_border_summary">Включить тонкую рамку вокруг панели навигации</string>
+    <string name="settings_compact_rounded_bar">Компактный скругленный стиль</string>
+    <string name="settings_compact_rounded_bar_summary">Использовать компактную плавающую панель со скругленными углами</string>
+    <string name="settings_stats_top_layout">Верхняя карточка</string>
+    <string name="settings_stats_top_layout_list">Список</string>
+    <string name="settings_stats_top_layout_grid">Сетка</string>
+
+    <string name="reboot">Перезагрузка</string>
+    <string name="settings">Настройки</string>
+    <string name="reboot_recovery">Перезагрузить в Recovery</string>
+    <string name="reboot_bootloader">Перезагрузить в Bootloader</string>
+    <string name="reboot_download">Перезагрузить в Download</string>
+    <string name="reboot_edl">Перезагрузить в EDL</string>
+    <string name="reboot_fastbootd">Перезагрузить в FastbootD</string>
+    <string name="about">О приложении</string>
+    <string name="developer_and_maintainer">Разработчик | Сопровождающий</string>
+    <string name="settings_app_language">Язык</string>
+    <string name="system_default">По умолчанию системы</string>
+
+
+
+    <string name="send_log">Отправить логи</string>
+    <string name="settings_clean_storage">Очистка данных приложения</string>
+    <string name="settings_clean_storage_summary">Исправляет сбои загрузки и применения из-за остаточных файлов</string>
+    <string name="settings_clean_storage_confirm">Будут удалены загруженные темы, импортированная музыка, звуковые эффекты и весь кэш, каталоги будут созданы заново. Настройки сохранятся. Продолжить?</string>
+    <string name="settings_clean_storage_done">Очистка завершена</string>
+    <string name="github">GitHub</string>
+
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">Версия ядра</string>
+    <string name="home_fingerprint">Отпечаток</string>
+
+    <string name="home_selinux_status">Статус SELinux</string>
+    <string name="home_selinux_status_disabled">Отключен</string>
+    <string name="home_selinux_status_enforcing">Принудительный</string>
+    <string name="home_selinux_status_permissive">Разрешающий</string>
+    <string name="home_selinux_status_unknown">Неизвестно</string>
+
+
+    <string name="home_device_info">Устройство</string>
+    <string name="home_system_version">Версия системы</string>
+
+
+
+    <!-- SuperUser App Action Dialog -->
+
+    <!-- SU Audit Log -->
+
+
+    <string name="apm_remove">Удалить</string>
+    <string name="apm_update">Обновить</string>
+
+
+    <string name="settings_folkx_engine_summary">Использовать плавные физические пружинные анимации при переключении страниц верхнего уровня</string>
+    <string name="settings_folkx_animation_type">Тип анимации</string>
+    <string name="settings_folkx_animation_speed">Скорость анимации</string>
+    <string name="settings_folkx_animation_linear">Линейное движение</string>
+    <string name="settings_folkx_animation_spatial">Пространственное движение</string>
+    <string name="settings_folkx_animation_fade">Появление/Исчезновение</string>
+    <string name="settings_folkx_animation_vertical">Вертикальное скольжение</string>
+    <string name="settings_folkx_animation_diagonal">Диагональное скольжение</string>
+
+    <string name="enable_web_debugging">Включить отладку WebView</string>
+    <string name="enable_web_debugging_summary">Можно использовать для отладки WebUI. Включайте только при необходимости.</string>
+    <string name="apm_enable_module_banner">Включить баннер модуля</string>
+    <string name="apm_enable_module_banner_summary">Отображать изображение баннера для модулей если доступно</string>
+    <string name="apm_enable_folk_banner">Настроить баннер модуля</string>
+    <string name="apm_enable_folk_banner_summary">Длительное нажатие на карточку модуля для выбора изображения баннера</string>
+    <string name="apm_banner_api_mode">Режим API</string>
+    <string name="apm_banner_api_mode_summary">Использовать API случайных изображений или локальный каталог для баннеров модулей</string>
+    <string name="apm_banner_api_source">Настроить источник API</string>
+    <string name="apm_banner_api_source_hint">Введите URL API или локальный путь</string>
+    <string name="apm_banner_api_source_saved">Источник API сохранен</string>
+    <string name="apm_banner_api_source_not_configured">Не настроено</string>
+    <string name="apm_banner_api_url_configured">URL API настроен</string>
+    <string name="apm_banner_local_dir_configured">Локальный каталог настроен</string>
+    <string name="apm_banner_clear_cache">Очистить кэш</string>
+    <string name="apm_banner_cache_cleared">Кэш баннеров очищен</string>
+    <string name="apm_banner_api_config_title">Настроить источник API</string>
+    <string name="apm_banner_api_config_desc">Введите URL API случайных изображений или путь к локальному каталогу. Каждый модуль получит уникальный баннер.</string>
+    <string name="apm_banner_api_examples_title">Примеры:</string>
+    <string name="apm_banner_api_examples">API: https://picsum.photos/800/400\nЛокально: /sdcard/Pictures/Banners</string>
+    <!-- Рынок API -->
+    <string name="apm_api_marketplace_title">Маркетплейс API</string>
+    <string name="apm_api_preview">Предпросмотр</string>
+    <string name="apm_api_apply">Применить</string>
+    <string name="apm_api_preview_title">Предпросмотр API</string>
+    <string name="apm_api_preview_failed">Не удалось загрузить предпросмотр</string>
+    <string name="apm_api_url_label">URL API:</string>
+    <string name="apm_api_apply_success">Источник API успешно применён</string>
+    <string name="apm_api_verifying">Проверка…</string>
+    <string name="apm_api_retry">Повторить</string>
+    <string name="apm_api_empty">Нет доступных источников API</string>
+    <string name="settings_banner_custom_opacity">Непрозрачность баннера</string>
+    <string name="settings_banner_custom_opacity_summary">Использовать пользовательскую непрозрачность для баннеров вместо режима обоев</string>
+    <string name="settings_banner_opacity">Прозрачность баннера</string>
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">Обратная связь или предложение</string>
+    <string name="home_more_menu_about">О приложении</string>
+
+    <string name="home_more_menu_music_play">Воспроизвести музыку</string>
+    <string name="home_more_menu_music_pause">Поставить музыку на паузу</string>
+
+    <!-- Plugin strings -->
+
+    
+    
+    <!-- Install Mode Select -->
+
+    
+    
+
+    <string name="amber_theme">Янтарная</string>
+    <string name="blue_theme">Синяя</string>
+    <string name="blue_grey_theme">Серо-синяя</string>
+    <string name="brown_theme">Коричневая</string>
+    <string name="cyan_theme">Бирюзовая</string>
+    <string name="deep_orange_theme">Тёмно-оранжевая</string>
+    <string name="deep_purple_theme">Тёмно-фиолетовая</string>
+    <string name="green_theme">Зелёная</string>
+    <string name="indigo_theme">Индиго</string>
+    <string name="light_blue_theme">Светло-синяя</string>
+    <string name="light_green_theme">Светло-зелёная</string>
+    <string name="lime_theme">Лаймовая</string>
+    <string name="orange_theme">Оранжевая</string>
+    <string name="pink_theme">Розовая</string>
+    <string name="purple_theme">Фиолетовая</string>
+    <string name="red_theme">Красная</string>
+    <string name="sakura_theme">Сакура</string>
+    <string name="teal_theme">Бирюзовая</string>
+    <string name="yellow_theme">Жёлтая</string>
+    <string name="theme_color">Цвет темы</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_system">Система</string>
+    <string name="loading_themes">Загрузка тем…</string>
+    <string name="loading_apis">Загрузка источников API…</string>
+    <string name="retry">Повторить</string>
+
+    <string name="about_powered_by">Работает на %1$s</string>
+    
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">Отчёт о сбое</string>
+    <string name="crash_handle_copy">Копировать</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">Версия приложения: %s</string>
+    <string name="about_github">GitHub</string>
+
+    <string name="settings_app_dpi">DPI приложения</string>
+    <string name="dpi_apply_settings">Применить</string>
+    <string name="settings_alt_icon">Альтернативная иконка</string>
+    <string name="alt_icon_summary">Использовать альтернативный значок запуска</string>
+
+<string name="settings_app_title">Заголовок приложения</string>
+    <string name="app_title_custom">Пользовательский</string>
+    <string name="settings_custom_app_title">Задать имя приложения</string>
+    <string name="custom_app_title_dialog_title">Пользовательское имя приложения</string>
+    <string name="custom_app_title_dialog_hint">Введите имя приложения</string>
+    <string name="custom_app_title_dialog_confirm">Подтвердить</string>
+    <string name="cancel">Отмена</string>
+    <string name="settings_custom_background">Пользовательский фон</string>
+    <string name="settings_custom_background_enabled">Пользовательский фон включен</string>
+    <string name="settings_custom_background_opacity">Прозрачность карточки</string>
+    <string name="settings_custom_background_blur">Размытие фона</string>
+    <string name="settings_custom_background_dim">Затемнение фона</string>
+    <string name="settings_select_background_image">Выбрать фоновое изображение</string>
+    <string name="settings_custom_background_summary">Установить пользовательское фоновое изображение</string>
+    <string name="settings_custom_background_saved">Фон успешно сохранён</string>
+    <string name="settings_custom_background_error">Не удалось сохранить фон</string>
+    <string name="settings_crop_not_supported">Кадрирование не поддерживается на этом устройстве, сохраняется исходное изображение</string>
+    <string name="settings_crop_dialog_title">Кадрировать фон</string>
+    <string name="settings_crop_dialog_message">Кадрировать изображение?</string>
+    <string name="settings_crop_dialog_crop">Да</string>
+    <string name="settings_crop_dialog_direct">Нет</string>
+    <string name="settings_background_selected">Фон выбран</string>
+    <string name="settings_background_image_cleared">Фоновое изображение очищено</string>
+    <string name="settings_clear_background">Очистить фон</string>
+    <string name="settings_clear_background_confirm">Вы уверены, что хотите очистить фоновое изображение?</string>
+    <string name="settings_multi_background_mode">Режим множественных фонов</string>
+    <string name="settings_multi_background_mode_summary">Установить разные фоновые изображения для разных страниц</string>
+    <string name="settings_select_home_background">Фон главной страницы</string>
+    <string name="settings_select_settings_background">Фон страницы настроек</string>
+
+    <string name="settings_advanced_title_style">Расширенный стиль заголовка</string>
+    <string name="settings_advanced_title_style_summary">Заменить заголовок верхней панели на自定义 изображение</string>
+    <string name="settings_advanced_title_style_enabled">Расширенный стиль заголовка включен</string>
+    <string name="settings_select_title_image">Выбрать изображение заголовка</string>
+    <string name="settings_title_image_selected">Изображение заголовка выбрано</string>
+    <string name="settings_title_image_saved">Изображение заголовка успешно сохранено</string>
+    <string name="settings_title_image_error">Не удалось сохранить изображение заголовка</string>
+    <string name="settings_clear_title_image">Очистить изображение заголовка</string>
+    <string name="settings_clear_title_image_confirm">Вы уверены, что хотите очистить изображение заголовка?</string>
+    <string name="settings_title_image_cleared">Изображение заголовка очищено</string>
+    <string name="settings_title_image_day_opacity">Прозрачность дневного режима</string>
+    <string name="settings_title_image_night_opacity">Прозрачность ночного режима</string>
+    <string name="settings_title_image_dim">Затемнение фона</string>
+    <string name="settings_title_image_offset_x">Горизонтальная позиция</string>
+
+    <string name="settings_grid_working_card_hide_check">Скрыть значок статуса</string>
+    <string name="settings_grid_working_card_hide_check_summary">Скрыть галочку или значок предупреждения на рабочей карточке</string>
+    <string name="settings_grid_working_card_hide_text">Скрыть текст статуса</string>
+    <string name="settings_grid_working_card_hide_text_summary">Скрыть текст «Работает» или «Не установлено» на рабочей карточке</string>
+    <string name="settings_grid_working_card_hide_mode">Скрыть режим работы</string>
+    <string name="settings_grid_working_card_hide_mode_summary">Скрыть текст «Full» или «Half» на рабочей карточке</string>
+    <string name="settings_list_card_hide_status_badge">Использовать классический эмодзи</string>
+    <string name="settings_list_card_hide_status_badge_summary">Статусный бейдж на главной странице превращается в классический эмодзи</string>
+    <string name="settings_list_info_show_icons">Иконки элементов информации</string>
+    <string name="settings_list_info_show_icons_summary">Показывать иконку рядом с каждым элементом в карточке информации</string>
+    <string name="settings_custom_badge_text">Пользовательский текст бейджа</string>
+    <string name="settings_custom_badge_text_summary">Изменить текстовое отображение бейджа, только для развлечения</string>
+    <string name="settings_custom_background_dual_dim">Включить двойную дневную/ночную затемненность</string>
+    <string name="settings_custom_background_dual_dim_desc">Автоматическая регулировка затемнения фона для светлой и тёмной темы</string>
+    <string name="settings_custom_background_day_dim">Затемненность фона в дневном режиме</string>
+    <string name="settings_custom_background_night_dim">Затемненность фона в ночном режиме</string>
+    <string name="settings_grid_working_card_dual_opacity">Включить двойную дневную/ночную прозрачность</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">Автоматическая регулировка прозрачности карточки для светлой и тёмной темы</string>
+    <string name="settings_grid_working_card_day_opacity">Прозрачность карточки в дневном режиме</string>
+    <string name="settings_grid_working_card_night_opacity">Прозрачность карточки в ночном режиме</string>
+    
+    <!-- KPM AutoLoad Strings -->
+    
+    
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">Добро пожаловать в FolkPatch</string>
+    <string name="welcome_desc_1">Настраиваемый и портативный Root-менеджер на базе KernelPatch. Сделайте устройство по-настоящему своим.</string>
+    <string name="welcome_title_2">Полная настройка</string>
+    <string name="welcome_desc_2">Настройте всё — цвета, фоны, шрифты, звуки и даже вибрацию. Загляните в Магазин тем!</string>
+    <string name="welcome_title_3">Управление ядром</string>
+    <string name="welcome_desc_3">Расширенные функции ядра в одном касании. Откройте Настройки и нажмите значок настройки для доступа к FolkPatch Hide, Umount, Path Hide и другим.</string>
+    <string name="welcome_title_4">Готовы к работе</string>
+    <string name="welcome_desc_4">Всё готово! Начните исследовать самый гибкий Root-менеджер. Удачи!</string>
+    <string name="welcome_prev">Назад</string>
+    <string name="welcome_next">Далее</string>
+    <string name="welcome_skip">Пропустить</string>
+    <string name="welcome_got_it">Начать</string>
+
+
+    <!-- Hide Settings Strings -->
+    <string name="home_hide_fingerprint">Скрыть отпечаток</string>
+    <string name="home_hide_fingerprint_summary">Скрыть отпечаток в информационной карточке</string>
+
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- Font Settings -->
+    <string name="settings_custom_font">Пользовательский шрифт</string>
+    <string name="settings_select_font_file">Выбрать файл шрифта</string>
+    <string name="settings_custom_font_enabled">Пользовательский шрифт включен</string>
+    <string name="settings_custom_font_summary">Использовать пользовательский шрифт TTF</string>
+    <string name="settings_font_selected">Пользовательский шрифт выбран</string>
+    <string name="settings_custom_font_error">Не удалось сохранить файл шрифта</string>
+    <string name="settings_custom_font_saved">Пользовательский шрифт успешно сохранен</string>
+    <string name="settings_clear_font">Восстановить шрифт по умолчанию</string>
+    <string name="settings_clear_font_confirm">Вы уверены, что хотите восстановить шрифт по умолчанию?</string>
+    <string name="settings_font_cleared">Шрифт по умолчанию восстановлен</string>
+
+    <!-- Auto Backup Strings -->
+
+    <!-- Auto-added missing strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">Стиль главной страницы</string>
+    <string name="settings_home_layout_default">ListUI</string>
+    <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
+    <string name="settings_home_layout_circle">CircleUI</string>
+    <string name="settings_home_layout_dashboard_pro">DashboardUI</string>
+    <string name="settings_save_theme">Сохранить тему</string>
+    <string name="settings_import_theme">Импортировать тему</string>
+    <string name="settings_theme_saved">Тема сохранена</string>
+    <string name="settings_theme_imported">Тема импортирована</string>
+    <string name="settings_theme_save_failed">Не удалось сохранить тему</string>
+    <string name="settings_theme_import_failed">Не удалось импортировать тему</string>
+    <string name="settings_reset_theme">Сбросить тему</string>
+    <string name="settings_reset_theme_confirm">Вы уверены, что хотите сбросить все настройки темы до значений по умолчанию? Это очистит все пользовательские фоны, шрифты, музыку и звуковые эффекты.</string>
+    <string name="settings_theme_reset">Тема сброшена</string>
+    <string name="settings_theme_reset_failed">Не удалось сбросить тему</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">Экспорт темы</string>
+    <string name="theme_import_title">Импорт темы</string>
+    <string name="theme_name">Название темы</string>
+    <string name="theme_type">Тип темы</string>
+    <string name="theme_type_phone">Телефон</string>
+    <string name="theme_type_tablet">Планшет</string>
+    <string name="theme_version">Версия</string>
+    <string name="theme_author">Автор</string>
+    <string name="theme_description">Описание</string>
+    <string name="theme_export_action">Экспорт</string>
+    <string name="theme_import_action">Импорт</string>
+    <string name="theme_import_confirm">Вы уверены, что хотите импортировать эту тему?</string>
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">Фон рабочей карточки</string>
+    <string name="settings_grid_working_card_background_enabled">Пользовательский фон карточки включен</string>
+    <string name="settings_grid_working_card_background_summary">Пользовательское фоновое изображение для рабочей карточки</string>
+    <string name="settings_grid_working_card_background_selected">Фон выбран</string>
+    <string name="settings_clear_grid_working_card_background">Очистить фон карточки</string>
+    <string name="settings_clear_grid_working_card_background_confirm">Вы уверены, что хотите очистить фоновое изображение карточки?</string>
+    <string name="settings_grid_working_card_background_saved">Фон карточки успешно сохранен</string>
+    <string name="settings_grid_working_card_background_error">Не удалось сохранить фон карточки</string>
+    <string name="settings_grid_working_card_background_cleared">Фон карточки очищен</string>
+
+    <!-- Biometric Strings -->
+    <string name="action_biometric">Биометрическая аутентификация</string>
+    <string name="msg_biometric">Пожалуйста, подтвердите свою биометрическую личность</string>
+    <string name="msg_enable_biometric">Включить биометрическую аутентификацию для подтверждения при открытии приложения?</string>
+    <string name="settings_biometric_login">Биометрическая аутентификация</string>
+    <string name="settings_biometric_login_summary">Требовать биометрическую аутентификацию при открытии приложения</string>
+    <string name="settings_strong_biometric">Сильная биометрическая аутентификация</string>
+    <string name="settings_strong_biometric_summary">Требовать аутентификацию при установке/удалении/отключении модулей</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">Магазин тем</string>
+    <string name="theme_source_official">Официальные</string>
+    <string name="theme_source_third_party">Третьи лица</string>
+    <string name="theme_store_author">Автор: %s</string>
+    <string name="theme_store_version">Версия: %s</string>
+    <string name="theme_source">Источник</string>
+    <string name="theme_store_download">Загрузить</string>
+    <string name="theme_store_search_hint">Поиск тем...</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">Автоматическая проверка обновлений</string>
+    <string name="settings_auto_update_check_summary">Автоматически проверять обновления при запуске приложения</string>
+    <string name="settings_check_update">Проверить обновления</string>
+    <string name="update_available_title">Доступно обновление</string>
+    <string name="update_available_message">Обнаружено, что ваша версия устарела. Хотите скачать новую версию?</string>
+    <string name="update_action">Обновить</string>
+    <string name="update_close">Закрыть</string>
+    <string name="update_latest">У вас последняя версия</string>
+    <!--Варианты сворачивания-->
+    <string name="settings_category_general">Общие</string>
+    <string name="settings_category_appearance">Внешний вид</string>
+    <string name="settings_appearance_font">Настройки шрифта</string>
+    <string name="settings_appearance_theme">Настройки темы</string>
+
+    <string name="settings_nav_custom_icons">Пользовательские иконки навигации</string>
+    <string name="settings_nav_custom_icons_summary">Замена иконок нижней панели пользовательскими изображениями</string>
+    <string name="nav_icon_home">Иконка главной</string>
+    <string name="nav_icon_superuser">Terminal Icon</string>
+    <string name="nav_icon_apm">Plugins Icon</string>
+    <string name="nav_icon_settings">Иконка настроек</string>
+    <string name="nav_icon_clear">Сбросить на стандартную</string>
+    <string name="nav_icon_custom_selected">Пользовательская</string>
+    <string name="nav_icon_default">Стандартная</string>
+    <string name="nav_icon_cleared">Иконка сброшена</string>
+    <string name="nav_icon_set">Иконка обновлена</string>
+    <string name="nav_icon_set_failed">Не удалось сохранить иконку</string>
+
+    <string name="settings_theme_mode">Режим настройки</string>
+    <string name="settings_theme_mode_summary">Переключение между встроенным магазином и режимом совместимости браузера</string>
+    <string name="theme_mode_builtin">Встроенный режим</string>
+    <string name="theme_mode_builtin_desc">Используйте встроенный магазин тем для просмотра, загрузки и применения тем</string>
+    <string name="theme_mode_compat">Режим совместимости</string>
+    <string name="theme_mode_compat_desc">Использовать браузер для прямой загрузки тем (для устройств с проблемами импорта)</string>
+    <string name="theme_mode_onboarding_title">Выберите режим темы</string>
+    <string name="theme_mode_onboarding_msg">Как вы хотите просматривать и устанавливать темы? Вы можете изменить это позже в настройках.</string>
+    <string name="theme_mode_builtin_label">Встроенный магазин</string>
+    <string name="theme_mode_compat_label">Режим браузера</string>
+    <string name="theme_mode_switched">Режим темы изменён на %s</string>
+    <string name="theme_mode_current">Текущий: %s</string>
+    <string name="theme_mode_switch_title">Переключить режим темы</string>
+    <string name="theme_mode_switch_msg">Изменение режима повлияет на то, как вы просматриваете и устанавливаете темы. Продолжить?</string>
+    <string name="settings_appearance_banner">Настройки баннера</string>
+    <string name="settings_appearance_layout">Настройки макета</string>
+    <string name="settings_appearance_background">Настройки фона</string>
+    <string name="settings_appearance_night_mode">Настройки ночного режима</string>
+    <string name="settings_amoled_theme">Чёрная тема AMOLED</string>
+    <string name="settings_amoled_theme_desc">Чисто чёрный фон для тёмного режима</string>
+    <string name="settings_switch_icon">Индикатор кнопки</string>
+    <string name="settings_switch_icon_desc">Показать значки состояния на переключателях</string>
+    <string name="settings_discrete_slider">Дискретный ползунок</string>
+    <string name="settings_discrete_slider_desc">Показать отметки на дорожке ползунка</string>
+    <string name="settings_category_behavior">Поведение</string>
+    <string name="settings_category_function">Функция</string>
+    <string name="settings_category_security">Безопасность</string>
+    
+    <!-- Background Music Strings -->
+    <string name="settings_background_music">Фоновая музыка</string>
+    <string name="settings_background_music_summary">Воспроизводить фоновую музыку, когда приложение на переднем плане</string>
+    <string name="settings_background_music_playing">Воспроизведение: %s</string>
+    <string name="settings_background_music_enabled">Фоновая музыка включена</string>
+    <string name="settings_select_music_file">Выбрать музыкальный файл</string>
+    <string name="settings_music_selected">Музыка выбрана</string>
+    <string name="settings_clear_music">Очистить музыку</string>
+    <string name="settings_clear_music_confirm">Вы уверены, что хотите очистить фоновую музыку?</string>
+    <string name="settings_music_auto_play">Автовоспроизведение</string>
+    <string name="settings_music_auto_play_summary">Автоматически воспроизводить музыку при открытии приложения</string>
+    <string name="settings_music_volume">Громкость</string>
+    <string name="settings_music_saved">Музыкальный файл сохранён</string>
+    <string name="settings_music_save_error">Не удалось сохранить музыкальный файл</string>
+    <string name="settings_music_cleared">Музыка очищена</string>
+    <string name="settings_category_multimedia">Мультимедиа</string>
+    <string name="settings_category_general_summary">Language, updates, animations, icon and name, DPI</string>
+    <string name="settings_category_appearance_summary">Тема, цвета, макет, фон, шрифты</string>
+    <string name="settings_category_behavior_summary">Web debugging, info copy, home cards, plugin badge</string>
+    <string name="settings_category_security_summary">Biometric authentication for opening the app</string>
+    <string name="settings_category_backup_summary">DSH config export/import, WebDAV sync</string>
+    <string name="settings_category_function_summary">Container runtime, permission channel, wireless ADB</string>
+    <string name="settings_category_multimedia_summary">Фоновая музыка, звуки, вибрация</string>
+    <string name="settings_music_playback_control">Управление воспроизведением</string>
+    <string name="settings_music_looping">Зациклить</string>
+    <string name="settings_music_looping_summary">Повторять текущую композицию</string>
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">Фильтровать Темы</string>
+    <string name="theme_store_filter_author">Автор</string>
+    <string name="theme_store_filter_author_hint">Введите имя автора</string>
+    <string name="theme_store_filter_source">Источник</string>
+    <string name="theme_store_filter_source_all">Все</string>
+    <string name="theme_store_filter_type">Тип Устройства</string>
+    <string name="theme_store_filter_apply">Применить</string>
+    <string name="theme_store_filter_reset">Сброс</string>
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">Видеофон</string>
+    <string name="settings_video_background_summary">Использовать видео в качестве фона</string>
+    <string name="settings_select_video">Выбрать Видео</string>
+    <string name="settings_video_selected">Видео Выбрано</string>
+    <string name="settings_clear_video_background">Очистить видеообои</string>
+    <string name="settings_clear_video_background_confirm">Вы уверены, что хотите очистить видеообои?</string>
+    <string name="settings_video_volume">Громкость Видео</string>
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">Требуется разрешение</string>
+    <string name="file_picker_permission_desc">Для просмотра файлов предоставьте разрешение \'Доступ ко всем файлам\'.</string>
+    <string name="file_picker_grant_permission">Предоставить разрешение</string>
+    <string name="file_picker_cancel">Отмена</string>
+    <string name="file_picker_internal_storage">Внутреннее хранилище</string>
+    <string name="file_picker_no_files">Нет файлов</string>
+    <string name="file_picker_filtered_files">Показано %1$s файлов</string>
+    <string name="file_picker_close">Закрыть выбор файлов</string>
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">Состояние устройства</string>
+    <string name="home_device_status_battery_temp">Температура батареи</string>
+    <string name="home_device_status_cpu_load">Нагрузка ЦПУ</string>
+    <string name="home_device_status_battery_level">Уровень батареи</string>
+    <string name="home_storage_title">Хранилище</string>
+    <string name="home_storage_internal">Внутреннее хранилище</string>
+    <string name="home_storage_ram">ОЗУ</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">Файл подкачки</string>
+    <string name="home_info_auth_auth">Аут</string>
+    <string name="home_info_auth_na">Н/Д</string>
+    <string name="home_info_device_model">Модель устройства</string>
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">Настройки счётчика значков</string>
+    <string name="enable_badge_count_summary">Настройка отображения счётчика значков для элементов навигации</string>
+    <string name="settings_sound_effect">Звуковой эффект</string>
+    <string name="settings_sound_effect_summary">Воспроизводить звук при нажатии</string>
+    <string name="settings_sound_effect_enabled">Включено</string>
+    <string name="settings_sound_effect_playing">Выбрано: %s</string>
+    <string name="settings_sound_effect_source">Источник звука</string>
+    <string name="settings_sound_effect_source_local">Локальный файл</string>
+    <string name="settings_sound_effect_source_preset">Предустановка</string>
+    <string name="settings_sound_effect_preset_title">Предустановленные звуки</string>
+    <string name="settings_select_sound_effect">Выбрать звуковой файл</string>
+    <string name="settings_sound_effect_selected">Звуковой файл выбран</string>
+    <string name="settings_sound_effect_scope">Область действия</string>
+    <string name="settings_sound_effect_scope_global">Везде</string>
+    <string name="settings_sound_effect_scope_bottom_bar">Только нижняя панель</string>
+    <string name="settings_clear_sound_effect">Очистить звуковой эффект</string>
+    <string name="settings_clear_sound_effect_confirm">Вы уверены, что хотите удалить звуковой эффект?</string>
+    <string name="settings_sound_effect_cleared">Звуковой эффект удален</string>
+
+    <string name="settings_startup_sound">Звук запуска</string>
+    <string name="settings_startup_sound_summary">Воспроизводить звук при запуске приложения</string>
+    <string name="settings_startup_sound_enabled">Звук запуска включен</string>
+    <string name="settings_startup_sound_playing">Воспроизведение: %s</string>
+    <string name="settings_select_startup_sound">Выбрать звук запуска</string>
+    <string name="settings_startup_sound_selected">Звук запуска выбран</string>
+    <string name="settings_clear_startup_sound">Очистить звук запуска</string>
+    <string name="settings_clear_startup_sound_confirm">Вы уверены, что хотите удалить звук запуска?</string>
+    <string name="settings_startup_sound_cleared">Звук запуска удален</string>
+
+    <string name="settings_enable_cloud_backup_summary">Автоматическое резервное копирование в облако</string>
+    <string name="settings_configure_webdav">Настроить службу WebDAV</string>
+    <string name="webdav_config_title">Конфигурация WebDAV</string>
+    <string name="webdav_url">URL WebDAV</string>
+    <string name="webdav_username">Имя пользователя</string>
+    <string name="webdav_password">Пароль</string>
+    <string name="save">Сохранить</string>
+    <string name="test">Тест</string>
+    <string name="webdav_path_label">Путь (напр. /Backup)</string>
+    <string name="webdav_view_logs">Просмотр логов</string>
+    <string name="webdav_backup_logs_title">Логи резервного копирования</string>
+    <string name="webdav_no_logs">Нет логов</string>
+    <string name="webdav_clear_logs">Очистить</string>
+    <string name="close">Закрыть</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">Настройки резервного копирования</string>
+    <string name="settings_enable_cloud_backup">Включить облачное резервное копирование</string>
+    <string name="webdav_test_success">Тест успешен</string>
+    <string name="webdav_test_failed">Тест не удался: %s</string>
+
+
+    <!-- Script Library Strings -->
+    <string name="settings_vibration">Вибрация и тактильная отдача</string>
+    <string name="settings_vibration_summary">Вибрация при касании</string>
+    <string name="settings_vibration_enabled">Включить вибрацию</string>
+    <string name="settings_vibration_intensity">Интенсивность вибрации</string>
+    <string name="settings_vibration_scope">Область вибрации</string>
+    <string name="settings_vibration_scope_global">Везде (Глобально)</string>
+    <string name="settings_vibration_scope_bottom_bar">Только нижняя панель</string>
+
+    <!-- Umount Service -->
+
+    <!-- Страница Мои Темы -->
+    <string name="my_themes_title">Мои темы</string>
+    <string name="my_themes_empty">Тем пока нет</string>
+    <string name="my_themes_empty_action">Посетить магазин тем</string>
+    <string name="my_themes_apply">Применить тему</string>
+    <string name="my_themes_delete">Удалить тему</string>
+    <string name="my_themes_delete_confirm">Вы уверены, что хотите удалить эту тему?</string>
+    <string name="my_themes_deleted">Тема удалена</string>
+    <string name="my_themes_applied">Тема применена</string>
+    <string name="my_themes_apply_failed">Не удалось применить тему — долгое нажатие для удаления и повторной загрузки</string>
+
+    <!-- Диалог Загрузки -->
+    <string name="theme_download_title">Загрузка темы</string>
+    <string name="theme_download_completed">Загрузка завершена</string>
+    <string name="theme_download_failed">Ошибка загрузки</string>
+    <string name="theme_download_progress">Прогресс</string>
+    <string name="theme_download_file">Файл темы</string>
+    <string name="theme_download_image">Изображение предпросмотра</string>
+    <string name="theme_download_cancel">Отмена</string>
+    <string name="theme_download_pause">Пауза</string>
+    <string name="theme_download_apply">Применить тему</string>
+    <string name="theme_download_go_to_my_themes">Мои темы</string>
+    <string name="theme_download_finalizing">Завершение...</string>
+    <string name="settings_predictive_back">Предиктивный жест назад</string>
+    <string name="settings_predictive_back_summary">Включить анимацию предиктивного жеста назад (Android 14+)</string>
+
+    <string name="home_device_status_battery_charging">Зарядка</string>
+    <string name="home_device_status_cpu_temp">Температура ЦПУ</string>
+    <string name="home_device_status_memory_trend">Тренд памяти</string>
+    <string name="home_device_status_cpu_freq">Частота ЦПУ</string>
+    <string name="home_network_rx">Загрузка</string>
+    <string name="home_network_tx">Отдача</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">GPU</string>
+
+
+
+    <string name="settings_search_title">Поиск настроек</string>
+    <string name="settings_search_empty_hint">Введите для поиска всех настроек…</string>
+    <string name="settings_no_results">Ничего не найдено</string>
+
+    <!-- Color Generation -->
+    <string name="color_generation_classic">Классический</string>
+    <string name="color_generation_custom">Пользовательский</string>
+
+    <!-- Color Standard -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- Color Style -->
+    <string name="color_style_tonal_spot">Тональный акцент</string>
+    <string name="color_style_vibrant">Яркий</string>
+    <string name="color_style_content">Контент</string>
+    <string name="color_style_expressive">Экспрессивный</string>
+    <string name="color_style_rainbow">Радуга</string>
+    <string name="color_style_fruit_salad">Фруктовый салат</string>
+    <string name="color_style_monochrome">Монохромный</string>
+    <string name="color_style_neutral">Нейтральный</string>
+    <string name="color_style_fidelity">Точность</string>
+    <string name="settings_focus_card_background">Обои карточки FocusUI</string>
+    <string name="settings_focus_card_background_enabled">Обои карточки FocusUI включены; удерживайте карточку для управления обоями</string>
+    <string name="settings_focus_card_background_summary">Включить обои карточки FocusUI и управление обоями через удержание</string>
+    <string name="settings_focus_card_dual_dim">Включить двойное затемнение день/ночь</string>
+    <string name="settings_focus_card_dual_dim_desc">Автоматически регулировать затемнение обоев карточки для светлой и тёмной темы</string>
+    <string name="settings_focus_card_day_dim">Затемнение обоев в дневном режиме</string>
+    <string name="settings_focus_card_night_dim">Затемнение обоев в ночном режиме</string>
+    <string name="settings_focus_card_opacity">Непрозрачность обоев карточки</string>
+    <string name="settings_focus_card_dual_opacity">Включить двойную непрозрачность день/ночь</string>
+    <string name="settings_focus_card_dual_opacity_desc">Автоматически регулировать непрозрачность обоев карточки для светлой и тёмной темы</string>
+    <string name="settings_focus_card_day_opacity">Непрозрачность обоев в дневном режиме</string>
+    <string name="settings_focus_card_night_opacity">Непрозрачность обоев в ночном режиме</string>
+    <string name="settings_focus_card_kernel">Карточка ядра</string>
+    <string name="settings_focus_card_app">Карточка приложений</string>
+    <string name="settings_focus_card_device">Карточка состояния устройства</string>
+    <string name="settings_focus_card_storage">Карточка хранилища</string>
+    <string name="settings_focus_card_wallpaper_selected">Обои установлены</string>
+    <string name="dashboard_card_background_title">Обои карточки панели</string>
+    <string name="settings_dashboard_card_background">Обои карточки панели</string>
+    <string name="settings_dashboard_card_background_enabled">Обои панели включены; удерживайте карточку панели для управления</string>
+    <string name="settings_dashboard_card_background_summary">Включить обои для карточки панели DashboardUI</string>
+    <string name="dashboard_card_background_clear">Очистить обои панели</string>
+    <string name="dashboard_card_background_clear_confirm">Вы уверены, что хотите очистить обои карточки панели?</string>
+    <string name="dashboard_card_background_saved">Обои панели успешно сохранены</string>
+    <string name="dashboard_card_background_error">Не удалось сохранить обои панели</string>
+    <string name="dashboard_card_background_cleared">Обои панели очищены</string>
+    <string name="dashboard_card_background_restore">Восстановить по умолчанию</string>
+    <string name="dashboard_card_background_restored">Обои панели восстановлены</string>
+    <string name="settings_dashboard_card_dual_dim">Включить двойное затемнение день/ночь</string>
+    <string name="settings_dashboard_card_dual_dim_desc">Автоматически регулировать затемнение обоев панели для светлой и тёмной темы</string>
+    <string name="settings_dashboard_card_day_dim">Затемнение обоев панели в дневном режиме</string>
+    <string name="settings_dashboard_card_night_dim">Затемнение обоев панели в ночном режиме</string>
+    <string name="settings_dashboard_card_opacity">Непрозрачность обоев панели</string>
+    <string name="settings_dashboard_card_dual_opacity">Включить двойную непрозрачность день/ночь</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">Автоматически регулировать непрозрачность обоев панели для светлой и тёмной темы</string>
+    <string name="settings_dashboard_card_day_opacity">Непрозрачность обоев панели в дневном режиме</string>
+    <string name="settings_dashboard_card_night_opacity">Непрозрачность обоев панели в ночном режиме</string>
+    <string name="settings_title_image_permission_required">Предоставьте доступ к хранилищу для выбора изображения заголовка</string>
+    <string name="settings_background_permission_required">Предоставьте доступ к хранилищу для выбора фонового изображения</string>
+    <string name="settings_sound_effect_save_failed">Не удалось сохранить звуковой эффект</string>
+    <string name="settings_startup_sound_save_failed">Не удалось сохранить звук запуска</string>
+    <string name="settings_info_copy">Долгое нажатие для копирования</string>
+    <string name="settings_info_copy_summary">Долгое нажатие на элемент информационной панели главного экрана копирует его содержимое</string>
+    <string name="home_info_copied">%1$s скопировано</string>
+</resources>

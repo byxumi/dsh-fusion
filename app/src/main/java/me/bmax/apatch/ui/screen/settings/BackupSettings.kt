@@ -1,0 +1,1548 @@
+package me.bmax.apatch.ui.screen.settings
+
+import me.bmax.apatch.util.ui.showToast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SettingsBackupRestore
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.bmax.apatch.R
+import me.bmax.apatch.ui.component.ExpressiveCard
+import me.bmax.apatch.ui.component.SplicedColumnGroup
+import me.bmax.apatch.ui.component.ToggleSettingCard
+import me.bmax.apatch.dsh.BackupScope
+import me.bmax.apatch.dsh.DshBackupArchive
+import me.bmax.apatch.dsh.DshCloudBackup
+import me.bmax.apatch.dsh.DshConfigBackup
+import me.bmax.apatch.dsh.ExportPlan
+import me.bmax.apatch.ui.theme.BackupConfig
+import me.bmax.apatch.util.BackupLogManager
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import java.security.SecureRandom
+
+/**
+ * 救急 CLI 的常用命令。
+ *
+ * 注意 `--omit=peer`：不带它 npm 会去装 16 个 `@deepseek-ai/…` peer 包，
+ * 在手机上又慢又容易失败，而离线 CLI 一个都不需要（只用 js-yaml）。
+ */
+private val RESCUE_COMMANDS = listOf(
+    "npm install -g dsh-config-manager@latest --omit=peer",
+    "dsh-config-manager snapshots",
+    "dsh-config-manager restore --dry-run",
+    "dsh-config-manager reinstall --list",
+)
+
+/** 导出数据范围的档位（枚举顺序即滑块顺序，默认 BOTH）。 */
+private data class ScopeOption(val scope: BackupScope, val label: Int, val summary: Int)
+
+private val SCOPE_OPTIONS = listOf(
+    ScopeOption(BackupScope.APP_ONLY, R.string.dsh_bk_scope_app_only, R.string.dsh_bk_scope_app_only_summary),
+    ScopeOption(BackupScope.DSH_ONLY, R.string.dsh_bk_scope_dsh_only, R.string.dsh_bk_scope_dsh_only_summary),
+    ScopeOption(BackupScope.DSH_VAULT, R.string.dsh_bk_scope_dsh_vault, R.string.dsh_bk_scope_dsh_vault_summary),
+    ScopeOption(BackupScope.BOTH, R.string.dsh_bk_scope_both, R.string.dsh_bk_scope_both_summary),
+    ScopeOption(BackupScope.BOTH_VAULT, R.string.dsh_bk_scope_vault, R.string.dsh_bk_scope_vault_summary),
+)
+
+/** 密码强度四档的文案资源（下标即档位）。 */
+private val PASSWORD_STRENGTH_LABELS = listOf(
+    R.string.dsh_bk_pw_weak,
+    R.string.dsh_bk_pw_fair,
+    R.string.dsh_bk_pw_good,
+    R.string.dsh_bk_pw_strong,
+)
+
+/**
+ * 密码强度（0..3）：长度 + 字符种类。空串返回 -1 —— 界面此时显示「留空不加密」提示，
+ * 而不是一句强度文案。
+ */
+private fun passwordStrength(pw: String): Int {
+    if (pw.isEmpty()) return -1
+    var classes = 0
+    if (pw.any { it.isLowerCase() }) classes++
+    if (pw.any { it.isUpperCase() }) classes++
+    if (pw.any { it.isDigit() }) classes++
+    if (pw.any { !it.isLetterOrDigit() }) classes++
+    val lenScore = when {
+        pw.length >= 16 -> 3
+        pw.length >= 12 -> 2
+        pw.length >= 8 -> 1
+        else -> 0
+    }
+    val classScore = when {
+        classes >= 4 -> 2
+        classes >= 3 -> 1
+        else -> 0
+    }
+    // 注意这里必须用无主语 when：Kotlin 的带主语 when 只接受相等/包含判定，
+    // 写 ">= 4 ->" 会直接是语法错误（编译期才发现）。
+    return when {
+        lenScore + classScore >= 4 -> 3
+        lenScore + classScore == 3 -> 2
+        lenScore + classScore == 2 -> 1
+        else -> 0
+    }
+}
+
+/**
+ * 随机密码：20 位，字符集去掉易混字符（0/O/1/l/I）。
+ * 用 SecureRandom 而不是 Math.random：这是要拿去当加密口令的，不能用弱随机源。
+ */
+private fun randomPassword(): String {
+    val charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
+    val rnd = SecureRandom()
+    return buildString(20) {
+        repeat(20) { append(charset[rnd.nextInt(charset.length)]) }
+    }
+}
+
+/** 备份体积：列表里显示「340 KB」这种，比裸字节数好读。 */
+private fun formatBackupSize(bytes: Long): String = when {
+    bytes >= 1024L * 1024L -> "%.1f MB".format(bytes / 1024.0 / 1024.0)
+    bytes >= 1024L -> "${bytes / 1024} KB"
+    else -> "$bytes B"
+}
+
+/** 快照/远端条目的时间。解析不出来返回 null —— 由调用方说「时间未知」，不画一个假的 1970。 */
+private fun formatSnapshotTime(ms: Long): String? =
+    if (ms <= 0L) null else java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+        .format(java.util.Date(ms))
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun BackupSettingsContent(
+    /** DSH 配置备份：是否正在跑（导出/导入期间禁用按钮）。 */
+    dshBusy: Boolean,
+    /** 最近一次导出/导入的结果文本。 */
+    dshMessage: String,
+    dshPassword: String,
+    onDshPasswordChange: (String) -> Unit,
+    /**
+     * 导出。参数是一个完整的 [ExportPlan]（数据范围 + 会话数量 + 密码），
+     * 由本页面组装好后交出去；含 vault 却没密码时 plan.valid == false，
+     * 界面已经禁了按钮，这里再挡一道。
+     */
+    onDshExport: (ExportPlan) -> Unit,
+    onDshImport: () -> Unit,
+    onDshOpenDir: () -> Unit,
+    /**
+     * 云备份插件（dsh-folk-cloud）的状态；null = 未装 / 不可达。
+     *
+     * App 不再自己传 zip：云备份整个由插件按触发器做，这里只是它的**前端** ——
+     * 显示状态、开配置弹窗、给「立即同步 / 从上游恢复」两个触发按钮。
+     */
+    cloudStatus: DshCloudBackup.CloudStatus? = null,
+    cloudBusy: Boolean = false,
+    cloudMessage: String = "",
+    onCloudRefresh: () -> Unit = {},
+    onCloudSync: () -> Unit = {},
+    onCloudRestore: () -> Unit = {},
+    /**
+     * 云备份卡片三态引导（不再「插件不可达就整块隐藏」，改成常显 + 按状态给按钮）：
+     * - [dshRunning] = false → DSH 没跑，给「启动 DSH」；
+     * - [cloudInstalled] = false → 插件没装，给「去安装」；
+     * - [cloudDisabled] = true → 插件被停用，给「启用并重启」。
+     * [cloudInstalled] = null 表示还在检测。三者都过、且 [cloudStatus].reachable 才是正常态。
+     */
+    cloudInstalled: Boolean? = null,
+    cloudDisabled: Boolean = false,
+    dshRunning: Boolean = false,
+    onStartDsh: () -> Unit = {},
+    onGoInstallCloudPlugin: () -> Unit = {},
+    onEnableCloudPlugin: () -> Unit = {},
+    /** 插件保留的快照（恢复的最后依靠）。 */
+    /** 插件**确实没装**（应用侧查容器里的插件目录就能确定，不需要 DSH 在跑）。 */
+    pluginAbsent: Boolean = false,
+    /** 重新检测插件/DSH 状态。 */
+    onRecheckPlugin: () -> Unit = {},
+    snapshots: List<DshConfigBackup.Snapshot> = emptyList(),
+    snapshotBusy: Boolean = false,
+    snapshotMessage: String = "",
+    onSnapshotList: () -> Unit = {},
+    onSnapshotRestore: (DshConfigBackup.Snapshot) -> Unit = {},
+    onSnapshotDelete: (DshConfigBackup.Snapshot) -> Unit = {},
+    /**
+     * 插件 exports 目录里的备份（容器内，文件管理器看不到）。
+     *
+     * 这一块有**自己的**忙状态与消息：它跟「配置备份」是两件事，蹭上面的
+     * dshBusy/dshMessage 会让两个卡片互相污染（列个备份把导出进度冲掉之类）。
+     */
+    dshBackups: List<DshConfigBackup.RemoteBackup>,
+    dshBackupBusy: Boolean = false,
+    dshBackupMessage: String = "",
+    onDshListRemote: () -> Unit = {},
+    onDshBackupRestore: (DshConfigBackup.RemoteBackup) -> Unit = {},
+    onDshBackupDelete: (DshConfigBackup.RemoteBackup) -> Unit = {},
+    /**
+     * dsh-config-manager 插件是否就绪。null = 还在检测。
+     *
+     * 导出/导入完全走这个插件的回环 API，没它这一页做不了事 —— 所以状态必须在
+     * 进页面时就摆出来，而不是等用户点了「导出」再报错。
+     *
+     * 这一页所有依赖插件的入口都按 **`== true`** 判定（不是 `!= false`）：`null` 是
+     * 「还不知道」，把它当放行会让按钮在检测完成前就可点。不依赖插件的入口
+     * （打开备份目录、救急 CLI、WebDAV 地址与开关）不受它约束。
+     */
+    pluginReady: Boolean? = null,
+    /** 插件版本（就绪时显示），或未就绪的原因。 */
+    pluginDetail: String = "",
+    onGoInstallPlugin: () -> Unit = {},
+    /**
+     * DSH 配置备份卡片的三态引导信号（与云备份卡片同一套判定，直接查容器插件目录，
+     * 不需要 DSH 在跑）：null = 还在检测；false = dsh-config-manager 没装 → 去安装；
+     * [dshConfigDisabled] = true → 已停用 → 启用并重启；再看 [dshRunning] → 启动 DSH；
+     * 都过之后才由 [pluginReady] 决定「就绪显版本 / 探活中 / 未就绪给原因」。
+     */
+    dshConfigInstalled: Boolean? = null,
+    dshConfigDisabled: Boolean = false,
+    /** 启用 dsh-config-manager 并重启 DSH（启用只改注册表，需重启才生效）。 */
+    onEnableDshConfigPlugin: () -> Unit = {},
+    /** 在容器内安装独立的救急 CLI（与插件是两回事，见卡片说明）。 */
+    onInstallRescueCli: () -> Unit = {},
+    onOpenTerminal: () -> Unit = {},
+    flat: Boolean = false,
+    highlightKey: String? = null,
+) {
+    val context = LocalContext.current
+
+    val showWebDavDialog = remember { mutableStateOf(false) }
+
+    // ── 导出选项：数据范围 / 会话数量 / 加密密码 ──
+    // 档位与会话数是持久选择（rememberSaveable），跨「打开导出弹窗」保留；弹窗本身与其内部的
+    // 预览/子对话框状态都收在可复用组件 [BackupExportOptionsDialog] 里。
+    var scopeIndex by rememberSaveable { mutableStateOf(3) } // 默认 BOTH（新增 DSH_VAULT 档后 BOTH 移到 index 3）
+    var sessionLimit by rememberSaveable { mutableStateOf(0) } // 默认 0 = 不带会话
+    var showExportDialog by remember { mutableStateOf(false) }
+
+    SplicedColumnGroup(flat = flat, highlightKey = highlightKey) {
+        // DSH 配置备份 —— 直接复用容器内 dsh-config-manager 的导出格式，保证与桌面端互通
+        item(key = "backup_dsh_config") {
+            ExpressiveCard(flat = flat) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.SettingsBackupRestore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.dsh_backup_section),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                text = stringResource(R.string.dsh_backup_summary),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    // 插件状态行：这一页的所有能力都建立在它之上。
+                    // 判定次序与云备份卡片完全一致：没装（文件系统可确定，与 DSH 无关）→
+                    // 被停用 → DSH 没跑 → 探活/就绪。这样「插件装着、只是 DSH 没起来」不再被
+                    // 一句笼统的「未就绪」盖掉，而是给出「启动 DSH」这一步能走的按钮。
+                    Spacer(Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        when {
+                            dshConfigInstalled == null -> {
+                                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.dsh_backup_plugin_checking),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            dshConfigInstalled == false -> Column {
+                                Text(
+                                    text = stringResource(R.string.dsh_backup_plugin_missing),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                TextButton(onClick = onGoInstallPlugin) {
+                                    Text(stringResource(R.string.dsh_backup_plugin_install))
+                                }
+                            }
+                            dshConfigDisabled -> Column {
+                                Text(
+                                    text = stringResource(R.string.dsh_backup_plugin_disabled),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                TextButton(onClick = onEnableDshConfigPlugin) {
+                                    Text(stringResource(R.string.dsh_backup_plugin_enable))
+                                }
+                            }
+                            !dshRunning -> Column {
+                                Text(
+                                    text = stringResource(R.string.dsh_backup_dsh_stopped),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                TextButton(onClick = onStartDsh) {
+                                    Text(stringResource(R.string.dsh_bk_cloud_start_dsh))
+                                }
+                            }
+                            pluginReady == true -> Text(
+                                text = stringResource(R.string.dsh_backup_plugin_ready, pluginDetail),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            pluginReady == null -> {
+                                // 装着、启用着、DSH 也在跑，只是这次回环探活还没回话：转圈等它，
+                                // 不当成「未就绪」——否则会把一个其实健康的插件说成坏的。
+                                CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.dsh_backup_plugin_checking),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            else -> Column {
+                                // 装着、启用着、DSH 在跑，探活却失败：给插件自己说的原因（未授权、
+                                // 非 JSON…）+ 重新检测，而不是指人去重装一个装好的插件。
+                                Text(
+                                    text = stringResource(R.string.dsh_backup_plugin_not_ready, pluginDetail),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                TextButton(onClick = onRecheckPlugin) {
+                                    Text(stringResource(R.string.dsh_backup_plugin_retry))
+                                }
+                            }
+                        }
+                    }
+
+                    // 学云备份卡片：只有插件**确实就绪**（pluginReady==true）才露出导出/导入/打开目录
+                    // 这几个功能按钮；没装 / 被停用 / DSH 没跑 / 还在探活时，上面的状态行已经给了对应
+                    // 的引导按钮（安装 / 启用 / 启动 DSH / 重新检测），这里就不再摆一排灰按钮。
+                    if (pluginReady == true) {
+                        Spacer(Modifier.height(12.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val canRun = !dshBusy
+                            Button(
+                                // 导出什么（范围 / 会话 / 密码）都在弹窗里选，页面上只有这两个动作
+                                onClick = { showExportDialog = true },
+                                enabled = canRun,
+                            ) {
+                                Text(stringResource(R.string.dsh_backup_export))
+                            }
+                            OutlinedButton(onClick = onDshImport, enabled = canRun) {
+                                Text(stringResource(R.string.dsh_backup_import))
+                            }
+                            TextButton(onClick = onDshOpenDir) {
+                                Text(stringResource(R.string.dsh_backup_open_dir))
+                            }
+                            if (dshBusy) {
+                                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            }
+                        }
+                    }
+
+                    // 备份列表做成独立分区（和快照一样）：只是「列出来」没用 ——
+                    // 用户点「列出」的下一步一定是「拿这个恢复」或者「这个不要了」。
+
+                    if (dshMessage.isNotBlank()) {
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = dshMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .verticalScroll(rememberScrollState()),
+                        )
+                    }
+                }
+            }
+        }
+
+        // ───────── 恢复到快照 ─────────
+        // 快照目录永不被自动清理（插件源码注释：「它是恢复的最后依靠」）。
+        // 恢复会覆盖设置文件并卸载快照里没有的插件，所以流程是「先预览（零写入）→ 确认 → 执行」。
+        item(key = "backup_snapshot") {
+            ExpressiveCard(flat = flat) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.dsh_bk_snapshot_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_bk_snapshot_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    // canRun 提到 Column 作用域：下面的列表行也要用它（放在 Row 里就只有
+                    // 那一行可见，行外的按钮引用会编译不过）
+                    val canRun = !snapshotBusy && pluginReady == true
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OutlinedButton(onClick = onSnapshotList, enabled = canRun) {
+                            Text(stringResource(R.string.dsh_bk_snapshot_list))
+                        }
+                        if (snapshotBusy) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        }
+                    }
+                    if (snapshots.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 220.dp)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            for (snap in snapshots) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            text = snap.id,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = FontFamily.Monospace,
+                                        )
+                                        Text(
+                                            text = formatSnapshotTime(snap.createdAtMs)
+                                                ?: stringResource(R.string.dsh_bk_snapshot_time_unknown),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    TextButton(onClick = { onSnapshotRestore(snap) }, enabled = canRun) {
+                                        Text(stringResource(R.string.dsh_bk_snapshot_restore_now))
+                                    }
+                                    TextButton(onClick = { onSnapshotDelete(snap) }, enabled = canRun) {
+                                        Text(stringResource(R.string.dsh_bk_snapshot_delete))
+                                    }
+                                }
+                            }
+                        }
+                    } else if (!snapshotBusy && snapshotMessage.isBlank()) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_bk_snapshot_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (snapshotMessage.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(snapshotMessage, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+
+        // ───────── 救急 CLI ─────────
+        // 「DSH 内已有的备份」是独立的一块：它们是插件留在容器里的历史备份，
+        // 与「配置备份」这张卡片（导出/导入当前配置）是两件事 —— 挂在别人下面
+        // 会让人以为它们只能从导出流程里用。这里能直接恢复、直接删。
+        item(key = "dsh_backups") {
+            ExpressiveCard(flat = flat) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.dsh_bk_backup_section),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_bk_backup_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    // 提到 Column 作用域：下面的列表行也要用它（放在 Row 里就只有那一行可见）
+                    val canRun = !dshBackupBusy && pluginReady == true
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OutlinedButton(onClick = onDshListRemote, enabled = canRun) {
+                            Text(stringResource(R.string.dsh_bk_backup_refresh))
+                        }
+                        if (dshBackupBusy) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        }
+                    }
+                    if (dshBackups.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 260.dp)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            for (backup in dshBackups) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            text = backup.name,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = FontFamily.Monospace,
+                                        )
+                                        Text(
+                                            text = listOfNotNull(
+                                                backup.sizeBytes.takeIf { it > 0 }?.let(::formatBackupSize),
+                                                formatSnapshotTime(backup.mtimeMs),
+                                                backup.note.takeIf { it.isNotBlank() },
+                                            ).joinToString(" · "),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    TextButton(onClick = { onDshBackupRestore(backup) }, enabled = canRun) {
+                                        Text(stringResource(R.string.dsh_bk_backup_restore))
+                                    }
+                                    TextButton(onClick = { onDshBackupDelete(backup) }, enabled = canRun) {
+                                        Text(stringResource(R.string.dsh_bk_backup_delete))
+                                    }
+                                }
+                            }
+                        }
+                    } else if (!dshBackupBusy && dshBackupMessage.isBlank()) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_backup_remote_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (dshBackupMessage.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(dshBackupMessage, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+
+        // 这一整页（含上面的导出/导入）都走 dsh-config-manager 插件的回环 HTTP API，
+        // 而插件住在 DSH 里面 —— DSH 起不来时它也用不了。它的 CLI 则完全独立于 DSH
+        // 运行时（只依赖 js-yaml，16 个 @deepseek-ai/* 全在 peerDependencies；已实测
+        // peer 全缺时 snapshots / help 均正常），所以配置损坏时的第一救急手段是 CLI。
+        item(key = "backup_rescue_cli") {
+            ExpressiveCard(flat = flat) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    var expanded by remember { mutableStateOf(false) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.HealthAndSafety,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_backup_rescue_section),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { expanded = !expanded }) {
+                            Text(
+                                stringResource(
+                                    if (expanded) R.string.dsh_backup_rescue_collapse
+                                    else R.string.dsh_backup_rescue_expand
+                                )
+                            )
+                        }
+                    }
+
+                    if (expanded) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_backup_rescue_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            OutlinedButton(onClick = onInstallRescueCli, enabled = !dshBusy) {
+                                Text(stringResource(R.string.dsh_backup_rescue_install_cli))
+                            }
+                            TextButton(onClick = onOpenTerminal) {
+                                Text(stringResource(R.string.dsh_backup_rescue_open_terminal))
+                            }
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.dsh_backup_rescue_cmds_title),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        for (cmd in RESCUE_COMMANDS) {
+                            Text(
+                                text = cmd,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // ───────── 云备份（由 dsh-folk-cloud 插件负责）─────────
+        //
+        // App 不再自己传 zip：云备份整个交给插件（定时/启动后/手动触发，哈希去重，冲突停下问）。
+        // 卡片**常显**（和 DSH 配置备份卡片一致），不再「插件不可达就整块隐藏」。按状态给引导：
+        // 插件可达 → 正常的状态 + 配置/触发按钮；否则依次区分 DSH 没跑 / 插件没装 / 插件被停用，
+        // 各给一个能直接把用户带到位的按钮。完整高级设置仍在插件自己的 dsh web「云备份」页里。
+        val cloud = cloudStatus
+        item(key = "backup_cloud") {
+            ExpressiveCard(flat = flat) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Cloud,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.dsh_bk_cloud_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                text = stringResource(R.string.dsh_bk_cloud_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (cloudBusy) {
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        }
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+                    if (cloud != null && cloud.reachable) {
+                        // 正常态：状态行 + 配置/触发按钮。
+                        val statusLine = if (!cloud.configured || cloud.url.isBlank()) {
+                            stringResource(R.string.dsh_bk_cloud_unconfigured)
+                        } else {
+                            val tierText = if (cloud.tierFellBack) {
+                                stringResource(R.string.dsh_bk_cloud_tier_fellback, cloud.tier, cloud.effectiveTier)
+                            } else {
+                                cloud.tier
+                            }
+                            stringResource(R.string.dsh_bk_cloud_status_line, cloud.url, tierText)
+                        }
+                        Text(statusLine, style = MaterialTheme.typography.bodySmall)
+                        if (cloud.lastSyncedHash.isNotBlank()) {
+                            Text(
+                                text = stringResource(
+                                    R.string.dsh_bk_cloud_last_sync,
+                                    cloud.lastSyncedHash.take(12),
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        // 依赖提示：dsh-config-manager 缺席时 DSH 数据备不了，明说
+                        if (!cloud.configManagerAvailable) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.dsh_bk_cloud_needs_manager),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+
+                        Spacer(Modifier.height(12.dp))
+                        val canRun = !cloudBusy && cloud.configured && cloud.url.isNotBlank()
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = { showWebDavDialog.value = true }) {
+                                Text(stringResource(R.string.settings_configure_webdav))
+                            }
+                            OutlinedButton(onClick = onCloudSync, enabled = canRun) {
+                                Text(stringResource(R.string.dsh_bk_cloud_sync_now))
+                            }
+                            OutlinedButton(onClick = onCloudRestore, enabled = canRun) {
+                                Text(stringResource(R.string.dsh_bk_cloud_pull))
+                            }
+                            OutlinedButton(onClick = onCloudRefresh, enabled = !cloudBusy) {
+                                Text(stringResource(R.string.dsh_bk_cloud_refresh))
+                            }
+                        }
+                    } else {
+                        // 不可达：区分原因给引导按钮。判定次序：没装（文件系统可确定，与 DSH 无关）→
+                        // 被停用 → DSH 没跑 → 其它临时不可达。cloudInstalled==null 表示还在检测。
+                        val reason: String
+                        val action: (@Composable () -> Unit)?
+                        when {
+                            cloudInstalled == null -> {
+                                reason = stringResource(R.string.dsh_backup_plugin_checking)
+                                action = null
+                            }
+                            cloudInstalled == false -> {
+                                reason = stringResource(R.string.dsh_bk_cloud_not_installed)
+                                action = {
+                                    Button(onClick = onGoInstallCloudPlugin, enabled = !cloudBusy) {
+                                        Text(stringResource(R.string.dsh_bk_cloud_install))
+                                    }
+                                }
+                            }
+                            cloudDisabled -> {
+                                reason = stringResource(R.string.dsh_bk_cloud_disabled)
+                                action = {
+                                    Button(onClick = onEnableCloudPlugin, enabled = !cloudBusy) {
+                                        Text(stringResource(R.string.dsh_bk_cloud_enable))
+                                    }
+                                }
+                            }
+                            !dshRunning -> {
+                                reason = stringResource(R.string.dsh_bk_cloud_dsh_stopped)
+                                action = {
+                                    Button(onClick = onStartDsh, enabled = !cloudBusy) {
+                                        Text(stringResource(R.string.dsh_bk_cloud_start_dsh))
+                                    }
+                                }
+                            }
+                            else -> {
+                                reason = stringResource(R.string.dsh_bk_cloud_unreachable)
+                                action = null
+                            }
+                        }
+                        Text(
+                            text = reason,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            action?.invoke()
+                            OutlinedButton(onClick = onCloudRefresh, enabled = !cloudBusy) {
+                                Text(stringResource(R.string.dsh_bk_cloud_refresh))
+                            }
+                        }
+                    }
+                    if (cloudMessage.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(cloudMessage, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+    }
+
+    // ── 导出什么：页面上的导出按钮点开的就是这个框 ──
+    // 范围 / 会话 / 密码都收在这里，页面上只剩两个动作按钮。里面的「数据范围」「会话数量」
+    // 两行又会各自再开一个滑块对话框（叠在它上面 —— 组合顺序在前的在下）。
+    if (showExportDialog) {
+        BackupExportOptionsDialog(
+            dshBusy = dshBusy,
+            scopeIndex = scopeIndex,
+            onScopeIndexChange = { scopeIndex = it },
+            sessionLimit = sessionLimit,
+            onSessionLimitChange = { sessionLimit = it },
+            password = dshPassword,
+            onPasswordChange = onDshPasswordChange,
+            onDismiss = { showExportDialog = false },
+            onConfirm = { plan ->
+                showExportDialog = false
+                onDshExport(plan)
+            },
+        )
+    }
+
+
+    if (showWebDavDialog.value) {
+        WebDavConfigDialog(showWebDavDialog, onSaved = onCloudRefresh)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WebDavConfigDialog(showDialog: MutableState<Boolean>, onSaved: () -> Unit = {}) {
+    // WebDAV 云备份配置从 1.9.2.5 起只存 dsh-folk-cloud 插件一份，这个框是它的前端：
+    // 打开时从插件读回填（口令永不回传，只显示「已/未配置」），保存写回插件，口令留空 = 不改。
+    var showWebDavPassword by rememberSaveable { mutableStateOf(false) }
+    // 备份加密口令：与 WebDAV 口令一样从空开始，留空提交 = 不改插件里已存的那个。
+    var encryptPassword by remember { mutableStateOf("") }
+    var showEncryptPassword by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // null = 还没读到 / 插件不可达。读到之前整个表单禁用（免得在空表单上瞎填一通再发现插件没跑）。
+    var status by remember { mutableStateOf<DshCloudBackup.CloudStatus?>(null) }
+    var loaded by remember { mutableStateOf(false) }
+
+    var url by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    // 口令框始终从空开始：插件不回传口令，留空提交 = 保持插件里已存的那个。
+    var password by remember { mutableStateOf("") }
+    var remoteDir by remember { mutableStateOf("dsh-folk") }
+    var isTesting by remember { mutableStateOf(false) }
+    var saving by remember { mutableStateOf(false) }
+    var note by remember { mutableStateOf("") }
+    var showLogDialog by remember { mutableStateOf(false) }
+
+    // 打开即从插件拉一次配置回填。DSH 没起来也不报错，只是表单禁用 + 一行「插件未运行」。
+    LaunchedEffect(Unit) {
+        val st = withContext(Dispatchers.IO) { runCatching { DshCloudBackup.status() }.getOrNull() }
+        status = st
+        loaded = true
+        if (st != null && st.reachable) {
+            url = st.url
+            username = st.username
+            remoteDir = st.remoteDir.ifEmpty { "dsh-folk" }
+        }
+    }
+
+    fun save() {
+        val st = status
+        if (st == null || !st.reachable) {
+            note = context.getString(R.string.dsh_bk_cloud_plugin_offline)
+            return
+        }
+        saving = true
+        note = ""
+        scope.launch {
+            val r = withContext(Dispatchers.IO) {
+                DshCloudBackup.saveConfig(
+                    url = url,
+                    username = username,
+                    // 留空 = 不改：不下发 password，插件保留原口令
+                    password = password,
+                    remoteDir = remoteDir.trim().ifEmpty { "dsh-folk" },
+                    // 档位与其它高级项在插件的 dsh web「云备份」页里调；这里只碰连接三栏 + 目录，
+                    // 其余原样回填（status 读到什么就写回什么，不覆盖用户在插件页的选择）。
+                    tier = st.tier.ifEmpty { "app-dsh" },
+                    encrypt = st.encrypt,
+                    includeSessions = st.includeSessions,
+                    intervalMinutes = st.intervalMinutes,
+                    onStartup = st.onStartup,
+                    // 留空 = 不改：加密口令与 WebDAV 口令同样语义，插件保留已存的
+                    encryptPassword = encryptPassword,
+                )
+            }
+            saving = false
+            note = when {
+                !r.reachable -> context.getString(R.string.dsh_bk_cloud_plugin_offline)
+                r.ok -> context.getString(R.string.dsh_bk_cloud_saved)
+                else -> r.error.ifEmpty { context.getString(R.string.dsh_bk_cloud_save_failed, "") }
+            }
+            if (r.reachable && r.ok) {
+                showDialog.value = false
+                // 保存成功立刻让外面刷新一次云备份状态，不用用户再手动点「刷新」。
+                onSaved()
+            }
+        }
+    }
+
+    val reachable = status?.reachable == true
+    val formEnabled = loaded && reachable
+
+    BasicAlertDialog(
+        onDismissRequest = { showDialog.value = false },
+        properties = DialogProperties(
+            decorFitsSystemWindows = true,
+            usePlatformDefaultWidth = false,
+        )
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(400.dp)
+                .wrapContentHeight(),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 1f)
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = stringResource(R.string.webdav_config_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = stringResource(R.string.dsh_bk_cloud_config_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+
+                if (loaded && !reachable) {
+                    Text(
+                        text = stringResource(R.string.dsh_bk_cloud_plugin_offline),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = { url = it },
+                    label = { Text(stringResource(R.string.webdav_url)) },
+                    enabled = formEnabled,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text(stringResource(R.string.webdav_username)) },
+                    enabled = formEnabled,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text(stringResource(R.string.webdav_password)) },
+                    enabled = formEnabled,
+                    // 占位符说明「已/未配置」+「留空不改」，免得用户以为界面把口令弄丢了
+                    placeholder = {
+                        Text(
+                            stringResource(
+                                if (status?.passwordConfigured == true) R.string.dsh_bk_cloud_pw_keep
+                                else R.string.dsh_bk_cloud_pw_unset,
+                            ),
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    singleLine = true,
+                    visualTransformation = if (showWebDavPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { showWebDavPassword = !showWebDavPassword }) {
+                            Icon(
+                                imageVector = if (showWebDavPassword) Icons.Filled.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = stringResource(
+                                    if (showWebDavPassword) R.string.dsh_pw_hide else R.string.dsh_pw_show,
+                                ),
+                            )
+                        }
+                    }
+                )
+
+                OutlinedTextField(
+                    value = remoteDir,
+                    onValueChange = { remoteDir = it },
+                    label = { Text(stringResource(R.string.webdav_path_label)) },
+                    enabled = formEnabled,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    singleLine = true
+                )
+
+                // 备份加密口令：加密档位（含 vault，或插件开了 encrypt）用它加/解密整包。存一份到
+                // DSH 凭据，定时/启动后的自动备份也能加密。留空 = 不改已存的。
+                OutlinedTextField(
+                    value = encryptPassword,
+                    onValueChange = { encryptPassword = it },
+                    label = { Text(stringResource(R.string.dsh_bk_cloud_enc_pw_label)) },
+                    enabled = formEnabled,
+                    placeholder = {
+                        Text(
+                            stringResource(
+                                if (status?.encryptPasswordConfigured == true) R.string.dsh_bk_cloud_pw_keep
+                                else R.string.dsh_bk_cloud_pw_unset,
+                            ),
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                    singleLine = true,
+                    visualTransformation = if (showEncryptPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { showEncryptPassword = !showEncryptPassword }) {
+                            Icon(
+                                imageVector = if (showEncryptPassword) Icons.Filled.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = stringResource(
+                                    if (showEncryptPassword) R.string.dsh_pw_hide else R.string.dsh_pw_show,
+                                ),
+                            )
+                        }
+                    }
+                )
+                // 加密已开启但从未设过加密口令：明说，否则自动备份会因缺口令而报错（不再静默出明文包）。
+                if (status?.encrypt == true && status?.encryptPasswordConfigured != true) {
+                    Text(
+                        text = stringResource(R.string.dsh_bk_cloud_enc_pw_needed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                } else {
+                    Spacer(Modifier.height(4.dp))
+                }
+
+                if (note.isNotEmpty()) {
+                    Text(
+                        text = note,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = { showDialog.value = false }) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+
+                    TextButton(onClick = { showLogDialog = true }) {
+                        Text(stringResource(R.string.webdav_view_logs))
+                    }
+
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                isTesting = true
+                                val r = withContext(Dispatchers.IO) {
+                                    DshCloudBackup.test(url, username, password)
+                                }
+                                isTesting = false
+                                when {
+                                    !r.reachable -> showToast(context, context.getString(R.string.dsh_bk_cloud_plugin_offline))
+                                    r.ok -> showToast(context, context.getString(R.string.webdav_test_success))
+                                    else -> showToast(context, context.getString(R.string.webdav_test_failed, r.error))
+                                }
+                            }
+                        },
+                        enabled = formEnabled && !isTesting
+                    ) {
+                        Text(stringResource(R.string.test))
+                    }
+
+                    Button(onClick = { save() }, enabled = formEnabled && !saving) {
+                        Text(stringResource(R.string.save))
+                    }
+                }
+            }
+        }
+    }
+
+    if (showLogDialog) {
+        BackupLogDialog(showDialog = remember { mutableStateOf(true) }, onDismiss = { showLogDialog = false })
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BackupLogDialog(showDialog: MutableState<Boolean>, onDismiss: () -> Unit) {
+    var logs by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    // 复制成功了给一句反馈：点一下什么都没发生，用户会以为按钮坏了
+    var copied by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        logs = BackupLogManager.readLogs()
+    }
+
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            decorFitsSystemWindows = true,
+            usePlatformDefaultWidth = false,
+        )
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(350.dp)
+                .height(500.dp),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 1f)
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text(
+                    text = stringResource(R.string.webdav_backup_logs_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Surface(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    val scrollState = rememberScrollState()
+                    Text(
+                        text = logs.ifEmpty { stringResource(R.string.webdav_no_logs) },
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .verticalScroll(scrollState),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = {
+                        scope.launch {
+                            BackupLogManager.clearLogs()
+                            logs = ""
+                        }
+                    }) {
+                        Text(stringResource(R.string.webdav_clear_logs))
+                    }
+                    // 一键把整份日志拿走：报问题时直接粘贴，不用在手机上手抄
+                    OutlinedButton(onClick = {
+                        clipboard.setText(AnnotatedString(logs))
+                        copied = true
+                        android.widget.Toast
+                            .makeText(context, R.string.dsh_bk_log_copied, android.widget.Toast.LENGTH_SHORT)
+                            .show()
+                    }) {
+                        Text(stringResource(R.string.dsh_bk_log_copy))
+                    }
+                    Button(onClick = onDismiss) {
+                        Text(stringResource(R.string.close))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 可复用的「导出选项」对话框：数据范围 / 会话数量 / 加密密码，确认后交出一个完整 [ExportPlan]。
+ *
+ * 从备份页里抽出来单独成组件，好让**运行时操作前的「建议先备份」提示**也能就地打开同一套导出
+ * 流程（见 FunctionSettingsScreen 的运行时更新提示），而不是各写一份。
+ *
+ * 持久选择（[scopeIndex] / [sessionLimit] / [password]）由调用方持有、受控传入，跨「打开弹窗」
+ * 保留；弹窗内部的预览态与三个子对话框（范围滑块 / 含 vault 警告 / 会话数字输入）状态都收在这里。
+ */
+@Composable
+fun BackupExportOptionsDialog(
+    dshBusy: Boolean,
+    scopeIndex: Int,
+    onScopeIndexChange: (Int) -> Unit,
+    sessionLimit: Int,
+    onSessionLimitChange: (Int) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: (ExportPlan) -> Unit,
+) {
+    val context = LocalContext.current
+    var showScopeDialog by remember { mutableStateOf(false) }
+    var showVaultWarnDialog by remember { mutableStateOf(false) }
+    var showSessionsDialog by remember { mutableStateOf(false) }
+    var showExportPassword by rememberSaveable { mutableStateOf(false) }
+    var scopePreview by remember { mutableStateOf(scopeIndex) }
+    var sessionPreview by remember { mutableStateOf(sessionLimit.toString()) }
+    var localSessionCount by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(Unit) {
+        localSessionCount = withContext(Dispatchers.IO) {
+            runCatching { DshBackupArchive.sessionCount(context) }.getOrNull()
+        }
+    }
+
+    // 「包含应用主题」：与云备份插件同一套按大小自动给默认值的逻辑——真打一遍主题包量出字节数，
+    // 超过 THEME_SIZE_LIMIT_BYTES（5MB）默认不含、否则默认含；量不出来（读取失败）当作可含。
+    // 用户手动拨动后不再被自动默认覆盖。仅在导出包含软件数据的档位下有意义。
+    var themeBytes by remember { mutableStateOf<Long?>(null) }
+    var themeMeasured by remember { mutableStateOf(false) }
+    var includeTheme by remember { mutableStateOf(true) }
+    var themeUserTouched by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        val bytes = withContext(Dispatchers.IO) {
+            runCatching { DshConfigBackup.measureThemeZipBytes(context) }.getOrNull()
+        }
+        themeBytes = bytes
+        themeMeasured = true
+        if (!themeUserTouched) {
+            includeTheme = bytes == null || bytes <= 0L || bytes <= DshConfigBackup.THEME_SIZE_LIMIT_BYTES
+        }
+    }
+
+    val scopeOption = SCOPE_OPTIONS[scopeIndex.coerceIn(0, SCOPE_OPTIONS.lastIndex)]
+    val currentScope = scopeOption.scope
+    val sessionMax = localSessionCount ?: 0
+    val currentSessionLimit = sessionLimit.coerceIn(0, sessionMax)
+
+    // includesTheme 只在包含软件数据的档位下才生效（DSH_ONLY/DSH_VAULT 天然不含主题）
+    val exportPlan = ExportPlan(
+        scope = currentScope,
+        sessionLimit = currentSessionLimit,
+        password = password,
+        includesTheme = includeTheme,
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.dsh_bk_export_dialog_title)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                Text(
+                    text = stringResource(R.string.dsh_backup_export_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                // ── 数据范围 ──
+                Spacer(Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = !dshBusy) {
+                            scopePreview = scopeIndex
+                            showScopeDialog = true
+                        }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.dsh_bk_scope_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(scopeOption.label),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = stringResource(scopeOption.summary),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                // ── 会话数量（仅软件数据的包里没有 DSH 会话，不显示）──
+                if (currentScope != BackupScope.APP_ONLY) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled = !dshBusy) {
+                                sessionPreview = currentSessionLimit.toString()
+                                showSessionsDialog = true
+                            }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.dsh_bk_sessions_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = when {
+                                    currentSessionLimit <= 0 ->
+                                        stringResource(R.string.dsh_bk_sessions_pick_none)
+                                    sessionMax > 0 && currentSessionLimit >= sessionMax ->
+                                        stringResource(R.string.dsh_bk_sessions_pick_all)
+                                    else ->
+                                        stringResource(R.string.dsh_bk_sessions_pick_recent, currentSessionLimit)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            localSessionCount?.let { count ->
+                                Text(
+                                    text = stringResource(R.string.dsh_bk_sessions_total, count),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+                // ── 是否包含应用主题（仅含软件数据的档位显示）──
+                if (currentScope != BackupScope.DSH_ONLY && currentScope != BackupScope.DSH_VAULT) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.dsh_bk_export_theme_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            val sizeText = themeBytes?.let { b ->
+                                if (b <= 0L) null else String.format("%.1f MB", b / 1048576.0)
+                            }
+                            Text(
+                                text = when {
+                                    !themeMeasured -> stringResource(R.string.dsh_bk_export_theme_measuring)
+                                    sizeText == null -> stringResource(R.string.dsh_bk_export_theme_sub_unknown)
+                                    themeBytes!! > DshConfigBackup.THEME_SIZE_LIMIT_BYTES ->
+                                        stringResource(R.string.dsh_bk_export_theme_sub_over, sizeText)
+                                    else ->
+                                        stringResource(R.string.dsh_bk_export_theme_sub, sizeText)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = includeTheme,
+                            onCheckedChange = { themeUserTouched = true; includeTheme = it },
+                            enabled = !dshBusy,
+                        )
+                    }
+                }
+                // ── 加密密码 ──
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = onPasswordChange,
+                        label = { Text(stringResource(R.string.dsh_bk_pw_title)) },
+                        singleLine = true,
+                        enabled = !dshBusy,
+                        visualTransformation = if (showExportPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { showExportPassword = !showExportPassword }) {
+                                Icon(
+                                    imageVector = if (showExportPassword) Icons.Filled.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = stringResource(
+                                        if (showExportPassword) R.string.dsh_pw_hide else R.string.dsh_pw_show,
+                                    ),
+                                )
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = { onPasswordChange(randomPassword()) },
+                        enabled = !dshBusy,
+                    ) {
+                        Text(stringResource(R.string.dsh_bk_pw_random))
+                    }
+                }
+                val strength = passwordStrength(password)
+                val vaultNeedsPassword =
+                    (currentScope == BackupScope.BOTH_VAULT || currentScope == BackupScope.DSH_VAULT) &&
+                        password.isEmpty()
+                Text(
+                    text = when {
+                        vaultNeedsPassword -> stringResource(R.string.dsh_bk_pw_required)
+                        strength < 0 -> stringResource(R.string.dsh_bk_pw_hint)
+                        else -> stringResource(
+                            R.string.dsh_bk_pw_strength,
+                            stringResource(PASSWORD_STRENGTH_LABELS[strength]),
+                        )
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (vaultNeedsPassword) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = exportPlan.valid,
+                onClick = { onConfirm(exportPlan) },
+            ) {
+                Text(stringResource(R.string.dsh_bk_export_dialog_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
+
+    // ── 数据范围滑块 ──
+    if (showScopeDialog) {
+        val preview = SCOPE_OPTIONS[scopePreview.coerceIn(0, SCOPE_OPTIONS.lastIndex)]
+        AlertDialog(
+            onDismissRequest = { showScopeDialog = false },
+            title = { Text(stringResource(R.string.dsh_bk_scope_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(preview.summary),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Slider(
+                        value = scopePreview.toFloat(),
+                        onValueChange = { scopePreview = it.toInt() },
+                        valueRange = 0f..SCOPE_OPTIONS.lastIndex.toFloat(),
+                        steps = SCOPE_OPTIONS.lastIndex - 1,
+                    )
+                    Text(
+                        text = stringResource(preview.label),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showScopeDialog = false
+                    val next = scopePreview.coerceIn(0, SCOPE_OPTIONS.lastIndex)
+                    val nextScope = SCOPE_OPTIONS[next].scope
+                    val nextHasVault =
+                        nextScope == BackupScope.BOTH_VAULT || nextScope == BackupScope.DSH_VAULT
+                    if (nextHasVault && next != scopeIndex) {
+                        showVaultWarnDialog = true
+                    } else {
+                        onScopeIndexChange(next)
+                    }
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showScopeDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+
+    // ── 含 vault 档警告 ──
+    if (showVaultWarnDialog) {
+        AlertDialog(
+            onDismissRequest = { showVaultWarnDialog = false },
+            title = { Text(stringResource(R.string.dsh_bk_scope_vault_warn_title)) },
+            text = { Text(stringResource(R.string.dsh_bk_scope_vault_warn_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showVaultWarnDialog = false
+                    onScopeIndexChange(scopePreview.coerceIn(0, SCOPE_OPTIONS.lastIndex))
+                }) {
+                    Text(stringResource(R.string.dsh_bk_scope_vault_warn_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showVaultWarnDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+
+    // ── 会话数量：数字输入（上限 = 本机真实会话数）──
+    if (showSessionsDialog) {
+        val parsed = sessionPreview.toIntOrNull()?.coerceIn(0, sessionMax) ?: 0
+        AlertDialog(
+            onDismissRequest = { showSessionsDialog = false },
+            title = { Text(stringResource(R.string.dsh_bk_sessions_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.dsh_bk_sessions_total, sessionMax),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = sessionPreview,
+                        onValueChange = { input ->
+                            val digits = input.filter { it.isDigit() }.take(6)
+                            val clamped = digits.toIntOrNull()?.coerceIn(0, sessionMax)
+                            sessionPreview = clamped?.toString() ?: ""
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        supportingText = {
+                            Text(
+                                text = when {
+                                    parsed <= 0 -> stringResource(R.string.dsh_bk_sessions_pick_none)
+                                    sessionMax > 0 && parsed >= sessionMax ->
+                                        stringResource(R.string.dsh_bk_sessions_pick_all)
+                                    else -> stringResource(R.string.dsh_bk_sessions_pick_recent, parsed)
+                                },
+                            )
+                        },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSessionsDialog = false
+                    onSessionLimitChange(sessionPreview.toIntOrNull()?.coerceIn(0, sessionMax) ?: 0)
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSessionsDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+}

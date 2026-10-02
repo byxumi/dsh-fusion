@@ -1,0 +1,668 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">仙府应用名称</string>
+
+    <string name="home">仙府主殿</string>
+    <string name="failure">渡劫败陨</string>
+
+
+
+    <string name="settings_nav_layout_title">天机阁导航阵图设定</string>
+    <string name="settings_nav_layout_summary">隐去或现出天机阁导航阵图之部分组件</string>
+    <string name="settings_nav_scheme">天机阁导航阵法方案</string>
+    <string name="settings_nav_mode_auto">天机自动传统</string>
+    <string name="settings_nav_mode_bottom">永恒现于天机阁底部阵法</string>
+    <string name="settings_nav_mode_rail">永恒现于天机阁侧方阵法</string>
+    <string name="settings_nav_mode_floating">悬浮底部阵法</string>
+    <string name="settings_floating_auto_hide">仙法底栏自动隐遁</string>
+    <string name="settings_floating_auto_hide_summary">3秒无仙法操作后底栏自动隐遁</string>
+    <string name="settings_floating_swipe_hide">仙法底栏滑动隐遁</string>
+    <string name="settings_floating_swipe_hide_summary">向下划动隐遁底栏，向上划动现出底栏</string>
+    <string name="settings_navbar_glass_effect">仙法琉璃效果</string>
+    <string name="settings_navbar_glass_effect_summary">为悬浮仙法导航栏施加仙法琉璃视觉效果</string>
+    <string name="settings_navbar_glass_blur_strength">琉璃模糊强度</string>
+    <string name="settings_navbar_glass_transparency">琉璃背景透明度</string>
+    <string name="settings_navbar_glass_highlight_strength">琉璃高光强度</string>
+    <string name="settings_navbar_glass_specular">琉璃镜面反射</string>
+    <string name="settings_navbar_glass_specular_summary">在仙法导航栏顶部启用琉璃镜面高光效果</string>
+    <string name="settings_navbar_glass_inner_glow">琉璃内发光</string>
+    <string name="settings_navbar_glass_inner_glow_summary">在仙法导航栏底部启用琉璃微光效果</string>
+    <string name="settings_navbar_glass_border">琉璃边框</string>
+    <string name="settings_navbar_glass_border_summary">在仙法导航栏周围启用琉璃边框描边</string>
+    <string name="settings_compact_rounded_bar">紧凑圆角风格</string>
+    <string name="settings_compact_rounded_bar_summary">使用圆角紧凑间距的仙法浮动底栏</string>
+    <string name="settings_stats_top_layout">顶部仙法阵</string>
+    <string name="settings_stats_top_layout_list">列表仙卡</string>
+    <string name="settings_stats_top_layout_grid">网格仙卡</string>
+
+    <string name="reboot">重铸仙躯</string>
+    <string name="settings">天机阁</string>
+    <string name="reboot_recovery">重铸入回魂境</string>
+    <string name="reboot_bootloader">重铸入引仙台</string>
+    <string name="reboot_download">重铸入纳宝阁</string>
+    <string name="reboot_edl">重铸入封灵域</string>
+    <string name="reboot_fastbootd">重铸入太虚境</string>
+    <string name="about">仙门叙略</string>
+    <string name="developer_and_maintainer">道门尊长 | 护道者</string>
+    <string name="settings_app_language">仙音道语</string>
+    <string name="system_default">循天道常序</string>
+
+
+    <string name="send_log">呈渡劫日志</string>
+    <string name="settings_clean_storage">涤荡仙府尘垢</string>
+    <string name="settings_clean_storage_summary">涤除残留旧物，以解下载施法之厄</string>
+    <string name="settings_clean_storage_confirm">将尽除已纳之主题、所引仙乐、音效与诸般缓存，重筑洞府诸室。道友设置无损。可要继续？</string>
+    <string name="settings_clean_storage_done">涤荡功成</string>
+    <string name="github">GitHub</string>
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">道核篇次</string>
+    <string name="home_fingerprint">仙门印玺</string>
+
+    <string name="home_selinux_status">SELinux禁守令</string>
+    <string name="home_selinux_status_disabled">仙禁已破</string>
+    <string name="home_selinux_status_enforcing">闭关</string>
+    <string name="home_selinux_status_permissive">仙禁宽宥之境</string>
+    <string name="home_selinux_status_unknown">仙禁未辨</string>
+
+
+    <string name="home_device_info">仙器</string>
+    <string name="home_system_version">天道篇次</string>
+
+
+
+    <!-- 超级用户应用操作弹窗 -->
+
+    <!-- SU Audit Log -->
+
+
+    <string name="apm_remove">祛符出体</string>
+    <string name="apm_update">渡劫升符</string>
+
+
+
+    <string name="settings_folkx_engine_title">FolkX仙法动画引擎</string>
+    <string name="settings_folkx_engine_summary">在天阶仙页转换时使用仙域灵动的物理符箓动画</string>
+    <string name="settings_folkx_animation_type">仙法动画类型</string>
+    <string name="settings_folkx_animation_speed">仙法动画速度</string>
+    <string name="settings_folkx_animation_linear">仙域线性运动</string>
+    <string name="settings_folkx_animation_spatial">仙域空间运动</string>
+    <string name="settings_folkx_animation_fade">仙光渐隐渐显</string>
+    <string name="settings_folkx_animation_vertical">仙光垂直滑动</string>
+    <string name="settings_folkx_animation_diagonal">仙光对角滑动</string>
+
+    <string name="enable_web_debugging">启WebView勘符之术</string>
+    <string name="enable_web_debugging_summary">可勘WebUI仙符之误。唯渡劫需时启之。</string>
+    <string name="apm_enable_module_banner">启仙阵横幅</string>
+    <string name="apm_enable_module_banner_summary">为所容之仙阵显横幅仙图</string>
+    <string name="apm_enable_folk_banner">自定仙阵横幅</string>
+    <string name="apm_enable_folk_banner_summary">长按仙阵卡片自选横幅仙图</string>
+    <string name="apm_banner_api_mode">仙图法门</string>
+    <string name="apm_banner_api_mode_summary">借用天界仙图之法或凡间图库为仙阵提供仙图</string>
+    <string name="apm_banner_api_source">布置仙图法门</string>
+    <string name="apm_banner_api_source_hint">输入天界仙图法门或凡间图库路径</string>
+    <string name="apm_banner_api_source_saved">仙图法门已布置</string>
+    <string name="apm_banner_api_source_not_configured">尚未布置</string>
+    <string name="apm_banner_api_url_configured">天界仙图法门已布置</string>
+    <string name="apm_banner_local_dir_configured">凡间图库已布置</string>
+    <string name="apm_banner_clear_cache">消解仙图印记</string>
+    <string name="apm_banner_cache_cleared">仙图印记已消解</string>
+    <string name="apm_banner_api_config_title">布置仙图法门</string>
+    <string name="apm_banner_api_config_desc">输入天界仙图法门或凡间图库路径，每座仙阵将得独一无二的仙图。</string>
+    <string name="apm_banner_api_examples_title">法门示例：</string>
+    <string name="apm_banner_api_examples">天界仙图: https://picsum.photos/800/400\n凡间图库: /sdcard/Pictures/Banners</string>
+    <!-- API 仙界集市 -->
+    <string name="apm_api_marketplace_title">API 仙界集市</string>
+    <string name="apm_api_preview">仙法预览</string>
+    <string name="apm_api_apply">施展仙法</string>
+    <string name="apm_api_preview_title">API 仙法预览</string>
+    <string name="apm_api_preview_failed">仙法预览加载失败</string>
+    <string name="apm_api_url_label">API 仙法门路：</string>
+    <string name="apm_api_apply_success">API 仙法施展成功</string>
+    <string name="apm_api_verifying">仙法验证中…</string>
+    <string name="apm_api_retry">重新施展</string>
+    <string name="apm_api_empty">暂无 API 仙法门</string>
+    <string name="settings_banner_custom_opacity">仙阵横幅透度</string>
+    <string name="settings_banner_custom_opacity_summary">自定仙阵横幅透度，不随凡界背景而变</string>
+    <string name="settings_banner_opacity">仙阵横幅不透法</string>
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">呈渡劫见谛或献升仙策</string>
+    <string name="home_more_menu_about">仙门叙略</string>
+
+    <string name="home_more_menu_music_play">奏响仙乐</string>
+    <string name="home_more_menu_music_pause">暂停仙乐</string>
+
+    <!-- Plugin strings -->
+
+
+    
+    
+
+    <string name="amber_theme">琥珀仙光</string>
+    <string name="blue_theme">青冥仙光</string>
+    <string name="blue_grey_theme">青灰仙光</string>
+    <string name="brown_theme">褐尘仙光</string>
+    <string name="cyan_theme">苍云仙光</string>
+    <string name="deep_orange_theme">深橙仙焰</string>
+    <string name="deep_purple_theme">深紫仙雾</string>
+    <string name="green_theme">青木仙光</string>
+    <string name="indigo_theme">靛蓝仙霭</string>
+    <string name="light_blue_theme">浅青仙光</string>
+    <string name="light_green_theme">浅绿仙光</string>
+    <string name="lime_theme">柠黄仙光</string>
+    <string name="orange_theme">橙阳仙焰</string>
+    <string name="pink_theme">粉霞仙光</string>
+    <string name="purple_theme">紫霄仙雾</string>
+    <string name="red_theme">赤火仙焰</string>
+    <string name="sakura_theme">樱粉仙霞</string>
+    <string name="teal_theme">苍绿仙光</string>
+    <string name="yellow_theme">金阳仙光</string>
+    <string name="theme_color">主题颜色</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_system">系统</string>
+    <string name="loading_themes">正在加载主题…</string>
+    <string name="loading_apis">正在加载 API 仙法门…</string>
+    <string name="retry">再试</string>
+
+    <string name="about_powered_by">赖%1$s仙门以辅</string>
+    
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">渡劫崩毁呈报</string>
+    <string name="crash_handle_copy">誊录渡劫残卷</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">仙法篇次: %s</string>
+    <string name="about_github">GitHub仙府</string>
+
+
+    <string name="settings_app_dpi">仙器DPI</string>
+    <string name="dpi_apply_settings">确认</string>
+
+<string name="settings_app_title">仙器名讳</string>
+    <string name="app_title_custom">自赐名讳</string>
+    <string name="settings_custom_app_title">设置仙器名讳</string>
+    <string name="custom_app_title_dialog_title">自赐仙器名讳</string>
+    <string name="custom_app_title_dialog_hint">请赐仙器名讳</string>
+    <string name="custom_app_title_dialog_confirm">赐名</string>
+    <string name="cancel">罢了</string>
+    <string name="settings_custom_background">自定仙府背景</string>
+    <string name="settings_custom_background_enabled">已启自定仙府背景</string>
+    <string name="settings_custom_background_opacity">仙笺透度</string>
+    <string name="settings_custom_background_blur">仙府背景模糊</string>
+    <string name="settings_custom_background_dim">仙府暗度</string>
+    <string name="settings_select_background_image">择仙府背景图</string>
+    <string name="settings_custom_background_summary">设自定仙府背景图</string>
+    <string name="settings_custom_background_saved">仙府背景已存</string>
+    <string name="settings_alt_icon">備用圖標</string>
+    <string name="alt_icon_summary">用備選啟動器圖標</string>
+    <string name="settings_custom_background_error">存仙府背景败陨</string>
+    <string name="settings_crop_not_supported">此器不允裁炼，原图已存</string>
+    <string name="settings_crop_dialog_title">裁炼仙府景图</string>
+    <string name="settings_crop_dialog_message">可要裁炼此图？</string>
+    <string name="settings_crop_dialog_crop">裁</string>
+    <string name="settings_crop_dialog_direct">不裁</string>
+    <string name="settings_background_selected">已择仙府背景</string>
+    <string name="settings_background_image_cleared">仙府背景图已涤</string>
+    <string name="settings_clear_background">涤仙府背景</string>
+    <string name="settings_clear_background_confirm">确欲涤仙府背景图乎？</string>
+    <string name="settings_multi_background_mode">多背景模式</string>
+    <string name="settings_multi_background_mode_summary">为不同页面设置不同的仙府背景图片</string>
+    <string name="settings_select_home_background">首页仙府背景</string>
+    <string name="settings_select_settings_background">设置页面仙府背景</string>
+
+    <string name="settings_advanced_title_style">进阶题款样式</string>
+    <string name="settings_advanced_title_style_summary">以自绘图样置换顶栏题款</string>
+    <string name="settings_advanced_title_style_enabled">进阶题款样式已启</string>
+    <string name="settings_select_title_image">择题款图样</string>
+    <string name="settings_title_image_selected">已选题款图样</string>
+    <string name="settings_title_image_saved">题款图样存讫</string>
+    <string name="settings_title_image_error">存题款图样败</string>
+    <string name="settings_clear_title_image">除题款图样</string>
+    <string name="settings_clear_title_image_confirm">确欲除题款图样乎？</string>
+    <string name="settings_title_image_cleared">题款图样已除</string>
+    <string name="settings_title_image_day_opacity">白昼模式透明度</string>
+    <string name="settings_title_image_night_opacity">黑夜模式透明度</string>
+    <string name="settings_title_image_dim">背景昏暗度</string>
+    <string name="settings_title_image_offset_x">横平位置</string>
+
+    
+
+    <!-- 隐藏设定字符串 -->
+    <string name="home_hide_fingerprint">隐仙门指印之宜</string>
+    <string name="home_hide_fingerprint_summary">于仙门事宜仙笺，隐仙门指印之宜</string>
+    <string name="settings_grid_working_card_hide_check">隐仙符标记</string>
+    <string name="settings_grid_working_card_hide_check_summary">隐仙术卡片之符印或警示</string>
+    <string name="settings_grid_working_card_hide_text">隐仙术卡片之文字</string>
+    <string name="settings_grid_working_card_hide_text_summary">隐仙术卡片上"闭关修炼中中"或"未入仙门"文字</string>
+    <string name="settings_grid_working_card_hide_mode">隐仙术卡片之道法</string>
+    <string name="settings_grid_working_card_hide_mode_summary">隐仙术卡片上"Full"或"Half"文字</string>
+    <string name="settings_list_card_hide_status_badge">使用经典表情</string>
+    <string name="settings_list_card_hide_status_badge_summary">首页之仙域印记即刻变身经典表情</string>
+    <string name="settings_list_info_show_icons">仙讯项仙符</string>
+    <string name="settings_list_info_show_icons_summary">在仙讯道牌中为每项展示前置仙符</string>
+    <string name="settings_custom_badge_text">自选仙域印记文字</string>
+    <string name="settings_custom_badge_text_summary">修改仙域印记之文字显示，仅供道友娱乐</string>
+    <string name="settings_custom_background_dual_dim">启昼夜双修仙法</string>
+    <string name="settings_custom_background_dual_dim_desc">根据亮色和暗色主题自动调整背景暗度</string>
+    <string name="settings_custom_background_day_dim">白昼仙法暗度</string>
+    <string name="settings_custom_background_night_dim">夜晚仙法暗度</string>
+    <string name="settings_grid_working_card_dual_opacity">启昼夜双透仙法</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">根据亮色和暗色主题自动调整卡片透明度</string>
+    <string name="settings_grid_working_card_day_opacity">白昼卡片透法</string>
+    <string name="settings_grid_working_card_night_opacity">夜晚卡片透法</string>
+    <!-- KPM AutoLoad Strings -->
+    
+    
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">恭迎道友入仙府</string>
+    <string name="welcome_desc_1">FolkPatch 乃集万般变化与便携神通于一体的 Root 仙器，以 KernelPatch 为基筑就。令你的法宝，由你掌控。</string>
+    <string name="welcome_title_2">万象随心</string>
+    <string name="welcome_desc_2">仙府色章、灵境背景、道纹字体、仙乐、法器震动……万物皆可随心而化。前往仙府色章阁，寻觅心仪之形。</string>
+    <string name="welcome_title_3">内核天机</string>
+    <string name="welcome_desc_3">于天道面板轻触右上角调律玄印，即可窥探内核天机：FolkPatch Hide、Umount、Path Hide 等至高术法尽在其中。</string>
+    <string name="welcome_title_4">道友可备？</string>
+    <string name="welcome_desc_4">汝已洞悉根基之法。且去享受这无边自在的 Root 道途吧！</string>
+    <string name="welcome_prev">回观前页</string>
+    <string name="welcome_next">前往后页</string>
+    <string name="welcome_skip">跳过</string>
+    <string name="welcome_got_it">步入仙途</string>
+
+
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- Font Settings -->
+    <string name="settings_custom_font">仙府字体</string>
+    <string name="settings_select_font_file">择仙府字体</string>
+    <string name="settings_custom_font_enabled">已启仙府字体</string>
+    <string name="settings_custom_font_summary">用自定仙府字体(TTF)</string>
+    <string name="settings_font_selected">已择仙府字体</string>
+    <string name="settings_custom_font_error">存仙府字体败陨</string>
+    <string name="settings_custom_font_saved">仙府字体已存</string>
+    <string name="settings_clear_font">复归原初字体</string>
+    <string name="settings_clear_font_confirm">确欲复归原初字体乎？</string>
+    <string name="settings_font_cleared">已复归原初字体</string>
+    
+    <!-- Auto Backup Strings -->
+
+    <!-- Auto-added missing strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">仙府主殿布局</string>
+    <string name="settings_home_layout_default">ListUI</string>
+    <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
+    <string name="settings_home_layout_circle">CircleUI</string>
+    <string name="settings_home_layout_dashboard_pro">DashboardUI</string>
+
+    <!-- Unofficial Version Strings -->
+    <string name="settings_save_theme">藏仙府色章</string>
+    <string name="settings_import_theme">引仙府色章</string>
+    <string name="settings_theme_saved">仙府色章已藏</string>
+    <string name="settings_theme_imported">仙府色章已引</string>
+    <string name="settings_theme_save_failed">藏仙府色章败陨</string>
+    <string name="settings_theme_import_failed">引仙府色章败陨</string>
+    <string name="settings_reset_theme">复归仙府本色</string>
+    <string name="settings_reset_theme_confirm">道友确欲复归仙府本色乎？此将尽除诸般私设背景、字样、仙乐与音效。</string>
+    <string name="settings_theme_reset">仙府本色已复</string>
+    <string name="settings_theme_reset_failed">复归仙府本色败陨</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">拓印仙府色章</string>
+    <string name="theme_import_title">引入仙府色章</string>
+    <string name="theme_name">色章名讳</string>
+    <string name="theme_type">色章品阶</string>
+    <string name="theme_type_phone">传音玉简</string>
+    <string name="theme_type_tablet">留影宝鉴</string>
+    <string name="theme_version">色章篇次</string>
+    <string name="theme_author">炼制者</string>
+    <string name="theme_description">色章玄义</string>
+    <string name="theme_export_action">拓印</string>
+    <string name="theme_import_action">引入</string>
+    <string name="theme_import_confirm">道友确欲引入此仙府色章乎？</string>
+    <string name="settings_grid_working_card_background">本命法宝卡片法相</string>
+    <string name="settings_grid_working_card_background_enabled">卡片法相已激活</string>
+    <string name="settings_grid_working_card_background_summary">为本命卡片凝练自定义法相</string>
+    <string name="settings_grid_working_card_background_selected">法相已选定</string>
+    <string name="settings_clear_grid_working_card_background">散去卡片法相</string>
+    <string name="settings_clear_grid_working_card_background_confirm">道友确欲散去此卡片法相乎？</string>
+    <string name="settings_grid_working_card_background_saved">卡片法相凝练成功</string>
+    <string name="settings_grid_working_card_background_error">卡片法相凝练失败</string>
+    <string name="settings_grid_working_card_background_cleared">卡片法相已散去</string>
+
+    <!-- Biometric Strings-->
+    <string name="action_biometric">仙纹核验</string>
+    <string name="msg_biometric">请核验本命仙纹</string>
+    <string name="msg_enable_biometric">开启仙纹核验以在入仙门时验明正身？</string>
+    <string name="settings_biometric_login">仙纹核验</string>
+    <string name="settings_biometric_login_summary">启府需验本命仙纹</string>
+    <string name="settings_strong_biometric">强力本命仙纹</string>
+    <string name="settings_strong_biometric_summary">启用、禁用或封印仙符时需要验证</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">仙府色章阁</string>
+    <string name="theme_store_search_hint">搜寻色章...</string>
+    <string name="theme_source_official">仙府制</string>
+    <string name="theme_source_third_party">散修炼制</string>
+    <string name="theme_store_author">炼制者：%s</string>
+    <string name="theme_store_version">色章篇次：%s</string>
+    <string name="theme_source">出处</string>
+<string name="theme_store_download">纳符</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">自动检查仙法更新</string>
+    <string name="settings_auto_update_check_summary">仙府启动时自动检查新仙法符箓</string>
+    <string name="settings_check_update">检查仙法更新</string>
+    <string name="update_available_title">发现新仙法</string>
+    <string name="update_available_message">检测到道友的仙法篇次过低，是否要下载新篇次的仙法？</string>
+    <string name="update_action">渡劫升仙</string>
+    <string name="update_close">关闭</string>
+    <string name="update_latest">道友已掌握最新仙法</string>
+    <!--折叠选项-->
+    <string name="settings_category_general">凡尘设置</string>
+    <string name="settings_category_appearance">道韵外观</string>
+    <string name="settings_appearance_font">道韵字体</string>
+    <string name="settings_appearance_theme">洞府主题</string>
+
+    <string name="settings_nav_custom_icons">洞府导航道印</string>
+    <string name="settings_nav_custom_icons_summary">用自定义道印替换底部导航栏图标</string>
+    <string name="nav_icon_home">洞府道印</string>
+    <string name="nav_icon_superuser">终端图标</string>
+    <string name="nav_icon_apm">插件图标</string>
+    <string name="nav_icon_settings">设置道印</string>
+    <string name="nav_icon_clear">重置为默认</string>
+    <string name="nav_icon_custom_selected">自定义</string>
+    <string name="nav_icon_default">默认</string>
+    <string name="nav_icon_cleared">道印已重置</string>
+    <string name="nav_icon_set">道印已更新</string>
+    <string name="nav_icon_set_failed">道印封存失败</string>
+
+    <string name="settings_theme_mode">道法配置</string>
+    <string name="settings_theme_mode_summary">在洞府藏经阁和凡间浏览器之间切换</string>
+    <string name="theme_mode_builtin">洞府模式</string>
+    <string name="theme_mode_builtin_desc">使用洞府藏经阁浏览、下载和修炼主题功法</string>
+    <string name="theme_mode_compat">凡间模式</string>
+    <string name="theme_mode_compat_desc">使用凡间浏览器直接下载主题功法（适用于传承有问题的道侣）</string>
+    <string name="theme_mode_onboarding_title">选择道法模式</string>
+    <string name="theme_mode_onboarding_msg">道友想如何获取主题功法？可在洞府设置中随时更改。</string>
+    <string name="theme_mode_builtin_label">洞府藏经阁</string>
+    <string name="theme_mode_compat_label">凡间浏览器</string>
+    <string name="theme_mode_switched">道法已切换为%s</string>
+    <string name="theme_mode_current">当前道法：%s</string>
+    <string name="theme_mode_switch_title">切换道法模式</string>
+    <string name="theme_mode_switch_msg">更改道法将影响功法浏览和传承的方式。道友是否继续？</string>
+    <string name="settings_appearance_banner">仙门横幅</string>
+    <string name="settings_appearance_layout">仙府布局</string>
+    <string name="settings_appearance_background">洞府背景</string>
+    <string name="settings_appearance_night_mode">夜间闭关模式</string>
+    <string name="settings_amoled_theme">AMOLED 纯黑主题</string>
+    <string name="settings_amoled_theme_desc">为深色模式使用纯黑背景</string>
+    <string name="settings_switch_icon">启用按钮指示器</string>
+    <string name="settings_switch_icon_desc">为开关按钮添加状态指示图标</string>
+    <string name="settings_discrete_slider">道阶滑块</string>
+    <string name="settings_discrete_slider_desc">显示修炼进度刻度</string>
+    <string name="settings_category_behavior">功法运转</string>
+    <string name="settings_category_function">悟道功能</string>
+    <string name="settings_category_security">护道结界</string>
+    
+    <!-- 背景音乐字符串（修仙风格版） -->
+    <string name="settings_background_music">仙音缭绕</string>
+    <string name="settings_background_music_summary">仙门驻留时，伴仙音袅袅</string>
+    <string name="settings_background_music_playing">仙音奏响: %s</string>
+    <string name="settings_background_music_enabled">仙音已启</string>
+    <string name="settings_select_music_file">择取仙音玉简</string>
+    <string name="settings_music_selected">仙音玉简已选定</string>
+    <string name="settings_clear_music">涤除仙音</string>
+    <string name="settings_clear_music_confirm">是否确定涤除当前仙音缭绕？</string>
+    <string name="settings_music_auto_play">仙音自鸣</string>
+    <string name="settings_music_auto_play_summary">踏入仙门时，仙音自鸣相伴</string>
+    <string name="settings_music_looping">仙音轮回</string>
+    <string name="settings_music_looping_summary">仙音缭绕不绝于耳</string>
+    <string name="settings_music_volume">仙音响度</string>
+    <string name="settings_music_saved">仙音玉简已封存</string>
+    <string name="settings_music_save_error">仙音玉简封存失败</string>
+    <string name="settings_music_cleared">仙音已涤除</string>
+    <string name="settings_category_multimedia">仙音幻阁</string>
+    <string name="settings_category_general_summary">语言、更新、动效、图标与名称、DPI</string>
+    <string name="settings_category_appearance_summary">道韵主题、灵光色彩、仙阵布局、虚幻背景、符文字体</string>
+    <string name="settings_category_behavior_summary">Web 调试、信息复制、首页卡片、插件角标</string>
+    <string name="settings_category_security_summary">打开应用时的生物识别认证</string>
+    <string name="settings_category_backup_summary">DSH 配置导出导入、WebDAV 同步</string>
+    <string name="settings_category_function_summary">运行之法、权柄通路、无线 ADB 结契</string>
+    <string name="settings_category_multimedia_summary">背景仙音、法术音效、灵力振动</string>
+    <string name="settings_music_playback_control">仙音法阵</string>
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">筛选仙法</string>
+    <string name="theme_store_filter_author">仙师</string>
+    <string name="theme_store_filter_author_hint">输入仙师名号</string>
+    <string name="theme_store_filter_source">仙源</string>
+    <string name="theme_store_filter_source_all">万法</string>
+    <string name="theme_store_filter_type">仙器类型</string>
+    <string name="theme_store_filter_apply">施法</string>
+    <string name="theme_store_filter_reset">重炼</string>
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">影像仙幕</string>
+    <string name="settings_video_background_summary">以影像为仙幕</string>
+    <string name="settings_select_video">择影像</string>
+    <string name="settings_video_selected">影像已择</string>
+    <string name="settings_clear_video_background">涤除影像仙幕</string>
+    <string name="settings_clear_video_background_confirm">确要涤除影像仙幕？</string>
+    <string name="settings_video_volume">影像音量</string>
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">需道友赐法</string>
+    <string name="file_picker_permission_desc">为查阅仙门典籍，请道友授予\"乾坤万物访问\"仙法。</string>
+    <string name="file_picker_grant_permission">授予仙法</string>
+    <string name="file_picker_cancel">作罢</string>
+    <string name="file_picker_internal_storage">乾坤宝阁</string>
+    <string name="file_picker_no_files">宝阁空空如也</string>
+    <string name="file_picker_filtered_files">展示 %1$s 件仙宝</string>
+    <string name="file_picker_close">关闭仙宝阁</string>
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">仙府状态</string>
+    <string name="home_device_status_battery_temp">灵气温</string>
+    <string name="home_device_status_cpu_load">道力负载</string>
+    <string name="home_device_status_battery_level">灵力值</string>
+    <string name="home_storage_title">仙府宝库</string>
+    <string name="home_storage_internal">乾坤宝阁</string>
+    <string name="home_storage_ram">灵念内存</string>
+    <string name="home_storage_zram">灵力压缩</string>
+    <string name="home_storage_swap">灵力交换</string>
+    <string name="home_info_auth_auth">已验证</string>
+    <string name="home_info_auth_na">不可用</string>
+    <string name="home_info_device_model">仙府形态</string>
+
+    <!-- Install Mode Select -->
+    
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">灵印显法设定</string>
+    <string name="enable_badge_count_summary">配置天机阁灵印之显现</string>
+    <string name="settings_sound_effect">仙音</string>
+    <string name="settings_sound_effect_summary">触动法阵时奏响仙音</string>
+    <string name="settings_sound_effect_enabled">已启阵</string>
+    <string name="settings_sound_effect_playing">当前仙音：%s</string>
+    <string name="settings_sound_effect_source">仙音之源</string>
+    <string name="settings_sound_effect_source_local">凡间法宝</string>
+    <string name="settings_sound_effect_source_preset">仙界预设</string>
+    <string name="settings_sound_effect_preset_title">仙音宝库</string>
+    <string name="settings_select_sound_effect">择仙音法宝</string>
+    <string name="settings_sound_effect_selected">已择仙音法宝</string>
+    <string name="settings_sound_effect_scope">仙音结界范围</string>
+    <string name="settings_sound_effect_scope_global">全域 (三界皆闻)</string>
+    <string name="settings_sound_effect_scope_bottom_bar">仅基座法阵</string>
+    <string name="settings_clear_sound_effect">散去仙音</string>
+    <string name="settings_clear_sound_effect_confirm">道友确欲散去此仙音乎？</string>
+    <string name="settings_sound_effect_cleared">仙音已散</string>
+
+    <string name="settings_startup_sound">开境仙音</string>
+    <string name="settings_startup_sound_summary">开启仙界时奏响开境仙音</string>
+    <string name="settings_startup_sound_enabled">开境仙音已启</string>
+    <string name="settings_startup_sound_playing">正在奏响：%s</string>
+    <string name="settings_select_startup_sound">选择开境仙音</string>
+    <string name="settings_startup_sound_selected">已择开境仙音</string>
+    <string name="settings_clear_startup_sound">散去开境仙音</string>
+    <string name="settings_clear_startup_sound_confirm">道友确欲散去开境仙音乎？</string>
+    <string name="settings_startup_sound_cleared">开境仙音已散</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">乾坤备份</string>
+    <string name="settings_enable_cloud_backup">开启云端乾坤</string>
+    <string name="settings_enable_cloud_backup_summary">自动将炼化的符箓备份至云端仙界</string>
+    <string name="settings_configure_webdav">配置须弥芥子</string>
+    <string name="webdav_config_title">须弥芥子阵法</string>
+    <string name="webdav_url">仙界阵眼</string>
+    <string name="webdav_username">道号</string>
+    <string name="webdav_password">灵识印记</string>
+    <string name="webdav_test_success">阵法连通成功</string>
+    <string name="webdav_test_failed">阵法连通失败: %s</string>
+    <string name="save">封印</string>
+    <string name="test">试阵</string>
+    <string name="webdav_path_label">仙途路径 (如 /Backup)</string>
+    <string name="webdav_view_logs">观天道录</string>
+    <string name="webdav_backup_logs_title">乾坤录</string>
+    <string name="webdav_no_logs">暂无天道录</string>
+    <string name="webdav_clear_logs">抹除</string>
+    <string name="close">闭关</string>
+
+
+    <!-- Script Library Strings -->
+
+    <string name="settings_vibration">天地律动</string>
+    <string name="settings_vibration_summary">感知天地之颤</string>
+    <string name="settings_vibration_enabled">开启律动</string>
+    <string name="settings_vibration_intensity">律动强度</string>
+    <string name="settings_vibration_scope">律动范围</string>
+    <string name="settings_vibration_scope_global">普天之下</string>
+    <string name="settings_vibration_scope_bottom_bar">仅限基台</string>
+
+    <!-- Umount Service -->
+
+    <!-- 我的仙府页面 -->
+    <string name="my_themes_title">我的仙府</string>
+    <string name="my_themes_empty">仙府空空如也</string>
+    <string name="my_themes_empty_action">前往仙市逛逛</string>
+    <string name="my_themes_apply">施展主题</string>
+    <string name="my_themes_delete">舍弃主题</string>
+    <string name="my_themes_delete_confirm">确定要舍弃此主题仙卷吗？</string>
+    <string name="my_themes_deleted">主题已舍弃</string>
+    <string name="my_themes_applied">主题已施展</string>
+    <string name="my_themes_apply_failed">施展仙府色章败陨，色章灵材或有损。长按色章令其消散后重引吧</string>
+
+    <!-- 下载对话 -->
+    <string name="theme_download_title">正在纳符主题</string>
+    <string name="theme_download_completed">纳符圆满</string>
+    <string name="theme_download_failed">纳符受阻</string>
+    <string name="theme_download_progress">仙途进度</string>
+    <string name="theme_download_file">主题仙卷</string>
+    <string name="theme_download_image">仙图预览</string>
+    <string name="theme_download_cancel">终止纳符</string>
+    <string name="theme_download_pause">暂停纳符</string>
+    <string name="theme_download_apply">施展主题</string>
+    <string name="theme_download_go_to_my_themes">我的仙府</string>
+    <string name="theme_download_finalizing">凝丹中...</string>
+    <string name="settings_predictive_back">仙预返回手势</string>
+    <string name="settings_predictive_back_summary">启用仙界 Android 14+ 的预知返回仙法动画</string>
+
+    <string name="home_device_status_battery_charging">灵力充盈中</string>
+    <string name="home_device_status_cpu_temp">道力温度</string>
+    <string name="home_device_status_memory_trend">灵念趋势</string>
+    <string name="home_device_status_cpu_freq">道力频率</string>
+    <string name="home_network_rx">纳取</string>
+    <string name="home_network_tx">传送</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">法宝负载</string>
+
+
+    <string name="settings_search_title">天机推演</string>
+    <string name="settings_search_empty_hint">输入以推演所有凡尘法则…</string>
+    <string name="settings_no_results">天机未显</string>
+
+    <!-- 色彩生成 -->
+    <string name="color_generation_classic">经典</string>
+    <string name="color_generation_custom">自创</string>
+
+    <!-- 色彩标准 -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- 色彩风格 -->
+    <string name="color_style_tonal_spot">气韵</string>
+    <string name="color_style_vibrant">生机</string>
+    <string name="color_style_content">本真</string>
+    <string name="color_style_expressive">意境</string>
+    <string name="color_style_rainbow">虹霞</string>
+    <string name="color_style_fruit_salad">灵果盘</string>
+    <string name="color_style_monochrome">归一</string>
+    <string name="color_style_neutral">无为</string>
+    <string name="color_style_fidelity">返璞</string>
+    <string name="settings_focus_card_background">FocusUI 卡片法相</string>
+    <string name="settings_focus_card_background_enabled">FocusUI 卡片法相已启，长按卡片管理法相</string>
+    <string name="settings_focus_card_background_summary">启用 FocusUI 卡片法相及长按法相管理</string>
+    <string name="settings_focus_card_dual_dim">启用昼夜双法相暗度</string>
+    <string name="settings_focus_card_dual_dim_desc">自动根据明暗主题调整卡片法相暗度</string>
+    <string name="settings_focus_card_day_dim">日间模式卡片法相暗度</string>
+    <string name="settings_focus_card_night_dim">夜间模式卡片法相暗度</string>
+    <string name="settings_focus_card_opacity">卡片法相透明度</string>
+    <string name="settings_focus_card_dual_opacity">启用昼夜双法相透明度</string>
+    <string name="settings_focus_card_dual_opacity_desc">自动根据明暗主题调整卡片法相透明度</string>
+    <string name="settings_focus_card_day_opacity">日间模式卡片法相透明度</string>
+    <string name="settings_focus_card_night_opacity">夜间模式卡片法相透明度</string>
+    <string name="settings_focus_card_kernel">内核卡片</string>
+    <string name="settings_focus_card_app">应用卡片</string>
+    <string name="settings_focus_card_device">设备状态卡片</string>
+    <string name="settings_focus_card_storage">存储卡片</string>
+    <string name="settings_focus_card_wallpaper_selected">已设法相</string>
+    <string name="dashboard_card_background_title">仪表盘卡片法相</string>
+    <string name="settings_dashboard_card_background">仪表盘卡片法相</string>
+    <string name="settings_dashboard_card_background_enabled">仪表盘法相已启，长按仪表盘卡片管理法相</string>
+    <string name="settings_dashboard_card_background_summary">为 DashboardUI 仪表盘卡片启用法相</string>
+    <string name="dashboard_card_background_clear">清除仪表盘法相</string>
+    <string name="dashboard_card_background_clear_confirm">确定要清除仪表盘卡片法相吗？</string>
+    <string name="dashboard_card_background_saved">仪表盘法相保存成功</string>
+    <string name="dashboard_card_background_error">仪表盘法相保存失败</string>
+    <string name="dashboard_card_background_cleared">仪表盘法相已清除</string>
+    <string name="dashboard_card_background_restore">恢复默认法相</string>
+    <string name="dashboard_card_background_restored">已恢复默认法相</string>
+    <string name="settings_dashboard_card_dual_dim">启用昼夜双法相暗度</string>
+    <string name="settings_dashboard_card_dual_dim_desc">自动根据明暗主题调整仪表盘法相暗度</string>
+    <string name="settings_dashboard_card_day_dim">白天模式仪表盘法相暗度</string>
+    <string name="settings_dashboard_card_night_dim">夜间模式仪表盘法相暗度</string>
+    <string name="settings_dashboard_card_opacity">仪表盘法相透明度</string>
+    <string name="settings_dashboard_card_dual_opacity">启用昼夜双法相透明度</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">自动根据明暗主题调整仪表盘法相透明度</string>
+    <string name="settings_dashboard_card_day_opacity">白天模式仪表盘法相透明度</string>
+    <string name="settings_dashboard_card_night_opacity">夜间模式仪表盘法相透明度</string>
+    <string name="settings_title_image_permission_required">需授予乾坤戒权限方可选取仙题画卷</string>
+    <string name="settings_background_permission_required">需授予乾坤戒权限方可选取仙境画卷</string>
+    <string name="settings_sound_effect_save_failed">仙音铭刻败陨</string>
+    <string name="settings_startup_sound_save_failed">启道之音铭刻败陨</string>
+    <string name="settings_info_copy">长按拓印信息</string>
+    <string name="settings_info_copy_summary">长按洞府首页信息栏之条目，即可拓印其内容</string>
+    <string name="home_info_copied">%1$s 已拓印</string>
+</resources>

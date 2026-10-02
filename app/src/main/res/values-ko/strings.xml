@@ -1,0 +1,693 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">홈 화면 앱 이름</string>
+
+    <string name="home">홈</string>
+
+    <string name="failure">실패</string>
+
+
+
+    <string name="settings_nav_layout_title">내비게이션 레이아웃 설정</string>
+    <string name="settings_nav_layout_summary">일부 내비게이션 구성 요소를 숨기거나 표시합니다.</string>
+    <string name="settings_nav_scheme">내비게이션 구성</string>
+    <string name="settings_nav_mode_auto">자동 전통 바</string>
+    <string name="settings_nav_mode_bottom">항상 하단 바</string>
+    <string name="settings_nav_mode_rail">항상 측면 레일</string>
+    <string name="settings_nav_mode_floating">플로팅 바텀 바</string>
+    <string name="settings_floating_auto_hide">자동 숨기기</string>
+    <string name="settings_floating_auto_hide_summary">3초 동작 없이 플로팅 바 자동 숨기기</string>
+    <string name="settings_floating_swipe_hide">스와이프 숨기기</string>
+    <string name="settings_floating_swipe_hide_summary">아래로 스와이프 시 숨기기, 위로 스와이프 시 표시</string>
+    <string name="settings_navbar_glass_effect">글래스 효과</string>
+    <string name="settings_navbar_glass_effect_summary">플로팅 내비게이션 바에 프로스트 글래스 효과 적용</string>
+    <string name="settings_navbar_glass_blur_strength">블러 강도</string>
+    <string name="settings_navbar_glass_transparency">배경 투명도</string>
+    <string name="settings_navbar_glass_highlight_strength">하이라이트 강도</string>
+    <string name="settings_navbar_glass_specular">거울 반사</string>
+    <string name="settings_navbar_glass_specular_summary">내비게이션 바 상단에 거울 같은 하이라이트 활성화</string>
+    <string name="settings_navbar_glass_inner_glow">내부 발광</string>
+    <string name="settings_navbar_glass_inner_glow_summary">내비게이션 바 하단에 은은한 발광 효과 활성화</string>
+    <string name="settings_navbar_glass_border">글래스 테두리</string>
+    <string name="settings_navbar_glass_border_summary">내비게이션 바 주위에 은은한 테두리 활성화</string>
+    <string name="settings_compact_rounded_bar">컴팩트 라운드 스타일</string>
+    <string name="settings_compact_rounded_bar_summary">둥근 모서리와 좁은 간격의 컴팩트 플로팅 바 사용</string>
+    <string name="settings_stats_top_layout">상단 레이아웃</string>
+    <string name="settings_stats_top_layout_list">리스트</string>
+    <string name="settings_stats_top_layout_grid">그리드</string>
+
+    <string name="reboot">다시 시작</string>
+    <string name="settings">설정</string>
+    <string name="reboot_recovery">복구 모드로 다시 시작</string>
+    <string name="reboot_bootloader">부트로더로 다시 시작</string>
+    <string name="reboot_download">다운로드 모드로 다시 시작</string>
+    <string name="reboot_edl">EDL로 다시 시작</string>
+    <string name="reboot_fastbootd">FastbootD로 다시 시작</string>
+    <string name="about">정보</string>
+    <string name="developer_and_maintainer">개발자 | 유지보수자</string>
+    <string name="settings_app_language">언어</string>
+    <string name="system_default">시스템 기본값</string>
+    <string name="settings_grid_working_card_hide_check">상태 아이콘 숨김</string>
+    <string name="settings_grid_working_card_hide_check_summary">작업 카드에서 확인 또는 경고 아이콘을 숨깁니다.</string>
+    <string name="settings_grid_working_card_hide_text">상태 텍스트 숨김</string>
+    <string name="settings_grid_working_card_hide_text_summary">작업 카드에서 \'작업 중\' 또는 \'설치되지 않음\' 텍스트를 숨깁니다.</string>
+    <string name="settings_grid_working_card_hide_mode">작업 모드 숨김</string>
+    <string name="settings_grid_working_card_hide_mode_summary">작업 카드에서 \'Full\' 또는 \'Half\' 텍스트를 숨깁니다.</string>
+
+
+    <string name="settings_folkx_engine_title">FolkX 애니메이션 엔진</string>
+    <string name="settings_folkx_engine_summary">최상위 페이지 전환 시 부드러운 물리 기반 스프링 애니메이션을 사용합니다.</string>
+    <string name="settings_folkx_animation_type">애니메이션 유형</string>
+    <string name="settings_folkx_animation_speed">애니메이션 속도</string>
+    <string name="settings_folkx_animation_linear">선형 이동</string>
+    <string name="settings_folkx_animation_spatial">공간 이동</string>
+    <string name="settings_folkx_animation_fade">페이드 인/아웃</string>
+    <string name="settings_folkx_animation_vertical">수직 슬라이드</string>
+    <string name="settings_folkx_animation_diagonal">대각선 슬라이드</string>
+
+
+
+    <string name="send_log">로그 보내기</string>
+    <string name="settings_clean_storage">앱 데이터 정리</string>
+    <string name="settings_clean_storage_summary">잔여 파일로 인한 다운로드·적용 실패 복구</string>
+    <string name="settings_clean_storage_confirm">다운로드한 테마, 가져온 음악, 음향 효과와 모든 캐시 파일을 삭제하고 디렉터리를 다시 만듭니다. 설정은 유지됩니다. 계속할까요?</string>
+    <string name="settings_clean_storage_done">정리 완료</string>
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">커널 버전</string>
+    <string name="home_fingerprint">지문</string>
+
+    <string name="home_selinux_status">SELinux 상태</string>
+    <string name="home_selinux_status_disabled">비활성화</string>
+    <string name="home_selinux_status_enforcing">강제</string>
+    <string name="home_selinux_status_permissive">허용</string>
+    <string name="home_selinux_status_unknown">알 수 없음</string>
+
+
+    <string name="home_device_info">기기</string>
+    <string name="home_system_version">시스템 버전</string>
+
+
+
+
+    <string name="apm_remove">제거</string>
+    <string name="apm_update">업데이트</string>
+
+
+
+
+    <string name="enable_web_debugging">WebView 디버깅 활성화</string>
+    <string name="enable_web_debugging_summary">WebUI를 디버깅할 때 사용할 수 있습니다. 필요한 경우에만 활성화하세요.</string>
+    <string name="apm_enable_module_banner">모듈 배너 활성화</string>
+    <string name="apm_enable_module_banner_summary">사용 가능한 경우 모듈용 배너 이미지를 표시합니다.</string>
+    <string name="apm_enable_folk_banner">모듈 배너 사용자 지정</string>
+    <string name="apm_enable_folk_banner_summary">모듈 카드를 길게 눌러 배너 이미지를 선택하세요.</string>
+    <string name="apm_banner_api_mode">API 모드</string>
+    <string name="apm_banner_api_mode_summary">모듈 배너에 무작위 이미지 API 또는 로컬 디렉터리를 사용합니다.</string>
+    <string name="apm_banner_api_source">API 소스 구성</string>
+    <string name="apm_banner_api_source_hint">API URL 또는 로컬 경로를 입력하세요.</string>
+    <string name="apm_banner_api_source_saved">API 소스 저장됨</string>
+    <string name="apm_banner_api_source_not_configured">구성되지 않음</string>
+    <string name="apm_banner_api_url_configured">API URL 구성됨</string>
+    <string name="apm_banner_local_dir_configured">로컬 디렉터리 구성됨</string>
+    <string name="apm_banner_clear_cache">캐시 지우기</string>
+    <string name="apm_banner_cache_cleared">배너 캐시 삭제됨</string>
+    <string name="apm_banner_api_config_title">API 소스 구성</string>
+    <string name="apm_banner_api_config_desc">무작위 이미지 API URL 또는 로컬 디렉터리 경로를 입력하세요. 각 모듈에 고유한 배너 이미지가 제공됩니다.</string>
+    <string name="apm_banner_api_examples_title">예시:</string>
+    <string name="apm_banner_api_examples">API: https://picsum.photos/800/400\n로컬: /sdcard/Pictures/Banners</string>
+    <!-- API Marketplace -->
+    <string name="apm_api_marketplace_title">API 마켓플레이스</string>
+    <string name="apm_api_preview">미리보기</string>
+    <string name="apm_api_apply">적용</string>
+    <string name="apm_api_preview_title">API 미리보기</string>
+    <string name="apm_api_preview_failed">미리보기 로드 실패</string>
+    <string name="apm_api_url_label">API URL:</string>
+    <string name="apm_api_apply_success">API 소스가 적용됨</string>
+    <string name="apm_api_verifying">확인 중…</string>
+    <string name="apm_api_retry">다시 시도</string>
+    <string name="apm_api_empty">사용 가능한 API 소스 없음</string>
+    <string name="settings_banner_custom_opacity">배너 투명도</string>
+    <string name="settings_banner_custom_opacity_summary">배경화면 모드를 따르지 않고 배너에 사용자 지정 투명도를 사용합니다.</string>
+    <string name="settings_banner_opacity">배너 불투명도</string>
+
+
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">피드백 또는 제안</string>
+    <string name="home_more_menu_about">정보</string>
+
+    <string name="home_more_menu_music_play">음악 재생</string>
+    <string name="home_more_menu_music_pause">음악 일시 정지</string>
+
+    <!-- Plugin strings -->
+
+    
+
+    
+    
+
+    <string name="amber_theme">앰버</string>
+    <string name="blue_theme">블루</string>
+    <string name="blue_grey_theme">블루 그레이</string>
+    <string name="brown_theme">브라운</string>
+    <string name="cyan_theme">시안</string>
+    <string name="deep_orange_theme">딥 오렌지</string>
+    <string name="deep_purple_theme">딥 퍼플</string>
+    <string name="green_theme">그린</string>
+    <string name="indigo_theme">인디고</string>
+    <string name="light_blue_theme">라이트 블루</string>
+    <string name="light_green_theme">라이트 그린</string>
+    <string name="lime_theme">라임</string>
+    <string name="orange_theme">오렌지</string>
+    <string name="pink_theme">핑크</string>
+    <string name="purple_theme">퍼플</string>
+    <string name="red_theme">레드</string>
+    <string name="sakura_theme">사쿠라</string>
+    <string name="teal_theme">틸</string>
+    <string name="yellow_theme">옐로</string>
+    <string name="ink_wash_theme">잉크 워시</string>
+    <string name="theme_color">테마 색상</string>
+    <string name="theme_light">라이트</string>
+    <string name="theme_dark">다크</string>
+    <string name="theme_system">시스템</string>
+    <string name="loading_themes">테마 불러오는 중…</string>
+    <string name="loading_apis">API 소스 불러오는 중…</string>
+    <string name="retry">다시 시도</string>
+
+    <string name="about_powered_by">%1$s 제공</string>
+    <string name="github">GitHub</string>
+    
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">충돌 보고서</string>
+    <string name="crash_handle_copy">복사</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">앱 버전: %s</string>
+    <string name="about_github">GitHub</string>
+
+    <!-- App Title Strings -->
+
+    <string name="settings_app_dpi">앱 DPI</string>
+    <string name="dpi_apply_settings">적용</string>
+
+<!-- Umount Service -->
+    <string name="settings_app_title">앱 제목</string>
+    <string name="app_title_custom">사용자 지정</string>
+    <string name="settings_custom_app_title">앱 이름 설정</string>
+    <string name="custom_app_title_dialog_title">사용자 지정 앱 이름</string>
+    <string name="custom_app_title_dialog_hint">앱 이름 입력</string>
+    <string name="custom_app_title_dialog_confirm">확인</string>
+    <string name="cancel">취소</string>
+    <string name="settings_custom_background">사용자 지정 배경</string>
+    <string name="settings_custom_background_enabled">사용자 지정 배경 활성화됨</string>
+    <string name="settings_custom_background_opacity">카드 불투명도</string>
+    <string name="settings_custom_background_blur">배경 블러</string>
+    <string name="settings_custom_background_dim">배경 어둡게</string>
+    <string name="settings_custom_background_dual_dim">주야간 이중 어둡게 적용 활성화</string>
+    <string name="settings_custom_background_dual_dim_desc">라이트 및 다크 테마에 맞게 배경 어둡기를 자동 조정</string>
+    <string name="settings_custom_background_day_dim">주간 모드 배경 어둡게</string>
+    <string name="settings_custom_background_night_dim">야간 모드 배경 어둡게</string>
+    <string name="settings_multi_background_mode">다중 배경 모드</string>
+    <string name="settings_multi_background_mode_summary">페이지마다 다른 배경 이미지를 설정합니다.</string>
+    <string name="settings_select_home_background">홈 화면 배경</string>
+    <string name="settings_select_settings_background">설정 배경</string>
+
+    <string name="settings_advanced_title_style">고급 제목 스타일</string>
+    <string name="settings_advanced_title_style_summary">상단 바 제목을 사용자 지정 이미지로 바꿉니다.</string>
+    <string name="settings_advanced_title_style_enabled">고급 제목 스타일 활성화됨</string>
+    <string name="settings_select_title_image">제목 이미지 선택</string>
+    <string name="settings_title_image_selected">제목 이미지 선택됨</string>
+    <string name="settings_title_image_saved">제목 이미지 저장됨</string>
+    <string name="settings_title_image_error">제목 이미지 저장 실패</string>
+    <string name="settings_clear_title_image">제목 이미지 지우기</string>
+    <string name="settings_clear_title_image_confirm">제목 이미지를 지울까요?</string>
+    <string name="settings_title_image_cleared">제목 이미지 삭제됨</string>
+    <string name="settings_title_image_day_opacity">주간 모드 불투명도</string>
+    <string name="settings_title_image_night_opacity">야간 모드 불투명도</string>
+    <string name="settings_title_image_dim">배경 어둡게</string>
+    <string name="settings_title_image_offset_x">수평 위치</string>
+
+    
+    <!-- Font Settings -->
+    <string name="settings_custom_font">사용자 지정 글꼴</string>
+    <string name="settings_select_font_file">글꼴 파일 선택</string>
+    <string name="settings_custom_font_enabled">사용자 지정 글꼴 활성화됨</string>
+    <string name="settings_custom_font_summary">앱에 사용자 지정 TTF 글꼴을 사용합니다.</string>
+    <string name="settings_font_selected">사용자 지정 글꼴 선택됨</string>
+    <string name="settings_custom_font_error">글꼴 파일 저장 실패</string>
+    <string name="settings_custom_font_saved">사용자 지정 글꼴 저장됨</string>
+    <string name="settings_clear_font">기본 글꼴 복원</string>
+    <string name="settings_clear_font_confirm">기본 글꼴로 복원할까요?</string>
+    <string name="settings_font_cleared">기본 글꼴 복원됨</string>
+    <string name="settings_select_background_image">배경 이미지 선택</string>
+    <string name="settings_custom_background_summary">사용자 지정 배경 이미지를 설정합니다.</string>
+    <string name="settings_custom_background_saved">배경 저장됨</string>
+    <string name="settings_custom_background_error">배경 저장 실패</string>
+    <string name="settings_crop_not_supported">이 기기에서 자르기를 지원하지 않음, 원본 이미지 저장 중</string>
+    <string name="settings_crop_dialog_title">배경화면 자르기</string>
+    <string name="settings_crop_dialog_message">이미지를 자르시겠습니까?</string>
+    <string name="settings_crop_dialog_crop">예</string>
+    <string name="settings_crop_dialog_direct">아니오</string>
+    <string name="settings_background_selected">배경 선택됨</string>
+    <string name="settings_background_image_cleared">배경 이미지 삭제됨</string>
+    <string name="settings_clear_background">배경 지우기</string>
+    <string name="settings_clear_background_confirm">배경 이미지를 지울까요?</string>
+
+    <string name="settings_alt_icon">대체 아이콘</string>
+    <string name="alt_icon_summary">대체 런처 아이콘을 사용합니다.</string>
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">비디오 배경</string>
+    <string name="settings_video_background_summary">비디오를 배경으로 사용합니다.</string>
+    <string name="settings_select_video">비디오 선택</string>
+    <string name="settings_video_selected">비디오 선택됨</string>
+    <string name="settings_clear_video_background">비디오 배경 지우기</string>
+    <string name="settings_clear_video_background_confirm">비디오 배경을 지울까요?</string>
+    <string name="settings_video_volume">비디오 음량</string>
+    
+    <!-- KPM AutoLoad Strings -->
+    
+    
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">FolkPatch에 오신 것을 환영합니다</string>
+    <string name="welcome_desc_1">KernelPatch 기반의 높은 사용자 정의와 휴대성을 갖춘 Root 관리자입니다. 당신의 기기를 진정한 당신의 것으로 만드세요.</string>
+    <string name="welcome_title_2">자유로운 커스터마이징</string>
+    <string name="welcome_desc_2">색상, 배경, 글꼴, 사운드, 진동까지 모든 것을 자유롭게 설정하세요. 테마 스토어에서 더 많은 스타일을 찾아보세요!</string>
+    <string name="welcome_title_3">커널 제어</string>
+    <string name="welcome_desc_3">고급 커널 기능에 한 번의 탭으로 접근하세요. 설정을 열고 우측 상단의 튜닝 아이콘을 탭하여 FolkPatch Hide, Umount, Path Hide 등을 이용하세요.</string>
+    <string name="welcome_title_4">준비되셨나요?</string>
+    <string name="welcome_desc_4">이제 기본 기능을 이해하셨습니다. 가장 유연한 Root 관리 경험을 즐겨보세요!</string>
+    <string name="welcome_prev">이전</string>
+    <string name="welcome_next">다음</string>
+    <string name="welcome_skip">건너뛰기</string>
+    <string name="welcome_got_it">시작하기</string>
+
+
+    
+
+    <!-- Hide Settings Strings -->
+    <string name="home_hide_fingerprint">지문 숨김</string>
+    <string name="home_hide_fingerprint_summary">정보 카드에서 지문을 숨깁니다.</string>
+
+    
+    
+    <!-- Auto Backup Strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">홈 레이아웃 스타일</string>
+    <string name="settings_home_layout_default">ListUI</string>
+    <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
+    <string name="settings_home_layout_circle">CircleUI</string>
+    <string name="settings_home_layout_dashboard_pro">DashboardUI</string>
+    <string name="settings_save_theme">테마 저장</string>
+    <string name="settings_import_theme">테마 가져오기</string>
+    <string name="settings_theme_saved">테마 저장됨</string>
+    <string name="settings_theme_imported">테마를 가져옴</string>
+    <string name="settings_theme_save_failed">테마 저장 실패</string>
+    <string name="settings_theme_import_failed">테마 가져오기 실패</string>
+    <string name="settings_reset_theme">테마 초기화</string>
+    <string name="settings_reset_theme_confirm">모든 테마 설정을 기본값으로 초기화할까요? 사용자 지정 배경, 글꼴, 음악, 음향 효과가 모두 지워집니다.</string>
+    <string name="settings_theme_reset">테마가 기본값으로 초기화됨</string>
+    <string name="settings_theme_reset_failed">테마 초기화 실패</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">테마 내보내기</string>
+    <string name="theme_import_title">테마 가져오기</string>
+    <string name="theme_name">테마 이름</string>
+    <string name="theme_type">테마 종류</string>
+    <string name="theme_type_phone">휴대전화</string>
+    <string name="theme_type_tablet">태블릿</string>
+    <string name="theme_version">버전</string>
+    <string name="theme_author">개발자</string>
+    <string name="theme_description">설명</string>
+    <string name="theme_export_action">내보내기</string>
+    <string name="theme_import_action">가져오기</string>
+    <string name="theme_import_confirm">이 테마를 가져올까요?</string>
+
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">작업 카드 배경</string>
+    <string name="settings_grid_working_card_background_enabled">사용자 지정 카드 배경 활성화됨</string>
+    <string name="settings_grid_working_card_background_summary">작업 카드에 사용자 지정 배경 이미지를 사용합니다.</string>
+    <string name="settings_grid_working_card_background_selected">배경 선택됨</string>
+    <string name="settings_grid_working_card_dual_opacity">주야간 이중 투명도 적용 활성화</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">라이트 및 다크 테마에 맞게 카드 투명도를 자동 조정</string>
+    <string name="settings_grid_working_card_day_opacity">주간 모드 카드 투명도</string>
+    <string name="settings_grid_working_card_night_opacity">야간 모드 카드 투명도</string>
+    <string name="settings_clear_grid_working_card_background">카드 배경 지우기</string>
+    <string name="settings_clear_grid_working_card_background_confirm">카드 배경 이미지를 지울까요?</string>
+    <string name="settings_grid_working_card_background_saved">카드 배경 저장됨</string>
+    <string name="settings_grid_working_card_background_error">카드 배경 저장 실패</string>
+    <string name="settings_grid_working_card_background_cleared">카드 배경 삭제됨</string>
+
+    <!-- Biometric Strings -->
+    <string name="action_biometric">생체 인식 인증</string>
+    <string name="msg_biometric">생체 인식으로 본인 확인을 하세요.</string>
+    <string name="msg_enable_biometric">앱을 열 때 확인을 요구하도록 생체 인증을 활성화하시겠습니까?</string>
+    <string name="settings_biometric_login">생체 인식 인증</string>
+    <string name="settings_biometric_login_summary">앱을 열 때 생체 인식 인증을 요구합니다.</string>
+    <string name="settings_strong_biometric">강력한 생체 인식</string>
+    <string name="settings_strong_biometric_summary">모듈을 설치/제거/비활성화할 때 인증을 요구합니다.</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">테마 스토어</string>
+    <string name="theme_source_official">공식</string>
+    <string name="theme_source_third_party">서드파티</string>
+    <string name="theme_store_author">개발자: %s</string>
+    <string name="theme_store_version">버전: %s</string>
+    <string name="theme_source">출처</string>
+    <string name="theme_store_download">다운로드</string>
+    <string name="theme_store_search_hint">테마 검색...</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">자동 업데이트 확인</string>
+    <string name="settings_auto_update_check_summary">앱 시작 시 업데이트를 자동으로 확인합니다.</string>
+    <string name="settings_check_update">업데이트 확인</string>
+    <string name="update_available_title">업데이트 가능</string>
+    <string name="update_available_message">앱 버전이 너무 낮습니다. 새 버전을 다운로드할까요?</string>
+    <string name="update_action">업데이트</string>
+    <string name="update_close">닫기</string>
+    <string name="update_latest">최신 버전을 사용 중입니다.</string>
+    <string name="settings_category_general">일반</string>
+    <string name="settings_category_appearance">디스플레이</string>
+    <string name="settings_category_behavior">작동</string>
+    
+    <!-- Appearance Sub-Categories -->
+    <string name="settings_appearance_font">글꼴 설정</string>
+    <string name="settings_appearance_theme">테마 설정</string>
+
+    <string name="settings_nav_custom_icons">사용자 정의 네비게이션 아이콘</string>
+    <string name="settings_nav_custom_icons_summary">하단 바 아이콘을 사용자 정의 이미지로 교체</string>
+    <string name="nav_icon_home">홈 아이콘</string>
+    <string name="nav_icon_superuser">Terminal Icon</string>
+    <string name="nav_icon_apm">Plugins Icon</string>
+    <string name="nav_icon_settings">설정 아이콘</string>
+    <string name="nav_icon_clear">기본값으로 초기화</string>
+    <string name="nav_icon_custom_selected">사용자 정의</string>
+    <string name="nav_icon_default">기본값</string>
+    <string name="nav_icon_cleared">아이콘이 기본값으로 초기화됨</string>
+    <string name="nav_icon_set">아이콘 업데이트됨</string>
+    <string name="nav_icon_set_failed">아이콘 저장 실패</string>
+
+    <string name="settings_theme_mode">모드 설정</string>
+    <string name="settings_theme_mode_summary">내장 스토어와 브라우저 호환 모드 간 전환</string>
+    <string name="theme_mode_builtin">내장 모드</string>
+    <string name="theme_mode_builtin_desc">내장 테마 스토어에서 테마를 탐색, 다운로드 및 적용</string>
+    <string name="theme_mode_compat">호환 모드</string>
+    <string name="theme_mode_compat_desc">브라우저에서 테마를 직접 다운로드(가져오기 문제가 있는 기기용)</string>
+    <string name="theme_mode_onboarding_title">테마 모드 선택</string>
+    <string name="theme_mode_onboarding_msg">테마를 탐색하고 설치하는 방법을 선택하세요. 설정에서 나중에 변경할 수 있습니다.</string>
+    <string name="theme_mode_builtin_label">내장 스토어</string>
+    <string name="theme_mode_compat_label">브라우저 모드</string>
+    <string name="theme_mode_switched">테마 모드가 %s(으)로 전환되었습니다</string>
+    <string name="theme_mode_current">현재: %s</string>
+    <string name="theme_mode_switch_title">테마 모드 전환</string>
+    <string name="theme_mode_switch_msg">모드를 변경하면 테마 탐색 및 설치 방식에 영향을 미칩니다. 계속하시겠습니까?</string>
+    <string name="settings_appearance_banner">배너 설정</string>
+    <string name="settings_appearance_layout">레이아웃 설정</string>
+    <string name="settings_appearance_background">배경 설정</string>
+    <string name="settings_appearance_night_mode">야간 모드 설정</string>
+    <string name="settings_amoled_theme">AMOLED 블랙 테마</string>
+    <string name="settings_amoled_theme_desc">다크 모드에서 순정 블랙 배경 사용</string>
+    <string name="settings_switch_icon">버튼 표시기 활성화</string>
+    <string name="settings_switch_icon_desc">스위치 버튼에 상태 아이콘 표시</string>
+    <string name="settings_discrete_slider">구분 슬라이더</string>
+    <string name="settings_discrete_slider_desc">슬라이더 트랙에 눈금 표시</string>
+    <string name="settings_category_security">보안</string>
+    <string name="settings_category_function">기능</string>
+    
+    <!-- Background Music Strings -->
+    <string name="settings_background_music">배경 음악</string>
+    <string name="settings_background_music_summary">앱이 포그라운드에 있을 때 배경 음악을 재생합니다.</string>
+    <string name="settings_background_music_playing">재생 중: %s</string>
+    <string name="settings_background_music_enabled">배경 음악 활성화됨</string>
+    <string name="settings_select_music_file">음악 파일 선택</string>
+    <string name="settings_music_selected">음악 선택됨</string>
+    <string name="settings_clear_music">음악 지우기</string>
+    <string name="settings_clear_music_confirm">배경 음악을 지울까요?</string>
+    <string name="settings_music_auto_play">자동 재생</string>
+    <string name="settings_music_auto_play_summary">앱이 열리면 음악을 자동으로 재생합니다.</string>
+    <string name="settings_music_looping">반복 재생</string>
+    <string name="settings_music_looping_summary">현재 곡을 반복 재생합니다.</string>
+    <string name="settings_music_volume">음량</string>
+    <string name="settings_music_saved">음악 파일 저장됨</string>
+    <string name="settings_music_save_error">음악 파일 저장 실패</string>
+    <string name="settings_music_cleared">음악 삭제됨</string>
+    <string name="settings_category_multimedia">멀티미디어</string>
+    <string name="settings_category_general_summary">Language, updates, animations, icon and name, DPI</string>
+    <string name="settings_category_appearance_summary">테마, 색상, 레이아웃, 배경, 글꼴</string>
+    <string name="settings_category_behavior_summary">Web debugging, info copy, home cards, plugin badge</string>
+    <string name="settings_category_security_summary">Biometric authentication for opening the app</string>
+    <string name="settings_category_backup_summary">DSH config export/import, WebDAV sync</string>
+    <string name="settings_category_function_summary">Container runtime, permission channel, wireless ADB</string>
+    <string name="settings_category_multimedia_summary">배경 음악, 소리, 진동</string>
+    <string name="settings_music_playback_control">재생 제어</string>
+
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">테마 필터링</string>
+    <string name="theme_store_filter_author">개발자</string>
+    <string name="theme_store_filter_author_hint">개발자 이름을 입력하세요.</string>
+    <string name="theme_store_filter_source">출처</string>
+    <string name="theme_store_filter_source_all">모두</string>
+    <string name="theme_store_filter_type">기기 종류</string>
+    <string name="theme_store_filter_apply">적용</string>
+    <string name="theme_store_filter_reset">초기화</string>
+
+    <!-- My Themes Page -->
+    <string name="my_themes_title">내 테마</string>
+    <string name="my_themes_empty">테마 없음</string>
+    <string name="my_themes_empty_action">테마 스토어 둘러보기</string>
+    <string name="my_themes_apply">테마 적용</string>
+    <string name="my_themes_delete">테마 삭제</string>
+    <string name="my_themes_delete_confirm">이 테마를 삭제할까요?</string>
+    <string name="my_themes_deleted">테마 삭제됨</string>
+    <string name="my_themes_applied">테마 적용됨</string>
+    <string name="my_themes_apply_failed">테마 적용 실패 — 길게 눌러 삭제하고 다시 다운로드하세요</string>
+
+    <!-- Download Dialog -->
+    <string name="theme_download_title">테마 다운로드 중</string>
+    <string name="theme_download_completed">다운로드 완료</string>
+    <string name="theme_download_failed">다운로드 실패</string>
+    <string name="theme_download_progress">진행률</string>
+    <string name="theme_download_file">테마 파일</string>
+    <string name="theme_download_image">미리보기 이미지</string>
+    <string name="theme_download_cancel">취소</string>
+    <string name="theme_download_pause">일시정지</string>
+    <string name="theme_download_apply">테마 적용</string>
+    <string name="theme_download_go_to_my_themes">내 테마</string>
+    <string name="theme_download_finalizing">마무리 중...</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">권한 필요</string>
+    <string name="file_picker_permission_desc">파일을 탐색하려면 \'모든 파일에 대한 접근\' 권한을 부여하세요.</string>
+    <string name="file_picker_grant_permission">권한 부여</string>
+    <string name="file_picker_cancel">취소</string>
+    <string name="file_picker_internal_storage">내부 저장소</string>
+    <string name="file_picker_no_files">파일 없음</string>
+    <string name="file_picker_filtered_files">파일 %1$s개 표시 중</string>
+    <string name="file_picker_close">파일 선택기 닫기</string>
+
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">기기 상태</string>
+    <string name="home_device_status_battery_temp">배터리 온도</string>
+    <string name="home_device_status_cpu_load">CPU 부하</string>
+    <string name="home_device_status_battery_level">배터리 잔량</string>
+    <string name="home_storage_title">저장소</string>
+    <string name="home_storage_internal">내부 저장소</string>
+    <string name="home_storage_ram">RAM</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">스왑 파일</string>
+    <string name="home_info_auth_auth">인증됨</string>
+    <string name="home_info_auth_na">해당 없음</string>
+    <string name="home_info_device_model">기기 모델</string>
+
+    <string name="settings_list_card_hide_status_badge">기본 이모지 사용</string>
+    <string name="settings_list_card_hide_status_badge_summary">홈 상태 배지를 기본 이모지로 변경합니다.</string>
+    <string name="settings_list_info_show_icons">정보 항목 아이콘</string>
+    <string name="settings_list_info_show_icons_summary">정보 카드의 각 항목 옆에 아이콘 표시</string>
+    <string name="settings_custom_badge_text">사용자 지정 배지 텍스트</string>
+    <string name="settings_custom_badge_text_summary">배지의 텍스트 표시를 재미로 수정합니다.</string>
+    <string name="settings_custom_badge_text_full_half">Full/Half (기본값)</string>
+    <string name="settings_custom_badge_text_lkm">LKM</string>
+    <string name="settings_custom_badge_text_gki">GKI</string>
+    <string name="settings_custom_badge_text_n_gki">N-GKI</string>
+    <string name="settings_custom_badge_text_oki">OKI</string>
+    <string name="settings_custom_badge_text_built_in">Built-in</string>
+
+    <!-- Install Mode Select -->
+
+
+
+    <!-- SuperUser App Action Dialog -->
+
+    <!-- SU Audit Log -->
+
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">배지 개수 설정</string>
+    <string name="enable_badge_count_summary">내비게이션 항목의 배지 개수 표시를 구성합니다.</string>
+    <string name="settings_sound_effect">음향 효과</string>
+    <string name="settings_sound_effect_summary">터치 시 음향 효과를 재생합니다.</string>
+    <string name="settings_sound_effect_enabled">활성화됨</string>
+    <string name="settings_sound_effect_playing">선택됨: %s</string>
+    <string name="settings_sound_effect_source">음원</string>
+    <string name="settings_sound_effect_source_local">로컬 파일</string>
+    <string name="settings_sound_effect_source_preset">프리셋</string>
+    <string name="settings_sound_effect_preset_title">프리셋 음향</string>
+    <string name="settings_select_sound_effect">음향 효과 선택</string>
+    <string name="settings_sound_effect_selected">음향 효과 파일 선택됨</string>
+    <string name="settings_sound_effect_scope">효과 범위</string>
+    <string name="settings_sound_effect_scope_global">전역 (어디서나)</string>
+    <string name="settings_sound_effect_scope_bottom_bar">하단 바만</string>
+    <string name="settings_clear_sound_effect">음향 효과 지우기</string>
+    <string name="settings_clear_sound_effect_confirm">음향 효과를 지울까요?</string>
+    <string name="settings_sound_effect_cleared">음향 효과 삭제됨</string>
+
+    <string name="settings_startup_sound">시작 음향</string>
+    <string name="settings_startup_sound_summary">앱이 시작될 때 음향을 재생합니다.</string>
+    <string name="settings_startup_sound_enabled">시작 음향 활성화됨</string>
+    <string name="settings_startup_sound_playing">재생 중: %s</string>
+    <string name="settings_select_startup_sound">시작 음향 선택</string>
+    <string name="settings_startup_sound_selected">시작 음향 선택됨</string>
+    <string name="settings_clear_startup_sound">시작 음향 지우기</string>
+    <string name="settings_clear_startup_sound_confirm">시작 음향을 지울까요?</string>
+    <string name="settings_startup_sound_cleared">시작 음향 삭제됨</string>
+
+    <string name="settings_vibration">진동 피드백</string>
+    <string name="settings_vibration_summary">터치 이벤트 시 진동합니다.</string>
+    <string name="settings_vibration_enabled">진동 활성화</string>
+    <string name="settings_vibration_intensity">진동 세기</string>
+    <string name="settings_vibration_scope">진동 범위</string>
+    <string name="settings_vibration_scope_global">전역 (어디서나)</string>
+    <string name="settings_vibration_scope_bottom_bar">하단 바만</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">백업</string>
+    <string name="settings_enable_cloud_backup">클라우드 백업 활성화</string>
+    <string name="settings_enable_cloud_backup_summary">플래싱된 모듈을 클라우드 서비스에 자동으로 백업합니다.</string>
+    <string name="settings_configure_webdav">WebDAV 서비스 구성</string>
+    <string name="webdav_config_title">WebDAV 구성</string>
+    <string name="webdav_url">WebDAV URL</string>
+    <string name="webdav_username">사용자 이름</string>
+    <string name="webdav_password">비밀번호</string>
+    <string name="webdav_test_success">테스트 성공</string>
+    <string name="webdav_test_failed">테스트 실패: %s</string>
+    <string name="save">저장</string>
+    <string name="test">테스트</string>
+    <string name="webdav_path_label">경로 (예: /Backup)</string>
+    <string name="webdav_view_logs">로그 보기</string>
+    <string name="webdav_backup_logs_title">백업 로그</string>
+    <string name="webdav_no_logs">로그를 찾을 수 없음</string>
+    <string name="webdav_clear_logs">지우기</string>
+    <string name="close">닫기</string>
+
+
+
+    <string name="settings_predictive_back">예측 백 제스처</string>
+    <string name="settings_predictive_back_summary">Android 14+ 예측 백 제스처 애니메이션 활성화</string>
+
+    <string name="home_device_status_battery_charging">충전 중</string>
+    <string name="home_device_status_cpu_temp">CPU 온도</string>
+    <string name="home_device_status_memory_trend">메모리 트렌드</string>
+    <string name="home_device_status_cpu_freq">CPU 주파수</string>
+    <string name="home_network_rx">다운로드</string>
+    <string name="home_network_tx">업로드</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">GPU</string>
+
+
+
+    <string name="settings_search_title">설정 검색</string>
+    <string name="settings_search_empty_hint">모든 설정을 검색하려면 입력하세요…</string>
+    <string name="settings_no_results">결과 없음</string>
+
+    <!-- Color Generation -->
+    <string name="color_generation_classic">클래식</string>
+    <string name="color_generation_custom">사용자 정의</string>
+
+    <!-- Color Standard -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- Color Style -->
+    <string name="color_style_tonal_spot">토널 스팟</string>
+    <string name="color_style_vibrant">선명한</string>
+    <string name="color_style_content">콘텐츠</string>
+    <string name="color_style_expressive">표현적</string>
+    <string name="color_style_rainbow">무지개</string>
+    <string name="color_style_fruit_salad">프루트 샐러드</string>
+    <string name="color_style_monochrome">모노크롬</string>
+    <string name="color_style_neutral">중립</string>
+    <string name="color_style_fidelity">충실도</string>
+    <string name="settings_focus_card_background">FocusUI 카드 배경</string>
+    <string name="settings_focus_card_background_enabled">FocusUI 카드 배경 활성화됨; 카드를 길게 눌러 배경 관리</string>
+    <string name="settings_focus_card_background_summary">FocusUI 카드 배경 및 길게 눌러 배경 관리 활성화</string>
+    <string name="settings_focus_card_dual_dim">주/야 이중 어두움 활성화</string>
+    <string name="settings_focus_card_dual_dim_desc">밝은 테마와 어두운 테마에 따라 카드 배경 어두움 자동 조정</string>
+    <string name="settings_focus_card_day_dim">주간 모드 카드 배경 어두움</string>
+    <string name="settings_focus_card_night_dim">야간 모드 카드 배경 어두움</string>
+    <string name="settings_focus_card_opacity">카드 배경 불투명도</string>
+    <string name="settings_focus_card_dual_opacity">주/야 이중 불투명도 활성화</string>
+    <string name="settings_focus_card_dual_opacity_desc">밝은 테마와 어두운 테마에 따라 카드 배경 불투명도 자동 조정</string>
+    <string name="settings_focus_card_day_opacity">주간 모드 카드 배경 불투명도</string>
+    <string name="settings_focus_card_night_opacity">야간 모드 카드 배경 불투명도</string>
+    <string name="settings_focus_card_kernel">커널 카드</string>
+    <string name="settings_focus_card_app">앱 카드</string>
+    <string name="settings_focus_card_device">기기 상태 카드</string>
+    <string name="settings_focus_card_storage">저장공간 카드</string>
+    <string name="settings_focus_card_wallpaper_selected">배경 설정됨</string>
+    <string name="dashboard_card_background_title">대시보드 카드 배경</string>
+    <string name="settings_dashboard_card_background">대시보드 카드 배경</string>
+    <string name="settings_dashboard_card_background_enabled">대시보드 배경 활성화됨; 카드를 길게 눌러 관리</string>
+    <string name="settings_dashboard_card_background_summary">DashboardUI 대시보드 카드 배경 활성화</string>
+    <string name="dashboard_card_background_clear">대시보드 배경 지우기</string>
+    <string name="dashboard_card_background_clear_confirm">대시보드 카드 배경을 지우시겠습니까?</string>
+    <string name="dashboard_card_background_saved">대시보드 배경 저장 성공</string>
+    <string name="dashboard_card_background_error">대시보드 배경 저장 실패</string>
+    <string name="dashboard_card_background_cleared">대시보드 배경 지워짐</string>
+    <string name="dashboard_card_background_restore">기본값 복원</string>
+    <string name="dashboard_card_background_restored">대시보드 배경 복원됨</string>
+    <string name="settings_dashboard_card_dual_dim">주/야 이중 어두움 활성화</string>
+    <string name="settings_dashboard_card_dual_dim_desc">밝은 테마와 어두운 테마에 따라 대시보드 배경 어두움 자동 조정</string>
+    <string name="settings_dashboard_card_day_dim">주간 모드 대시보드 배경 어두움</string>
+    <string name="settings_dashboard_card_night_dim">야간 모드 대시보드 배경 어두움</string>
+    <string name="settings_dashboard_card_opacity">대시보드 배경 불투명도</string>
+    <string name="settings_dashboard_card_dual_opacity">주/야 이중 불투명도 활성화</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">밝은 테마와 어두운 테마에 따라 대시보드 배경 불투명도 자동 조정</string>
+    <string name="settings_dashboard_card_day_opacity">주간 모드 대시보드 배경 불투명도</string>
+    <string name="settings_dashboard_card_night_opacity">야간 모드 대시보드 배경 불투명도</string>
+    <string name="settings_title_image_permission_required">제목 이미지를 선택하려면 저장소 권한을 허용해 주세요</string>
+    <string name="settings_background_permission_required">배경 이미지를 선택하려면 저장소 권한을 허용해 주세요</string>
+    <string name="settings_sound_effect_save_failed">효과음 저장에 실패했습니다</string>
+    <string name="settings_startup_sound_save_failed">시작음 저장에 실패했습니다</string>
+    <string name="settings_info_copy">길게 눌러 정보 복사</string>
+    <string name="settings_info_copy_summary">홈 정보 카드의 항목을 길게 누르면 내용이 복사됩니다</string>
+    <string name="home_info_copied">%1$s 복사됨</string>
+</resources>

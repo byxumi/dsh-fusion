@@ -1,0 +1,674 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">Nome do Aplicativo da Área de Trabalho</string>
+
+    <string name="home">Início</string>
+
+    <string name="failure">Falha</string>
+
+
+
+    <string name="settings_nav_layout_title">Configuração do Layout de Navegação</string>
+    <string name="settings_nav_layout_summary">Ocultar ou mostrar alguns componentes de navegação</string>
+    <string name="settings_nav_scheme">Esquema de navegação</string>
+    <string name="settings_nav_mode_auto">Automático Tradicional</string>
+    <string name="settings_nav_mode_bottom">Sempre barra inferior</string>
+    <string name="settings_nav_mode_rail">Sempre barra lateral</string>
+    <string name="settings_nav_mode_floating">Barra inferior flutuante</string>
+    <string name="settings_floating_auto_hide">Ocultar Automaticamente</string>
+    <string name="settings_floating_auto_hide_summary">Ocultar automaticamente a barra flutuante após 3 segundos de inatividade</string>
+    <string name="settings_floating_swipe_hide">Ocultar ao Deslizar</string>
+    <string name="settings_floating_swipe_hide_summary">Ocultar a barra ao deslizar para baixo, mostrar ao deslizar para cima</string>
+    <string name="settings_navbar_glass_effect">Efeito de vidro fosco</string>
+    <string name="settings_navbar_glass_effect_summary">Aplicar efeito de vidro fosco na barra de navegação flutuante</string>
+    <string name="settings_navbar_glass_blur_strength">Intensidade do desfoque</string>
+    <string name="settings_navbar_glass_transparency">Transparência do fundo</string>
+    <string name="settings_navbar_glass_highlight_strength">Intensidade do destaque</string>
+    <string name="settings_navbar_glass_specular">Reflexo especular</string>
+    <string name="settings_navbar_glass_specular_summary">Ativar reflexo espelhado na parte superior da barra de navegação</string>
+    <string name="settings_navbar_glass_inner_glow">Brilho interno</string>
+    <string name="settings_navbar_glass_inner_glow_summary">Ativar sutil efeito de brilho na parte inferior da barra de navegação</string>
+    <string name="settings_navbar_glass_border">Borda de vidro</string>
+    <string name="settings_navbar_glass_border_summary">Ativar sutil borda ao redor da barra de navegação</string>
+    <string name="settings_compact_rounded_bar">Estilo compacto arredondado</string>
+    <string name="settings_compact_rounded_bar_summary">Usar barra flutuante compacta com cantos arredondados e menor espaçamento</string>
+    <string name="settings_stats_top_layout">Layout Superior</string>
+    <string name="settings_stats_top_layout_list">Lista</string>
+    <string name="settings_stats_top_layout_grid">Grade</string>
+
+    <string name="reboot">Reiniciar</string>
+    <string name="settings">Configurações</string>
+    <string name="reboot_recovery">Reiniciar no Recovery</string>
+    <string name="reboot_bootloader">Reiniciar no Bootloader</string>
+    <string name="reboot_download">Reiniciar em modo Download</string>
+    <string name="reboot_edl">Reiniciar em modo EDL</string>
+    <string name="reboot_fastbootd">Reiniciar em modo FastbootD</string>
+    <string name="about">Sobre</string>
+    <string name="developer_and_maintainer">Desenvolvedor | Mantenedor</string>
+    <string name="settings_app_language">Idioma</string>
+    <string name="system_default">Padrão do sistema</string>
+    <string name="settings_grid_working_card_hide_check">Ocultar ícone de status</string>
+    <string name="settings_grid_working_card_hide_check_summary">Ocultar o ícone de confirmação ou aviso no cartão de status</string>
+    <string name="settings_grid_working_card_hide_text">Ocultar texto de status</string>
+    <string name="settings_grid_working_card_hide_text_summary">Ocultar o texto \'Funcionando\' ou \'Não instalado\' no cartão de status</string>
+    <string name="settings_grid_working_card_hide_mode">Ocultar modo de operação</string>
+    <string name="settings_grid_working_card_hide_mode_summary">Ocultar o texto \'Completo\' ou \'Metade\' no cartão de status</string>
+
+    <string name="settings_folkx_engine_title">FolkX Animation Engine</string>
+    <string name="settings_folkx_engine_summary">Usar animação de mola baseada em física suave ao alternar entre páginas de nível superior</string>
+    <string name="settings_folkx_animation_type">Tipo de Animação</string>
+    <string name="settings_folkx_animation_speed">Velocidade da Animação</string>
+    <string name="settings_folkx_animation_linear">Movimento Linear</string>
+    <string name="settings_folkx_animation_spatial">Movimento Espacial</string>
+    <string name="settings_folkx_animation_fade">Fade In/Out</string>
+    <string name="settings_folkx_animation_vertical">Deslize Vertical</string>
+    <string name="settings_folkx_animation_diagonal">Deslize Diagonal</string>
+
+
+    <!-- SuperUser App Action Dialog -->
+
+    <!-- SU Audit Log -->
+
+
+    <string name="send_log">Enviar logs</string>
+    <string name="settings_clean_storage">Limpar dados do aplicativo</string>
+    <string name="settings_clean_storage_summary">Corrige falhas de download ou aplicação causadas por arquivos residuais</string>
+    <string name="settings_clean_storage_confirm">Isso excluirá os temas baixados, músicas importadas, efeitos sonoros e todo o cache, recriando os diretórios. As configurações serão mantidas. Continuar?</string>
+    <string name="settings_clean_storage_done">Limpeza concluída</string>
+    <string name="github">GitHub</string>
+
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">Versão do Kernel</string>
+    <string name="home_fingerprint">Fingerprint</string>
+
+    <string name="home_selinux_status">Status do SELinux</string>
+    <string name="home_selinux_status_disabled">Desativado</string>
+    <string name="home_selinux_status_enforcing">Enforcing (Restrito)</string>
+    <string name="home_selinux_status_permissive">Permissive (Permissivo)</string>
+    <string name="home_selinux_status_unknown">Desconhecido</string>
+
+
+    <string name="home_device_info">Dispositivo</string>
+    <string name="home_system_version">Versão do sistema</string>
+
+
+
+    <string name="apm_remove">Remover</string>
+    <string name="apm_update">Atualizar</string>
+
+
+
+    <string name="enable_web_debugging">Ativar depuração WebView</string>
+    <string name="enable_web_debugging_summary">Pode ser usado para depurar WebUI. Ative apenas se necessário.</string>
+    <string name="apm_enable_module_banner">Ativar banner de módulo</string>
+    <string name="apm_enable_module_banner_summary">Exibir imagem de banner para módulos se disponível</string>
+    <string name="apm_enable_folk_banner">Personalizar banner de módulo</string>
+    <string name="apm_enable_folk_banner_summary">Pressione longo no cartão do módulo para selecionar a imagem do banner</string>
+    <string name="apm_banner_api_mode">Modo API</string>
+    <string name="apm_banner_api_mode_summary">Usar API de imagens aleatórias ou diretório local para banners de módulos</string>
+    <string name="apm_banner_api_source">Configurar fonte API</string>
+    <string name="apm_banner_api_source_hint">Insira URL da API ou caminho local</string>
+    <string name="apm_banner_api_source_saved">Fonte API salva</string>
+    <string name="apm_banner_api_source_not_configured">Não configurado</string>
+    <string name="apm_banner_api_url_configured">URL da API configurada</string>
+    <string name="apm_banner_local_dir_configured">Diretório local configurado</string>
+    <string name="apm_banner_clear_cache">Limpar cache</string>
+    <string name="apm_banner_cache_cleared">Cache de banners limpo</string>
+    <string name="apm_banner_api_config_title">Configurar fonte API</string>
+    <string name="apm_banner_api_config_desc">Insira uma URL de API de imagens aleatórias ou caminho de diretório local. Cada módulo receberá um banner único.</string>
+    <string name="apm_banner_api_examples_title">Exemplos:</string>
+    <string name="apm_banner_api_examples">API: https://picsum.photos/800/400\nLocal: /sdcard/Pictures/Banners</string>
+    <!-- Marketplace de API -->
+    <string name="apm_api_marketplace_title">Marketplace de API</string>
+    <string name="apm_api_preview">Visualizar</string>
+    <string name="apm_api_apply">Aplicar</string>
+    <string name="apm_api_preview_title">Visualização de API</string>
+    <string name="apm_api_preview_failed">Falha ao carregar visualização</string>
+    <string name="apm_api_url_label">URL da API:</string>
+    <string name="apm_api_apply_success">Fonte de API aplicada com sucesso</string>
+    <string name="apm_api_verifying">Verificando…</string>
+    <string name="apm_api_retry">Tentar novamente</string>
+    <string name="apm_api_empty">Nenhuma fonte de API disponível</string>
+    <string name="settings_banner_custom_opacity">Opacidade do banner</string>
+    <string name="settings_banner_custom_opacity_summary">Usar opacidade personalizada para banners em vez de seguir o modo de papel de parede</string>
+    <string name="settings_banner_opacity">Transparência do banner</string>
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">Feedback ou sugestão</string>
+    <string name="home_more_menu_about">Sobre</string>
+
+    <string name="home_more_menu_music_play">Reproduzir música</string>
+    <string name="home_more_menu_music_pause">Pausar música</string>
+
+    <!-- Plugin strings -->
+
+    
+
+    
+    
+
+    <string name="amber_theme">Âmbar</string>
+    <string name="blue_theme">Azul</string>
+    <string name="blue_grey_theme">Azul Acinzentado</string>
+    <string name="brown_theme">Marrom</string>
+    <string name="cyan_theme">Ciano</string>
+    <string name="deep_orange_theme">Laranja Escuro</string>
+    <string name="deep_purple_theme">Roxo Escuro</string>
+    <string name="green_theme">Verde</string>
+    <string name="indigo_theme">Índigo</string>
+    <string name="light_blue_theme">Azul Claro</string>
+    <string name="light_green_theme">Verde Claro</string>
+    <string name="lime_theme">Lima</string>
+    <string name="orange_theme">Laranja</string>
+    <string name="pink_theme">Rosa</string>
+    <string name="purple_theme">Roxo</string>
+    <string name="red_theme">Vermelho</string>
+    <string name="sakura_theme">Sakura</string>
+    <string name="teal_theme">Verde-azulado (Teal)</string>
+    <string name="yellow_theme">Amarelo</string>
+    <string name="theme_color">Cor do tema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Escuro</string>
+    <string name="theme_system">Sistema</string>
+    <string name="loading_themes">Carregando temas…</string>
+    <string name="loading_apis">Carregando fontes de API…</string>
+    <string name="retry">Tentar novamente</string>
+
+    <string name="about_powered_by">Desenvolvido por %1$s</string>
+    
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">Relatório de Erro</string>
+    <string name="crash_handle_copy">Copiar</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">Versão do App: %s</string>
+    <string name="about_github">GitHub</string>
+
+    <string name="settings_app_dpi">DPI do App</string>
+    <string name="dpi_apply_settings">Aplicar</string>
+    <string name="settings_alt_icon">Ícone alternativo</string>
+    <string name="alt_icon_summary">Usar ícone alternativo do lançador</string>
+
+<string name="settings_app_title">Título do App</string>
+    <string name="app_title_custom">Personalizado</string>
+    <string name="settings_custom_app_title">Definir nome do app</string>
+    <string name="custom_app_title_dialog_title">Nome personalizado do app</string>
+    <string name="custom_app_title_dialog_hint">Digite o nome do app</string>
+    <string name="custom_app_title_dialog_confirm">Confirmar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="settings_custom_background">Fundo Personalizado</string>
+    <string name="settings_custom_background_enabled">Fundo Personalizado Ativo</string>
+    <string name="settings_custom_background_opacity">Opacidade do cartão</string>
+    <string name="settings_custom_background_blur">Desfoque do fundo</string>
+    <string name="settings_custom_background_dim">Escurecimento do fundo</string>
+    <string name="settings_custom_background_dual_dim">Escurecimento duplo (dia/noite)</string>
+    <string name="settings_custom_background_dual_dim_desc">Ajustar automaticamente o escurecimento do fundo para temas claros e escuros</string>
+    <string name="settings_custom_background_day_dim">Escurecimento modo dia</string>
+    <string name="settings_custom_background_night_dim">Escurecimento modo noite</string>
+    <string name="settings_multi_background_mode">Modo Multi-Fundo</string>
+    <string name="settings_multi_background_mode_summary">Definir imagens de fundo diferentes para páginas diferentes</string>
+    <string name="settings_select_home_background">Fundo da Página Inicial</string>
+    <string name="settings_select_settings_background">Fundo Configurações</string>
+
+    <string name="settings_advanced_title_style">Estilo de Título Avançado</string>
+    <string name="settings_advanced_title_style_summary">Substituir o título da barra superior por uma imagem personalizada</string>
+    <string name="settings_advanced_title_style_enabled">Estilo de título avançado ativado</string>
+    <string name="settings_select_title_image">Selecionar Imagem de Título</string>
+    <string name="settings_title_image_selected">Imagem de título selecionada</string>
+    <string name="settings_title_image_saved">Imagem de título salva com sucesso</string>
+    <string name="settings_title_image_error">Falha ao salvar imagem de título</string>
+    <string name="settings_clear_title_image">Limpar Imagem de Título</string>
+    <string name="settings_clear_title_image_confirm">Tem certeza de que deseja limpar a imagem de título?</string>
+    <string name="settings_title_image_cleared">Imagem de título limpa</string>
+    <string name="settings_title_image_day_opacity">Opacidade do Modo Diurno</string>
+    <string name="settings_title_image_night_opacity">Opacidade do Modo Noturno</string>
+    <string name="settings_title_image_dim">Escurecimento do Fundo</string>
+    <string name="settings_title_image_offset_x">Posição Horizontal</string>
+
+    <!-- Font Settings -->
+    <string name="settings_custom_font">Fonte Personalizada</string>
+    <string name="settings_select_font_file">Selecionar Arquivo de Fonte</string>
+    <string name="settings_custom_font_enabled">Fonte Personalizada Ativa</string>
+    <string name="settings_custom_font_summary">Usar uma fonte TTF personalizada para o app</string>
+    <string name="settings_font_selected">Fonte Personalizada Selecionada</string>
+    <string name="settings_custom_font_error">Falha ao salvar arquivo de fonte</string>
+    <string name="settings_custom_font_saved">Fonte personalizada salva com sucesso</string>
+    <string name="settings_clear_font">Restaurar Fonte Padrão</string>
+    <string name="settings_clear_font_confirm">Tem certeza de que deseja restaurar a fonte padrão?</string>
+    <string name="settings_font_cleared">Fonte padrão restaurada</string>
+    <string name="settings_select_background_image">Selecionar Imagem de Fundo</string>
+    <string name="settings_custom_background_summary">Definir uma imagem de fundo personalizada</string>
+    <string name="settings_custom_background_saved">Fundo salvo com sucesso</string>
+    <string name="settings_custom_background_error">Falha ao salvar fundo</string>
+    <string name="settings_crop_not_supported">Recorte não suportado neste dispositivo, salvando imagem original</string>
+    <string name="settings_crop_dialog_title">Recortar fundo</string>
+    <string name="settings_crop_dialog_message">Recortar a imagem?</string>
+    <string name="settings_crop_dialog_crop">Sim</string>
+    <string name="settings_crop_dialog_direct">Não</string>
+    <string name="settings_background_selected">Fundo selecionado</string>
+    <string name="settings_background_image_cleared">Imagem de fundo limpa</string>
+    <string name="settings_clear_background">Limpar Fundo</string>
+    <string name="settings_clear_background_confirm">Tem certeza de que deseja limpar a imagem de fundo?</string>
+
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">Fundo de Vídeo</string>
+    <string name="settings_video_background_summary">Usar um vídeo como fundo</string>
+    <string name="settings_select_video">Selecionar Vídeo</string>
+    <string name="settings_video_selected">Vídeo Selecionado</string>
+    <string name="settings_clear_video_background">Limpar Fundo de Vídeo</string>
+    <string name="settings_clear_video_background_confirm">Tem certeza de que deseja limpar o fundo de vídeo?</string>
+    <string name="settings_video_volume">Volume do Vídeo</string>
+    
+    <!-- KPM AutoLoad Strings -->
+    
+    
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">Bem-vindo ao FolkPatch</string>
+    <string name="welcome_desc_1">Um gerenciador Root altamente personalizavel e portatil baseado no KernelPatch. Faca seu dispositivo realmente seu.</string>
+    <string name="welcome_title_2">Personalizacao completa</string>
+    <string name="welcome_desc_2">Personalize tudo — cores, fundos, fontes, sons e ate a vibracao. Explore a Loja de Temas!</string>
+    <string name="welcome_title_3">Controles do Kernel</string>
+    <string name="welcome_desc_3">Recursos avancados do kernel a um toque. Abra as Configuracoes e toque no icone de ajuste para acessar FolkPatch Hide, Umount, Path Hide e mais.</string>
+    <string name="welcome_title_4">Pronto para comecar</string>
+    <string name="welcome_desc_4">Esta tudo pronto! Comece a explorar a experiencia Root mais flexivel. Divirta-se!</string>
+    <string name="welcome_prev">Anterior</string>
+    <string name="welcome_next">Proximo</string>
+    <string name="welcome_skip">Pular</string>
+    <string name="welcome_got_it">Comecar</string>
+
+
+    
+
+    <!-- Hide Settings Strings -->
+    <string name="home_hide_fingerprint">Ocultar fingerprint</string>
+    <string name="home_hide_fingerprint_summary">Ocultar fingerprint no cartão de info</string>
+
+
+    <!-- Auto Backup Strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">Estilo de Layout Inicial</string>
+    <string name="settings_home_layout_default">Lista (ListUI)</string>
+    <string name="settings_home_layout_grid">Grade (GridUI)</string>
+    <string name="settings_home_layout_focus">Foco (FocusUI)</string>
+    <string name="settings_home_layout_circle">CircleUI</string>
+    <string name="settings_home_layout_dashboard_pro">DashboardUI</string>
+    <string name="settings_save_theme">Salvar tema</string>
+    <string name="settings_import_theme">Importar tema</string>
+    <string name="settings_theme_saved">Tema salvo</string>
+    <string name="settings_theme_imported">Tema importado</string>
+    <string name="settings_theme_save_failed">Falha ao salvar tema</string>
+    <string name="settings_theme_import_failed">Falha ao importar tema</string>
+    <string name="settings_reset_theme">Redefinir tema</string>
+    <string name="settings_reset_theme_confirm">Tem certeza de que deseja redefinir todas as configurações do tema para os padrões? Isso limpará todos os planos de fundo, fontes, músicas e efeitos sonoros personalizados.</string>
+    <string name="settings_theme_reset">Tema redefinido</string>
+    <string name="settings_theme_reset_failed">Falha ao redefinir tema</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">Exportar Tema</string>
+    <string name="theme_import_title">Importar Tema</string>
+    <string name="theme_name">Nome do Tema</string>
+    <string name="theme_type">Tipo de Tema</string>
+    <string name="theme_type_phone">Celular</string>
+    <string name="theme_type_tablet">Tablet</string>
+    <string name="theme_version">Versão</string>
+    <string name="theme_author">Autor</string>
+    <string name="theme_description">Descrição</string>
+    <string name="theme_export_action">Exportar</string>
+    <string name="theme_import_action">Importar</string>
+    <string name="theme_import_confirm">Tem certeza de que deseja importar este tema?</string>
+
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">Fundo do Cartão de Status</string>
+    <string name="settings_grid_working_card_background_enabled">Fundo personalizado do cartão ativo</string>
+    <string name="settings_grid_working_card_background_summary">Imagem de fundo personalizada para o cartão de status</string>
+    <string name="settings_grid_working_card_background_selected">Fundo selecionado</string>
+    <string name="settings_grid_working_card_dual_opacity">Opacidade dupla dia/noite</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">Ajustar automaticamente a opacidade do cartão para temas claros e escuros</string>
+    <string name="settings_grid_working_card_day_opacity">Opacidade do cartão (dia)</string>
+    <string name="settings_grid_working_card_night_opacity">Opacidade do cartão (noite)</string>
+    <string name="settings_clear_grid_working_card_background">Limpar Fundo do Cartão</string>
+    <string name="settings_clear_grid_working_card_background_confirm">Tem certeza de que deseja limpar a imagem de fundo do cartão?</string>
+    <string name="settings_grid_working_card_background_saved">Fundo do cartão salvo com sucesso</string>
+    <string name="settings_grid_working_card_background_error">Falha ao salvar fundo do cartão</string>
+    <string name="settings_grid_working_card_background_cleared">Fundo do cartão limpo</string>
+
+    <!-- Biometric Strings -->
+    <string name="action_biometric">Autenticação Biométrica</string>
+    <string name="msg_biometric">Por favor, verifique sua identidade biométrica</string>
+    <string name="msg_enable_biometric">Ativar autenticação biométrica para exigir verificação ao abrir o aplicativo?</string>
+    <string name="settings_biometric_login">Login Biométrico</string>
+    <string name="settings_biometric_login_summary">Exigir autenticação biométrica ao abrir o app</string>
+    <string name="settings_strong_biometric">Autenticação Biométrica Forte</string>
+    <string name="settings_strong_biometric_summary">Exigir autenticação para instalar/desinstalar/desativar módulos</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">Loja de Temas</string>
+    <string name="theme_source_official">Oficial</string>
+    <string name="theme_source_third_party">Terceiros</string>
+    <string name="theme_store_author">Autor: %s</string>
+    <string name="theme_store_version">Versão: %s</string>
+    <string name="theme_source">Fonte</string>
+    <string name="theme_store_download">Baixar</string>
+    <string name="theme_store_search_hint">Buscar temas...</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">Verificação Automática de Atualização</string>
+    <string name="settings_auto_update_check_summary">Verificar atualizações automaticamente ao iniciar o app</string>
+    <string name="settings_check_update">Verificar Atualizações</string>
+    <string name="update_available_title">Atualização Disponível</string>
+    <string name="update_available_message">Detectado que sua versão é antiga, deseja baixar a nova versão?</string>
+    <string name="update_action">Atualizar</string>
+    <string name="update_close">Fechar</string>
+    <string name="update_latest">Você está na versão mais recente</string>
+    <string name="settings_category_general">Geral</string>
+    <string name="settings_category_appearance">Aparência</string>
+    <string name="settings_appearance_font">Configuração de fonte</string>
+    <string name="settings_appearance_theme">Configuração de tema</string>
+
+    <string name="settings_nav_custom_icons">Ícones de navegação personalizados</string>
+    <string name="settings_nav_custom_icons_summary">Substituir ícones da barra inferior por imagens personalizadas</string>
+    <string name="nav_icon_home">Ícone de início</string>
+    <string name="nav_icon_superuser">Terminal Icon</string>
+    <string name="nav_icon_apm">Plugins Icon</string>
+    <string name="nav_icon_settings">Ícone de configurações</string>
+    <string name="nav_icon_clear">Redefinir para padrão</string>
+    <string name="nav_icon_custom_selected">Personalizado</string>
+    <string name="nav_icon_default">Padrão</string>
+    <string name="nav_icon_cleared">Ícone redefinido</string>
+    <string name="nav_icon_set">Ícone atualizado</string>
+    <string name="nav_icon_set_failed">Falha ao salvar o ícone</string>
+
+    <string name="settings_theme_mode">Configuração de modo</string>
+    <string name="settings_theme_mode_summary">Alternar entre a loja integrada e o modo de compatibilidade do navegador</string>
+    <string name="theme_mode_builtin">Modo Integrado</string>
+    <string name="theme_mode_builtin_desc">Use a loja de temas integrada para navegar, baixar e aplicar temas</string>
+    <string name="theme_mode_compat">Modo de Compatibilidade</string>
+    <string name="theme_mode_compat_desc">Usar o navegador para baixar temas diretamente (para dispositivos com problemas de importação)</string>
+    <string name="theme_mode_onboarding_title">Escolher modo de tema</string>
+    <string name="theme_mode_onboarding_msg">Como você gostaria de navegar e instalar temas? Você pode alterar isso depois nas configurações.</string>
+    <string name="theme_mode_builtin_label">Loja Integrada</string>
+    <string name="theme_mode_compat_label">Modo Navegador</string>
+    <string name="theme_mode_switched">Modo de tema alterado para %s</string>
+    <string name="theme_mode_current">Atual: %s</string>
+    <string name="theme_mode_switch_title">Alternar modo de tema</string>
+    <string name="theme_mode_switch_msg">Alterar o modo afetará como você navega e instala temas. Continuar?</string>
+    <string name="settings_appearance_banner">Configuração de banner</string>
+    <string name="settings_appearance_layout">Configuração de layout</string>
+    <string name="settings_appearance_background">Configuração de fundo</string>
+    <string name="settings_appearance_night_mode">Configuração de modo noturno</string>
+    <string name="settings_amoled_theme">Tema Preto AMOLED</string>
+    <string name="settings_amoled_theme_desc">Fundo preto puro para o modo escuro</string>
+    <string name="settings_switch_icon">Indicador de botão</string>
+    <string name="settings_switch_icon_desc">Mostrar ícones de status nos interruptores</string>
+    <string name="settings_discrete_slider">Controle deslizante discreto</string>
+    <string name="settings_discrete_slider_desc">Mostrar marcas na trilha do controle deslizante</string>
+    <string name="settings_category_behavior">Comportamento</string>
+    <string name="settings_category_function">Função</string>
+    <string name="settings_category_security">Segurança</string>
+    
+    <!-- Background Music Strings -->
+    <string name="settings_background_music">Música de Fundo</string>
+    <string name="settings_background_music_summary">Tocar música de fundo quando o app estiver em primeiro plano</string>
+    <string name="settings_background_music_playing">Tocando: %s</string>
+    <string name="settings_background_music_enabled">Música de Fundo Ativada</string>
+    <string name="settings_select_music_file">Selecionar arquivo de música</string>
+    <string name="settings_music_selected">Música selecionada</string>
+    <string name="settings_clear_music">Limpar música</string>
+    <string name="settings_clear_music_confirm">Tem certeza de que deseja limpar a música de fundo?</string>
+    <string name="settings_music_auto_play">Reprodução automática</string>
+    <string name="settings_music_auto_play_summary">Tocar música automaticamente ao abrir o app</string>
+    <string name="settings_music_looping">Reprodução em loop</string>
+    <string name="settings_music_looping_summary">Repetir a música atual</string>
+    <string name="settings_music_volume">Volume</string>
+    <string name="settings_music_saved">Arquivo de música salvo</string>
+    <string name="settings_music_save_error">Falha ao salvar arquivo de música</string>
+    <string name="settings_music_cleared">Música limpa</string>
+    <string name="settings_category_multimedia">Multimídia</string>
+    <string name="settings_category_general_summary">Language, updates, animations, icon and name, DPI</string>
+    <string name="settings_category_appearance_summary">Tema, cores, layout, fundo, fontes</string>
+    <string name="settings_category_behavior_summary">Web debugging, info copy, home cards, plugin badge</string>
+    <string name="settings_category_security_summary">Biometric authentication for opening the app</string>
+    <string name="settings_category_backup_summary">DSH config export/import, WebDAV sync</string>
+    <string name="settings_category_function_summary">Container runtime, permission channel, wireless ADB</string>
+    <string name="settings_category_multimedia_summary">Música de fundo, sons, vibração</string>
+    <string name="settings_music_playback_control">Controle de Reprodução</string>
+
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">Filtrar Temas</string>
+    <string name="theme_store_filter_author">Autor</string>
+    <string name="theme_store_filter_author_hint">Digite o nome do autor</string>
+    <string name="theme_store_filter_source">Fonte</string>
+    <string name="theme_store_filter_source_all">Todos</string>
+    <string name="theme_store_filter_type">Tipo de Dispositivo</string>
+    <string name="theme_store_filter_apply">Aplicar</string>
+    <string name="theme_store_filter_reset">Redefinir</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">Permissão Necessária</string>
+    <string name="file_picker_permission_desc">Para navegar nos arquivos, conceda permissão de \'Acesso a todos os arquivos\'.</string>
+    <string name="file_picker_grant_permission">Conceder Permissão</string>
+    <string name="file_picker_cancel">Cancelar</string>
+    <string name="file_picker_internal_storage">Armazenamento Interno</string>
+    <string name="file_picker_no_files">Sem arquivos</string>
+    <string name="file_picker_filtered_files">Mostrando %1$s arquivos</string>
+    <string name="file_picker_close">Fechar seletor de arquivos</string>
+
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">Status do Dispositivo</string>
+    <string name="home_device_status_battery_temp">Temp. Bateria</string>
+    <string name="home_device_status_cpu_load">Carga CPU</string>
+    <string name="home_device_status_battery_level">Nível Bateria</string>
+    <string name="home_storage_title">Armazenamento</string>
+    <string name="home_storage_internal">Armaz. Interno</string>
+    <string name="home_storage_ram">RAM</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">Arquivo Swap</string>
+    <string name="home_info_auth_auth">Autenticado</string>
+    <string name="home_info_auth_na">N/A</string>
+    <string name="home_info_device_model">Modelo</string>
+
+    <string name="settings_list_card_hide_status_badge">Usar Emoji Clássico</string>
+    <string name="settings_list_card_hide_status_badge_summary">O emblema de status na página inicial se transforma em emoji clássico</string>
+    <string name="settings_list_info_show_icons">Ícones dos itens de informação</string>
+    <string name="settings_list_info_show_icons_summary">Mostrar um ícone ao lado de cada item no cartão de informações</string>
+    <string name="settings_custom_badge_text">Personalizar Texto do Emblema</string>
+    <string name="settings_custom_badge_text_summary">Modificar a exibição de texto do emblema, apenas por diversão</string>
+
+    <!-- Install Mode Select -->
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">Configurações do contador de selos</string>
+    <string name="enable_badge_count_summary">Configurar a exibição do contador de selos para itens de navegação</string>
+    <string name="settings_sound_effect">Efeito sonoro</string>
+    <string name="settings_sound_effect_summary">Tocar efeito sonoro ao clicar</string>
+    <string name="settings_sound_effect_enabled">Ativado</string>
+    <string name="settings_sound_effect_playing">Selecionado: %s</string>
+    <string name="settings_sound_effect_source">Fonte do som</string>
+    <string name="settings_sound_effect_source_local">Arquivo local</string>
+    <string name="settings_sound_effect_source_preset">Predefinição</string>
+    <string name="settings_sound_effect_preset_title">Sons predefinidos</string>
+    <string name="settings_select_sound_effect">Selecionar arquivo de som</string>
+    <string name="settings_sound_effect_selected">Arquivo de som selecionado</string>
+    <string name="settings_sound_effect_scope">Escopo do efeito</string>
+    <string name="settings_sound_effect_scope_global">Global (Em qualquer lugar)</string>
+    <string name="settings_sound_effect_scope_bottom_bar">Apenas barra inferior</string>
+    <string name="settings_clear_sound_effect">Limpar efeito sonoro</string>
+    <string name="settings_clear_sound_effect_confirm">Tem certeza que deseja limpar o efeito sonoro?</string>
+    <string name="settings_sound_effect_cleared">Efeito sonoro limpo</string>
+
+    <string name="settings_startup_sound">Som de inicialização</string>
+    <string name="settings_startup_sound_summary">Tocar som ao iniciar o aplicativo</string>
+    <string name="settings_startup_sound_enabled">Som de inicialização ativado</string>
+    <string name="settings_startup_sound_playing">Tocando: %s</string>
+    <string name="settings_select_startup_sound">Selecionar som de inicialização</string>
+    <string name="settings_startup_sound_selected">Som de inicialização selecionado</string>
+    <string name="settings_clear_startup_sound">Limpar som de inicialização</string>
+    <string name="settings_clear_startup_sound_confirm">Tem certeza que deseja limpar o som de inicialização?</string>
+    <string name="settings_startup_sound_cleared">Som de inicialização limpo</string>
+
+    <string name="settings_enable_cloud_backup_summary">Backup automático na nuvem</string>
+    <string name="settings_configure_webdav">Configurar serviço WebDAV</string>
+    <string name="webdav_config_title">Configuração WebDAV</string>
+    <string name="webdav_url">URL WebDAV</string>
+    <string name="webdav_username">Nome de usuário</string>
+    <string name="webdav_password">Senha</string>
+    <string name="save">Salvar</string>
+    <string name="test">Testar</string>
+    <string name="webdav_path_label">Caminho (ex. /Backup)</string>
+    <string name="webdav_view_logs">Ver logs</string>
+    <string name="webdav_backup_logs_title">Logs de Backup</string>
+    <string name="webdav_no_logs">Sem logs</string>
+    <string name="webdav_clear_logs">Limpar</string>
+    <string name="close">Fechar</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">Configurações de Backup</string>
+    <string name="settings_enable_cloud_backup">Ativar backup na nuvem</string>
+    <string name="webdav_test_success">Teste bem-sucedido</string>
+    <string name="webdav_test_failed">Teste falhou: %s</string>
+
+
+    <!-- Script Library Strings -->
+    <string name="settings_vibration">Vibração e tato</string>
+    <string name="settings_vibration_summary">Vibrar ao tocar</string>
+    <string name="settings_vibration_enabled">Ativar vibração</string>
+    <string name="settings_vibration_intensity">Intensidade da vibração</string>
+    <string name="settings_vibration_scope">Escopo da vibração</string>
+    <string name="settings_vibration_scope_global">Global (Em todo lugar)</string>
+    <string name="settings_vibration_scope_bottom_bar">Apenas barra inferior</string>
+
+    <!-- Umount Service -->
+
+    <!-- Página Meus Temas -->
+    <string name="my_themes_title">Meus Temas</string>
+    <string name="my_themes_empty">Ainda não há temas</string>
+    <string name="my_themes_empty_action">Navegar pela Loja de Temas</string>
+    <string name="my_themes_apply">Aplicar Tema</string>
+    <string name="my_themes_delete">Excluir Tema</string>
+    <string name="my_themes_delete_confirm">Tem certeza de que deseja excluir este tema?</string>
+    <string name="my_themes_deleted">Tema excluído</string>
+    <string name="my_themes_applied">Tema aplicado</string>
+    <string name="my_themes_apply_failed">Falha ao aplicar tema — pressione longamente para excluir e baixar novamente</string>
+
+    <!-- Diálogo de Download -->
+    <string name="theme_download_title">Baixando Tema</string>
+    <string name="theme_download_completed">Download concluído</string>
+    <string name="theme_download_failed">Download falhou</string>
+    <string name="theme_download_progress">Progresso</string>
+    <string name="theme_download_file">Arquivo do Tema</string>
+    <string name="theme_download_image">Imagem de Visualização</string>
+    <string name="theme_download_cancel">Cancelar</string>
+    <string name="theme_download_pause">Pausar</string>
+    <string name="theme_download_apply">Aplicar Tema</string>
+    <string name="theme_download_go_to_my_themes">Meus Temas</string>
+    <string name="theme_download_finalizing">Finalizando...</string>
+    <string name="settings_predictive_back">Gesto de voltar preditivo</string>
+    <string name="settings_predictive_back_summary">Ativar animação do gesto de voltar preditivo do Android 14+</string>
+
+    <string name="home_device_status_battery_charging">Carregando</string>
+    <string name="home_device_status_cpu_temp">Temp. CPU</string>
+    <string name="home_device_status_memory_trend">Tendência de Memória</string>
+    <string name="home_device_status_cpu_freq">Frequência CPU</string>
+    <string name="home_network_rx">Download</string>
+    <string name="home_network_tx">Upload</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">GPU</string>
+
+
+
+    <string name="settings_search_title">Pesquisar configurações</string>
+    <string name="settings_search_empty_hint">Digite para pesquisar todas as configurações…</string>
+    <string name="settings_no_results">Nenhum resultado</string>
+
+    <!-- Color Generation -->
+    <string name="color_generation_classic">Clássico</string>
+    <string name="color_generation_custom">Personalizado</string>
+
+    <!-- Color Standard -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- Color Style -->
+    <string name="color_style_tonal_spot">Tonal</string>
+    <string name="color_style_vibrant">Vibrante</string>
+    <string name="color_style_content">Conteúdo</string>
+    <string name="color_style_expressive">Expressivo</string>
+    <string name="color_style_rainbow">Arco-íris</string>
+    <string name="color_style_fruit_salad">Salada de frutas</string>
+    <string name="color_style_monochrome">Monocromático</string>
+    <string name="color_style_neutral">Neutro</string>
+    <string name="color_style_fidelity">Fidelidade</string>
+    <string name="settings_focus_card_background">Papel de parede do cartão FocusUI</string>
+    <string name="settings_focus_card_background_enabled">Papéis de parede do cartão FocusUI ativados; pressione longamente um cartão para gerenciar seu papel de parede</string>
+    <string name="settings_focus_card_background_summary">Ativar papéis de parede do cartão FocusUI e gerenciamento por pressão longa</string>
+    <string name="settings_focus_card_dual_dim">Ativar escurecimento duplo dia/noite</string>
+    <string name="settings_focus_card_dual_dim_desc">Ajustar automaticamente o escurecimento do papel de parede para temas claro e escuro</string>
+    <string name="settings_focus_card_day_dim">Escurecimento do papel de parede no modo dia</string>
+    <string name="settings_focus_card_night_dim">Escurecimento do papel de parede no modo noite</string>
+    <string name="settings_focus_card_opacity">Opacidade do papel de parede do cartão</string>
+    <string name="settings_focus_card_dual_opacity">Ativar opacidade dupla dia/noite</string>
+    <string name="settings_focus_card_dual_opacity_desc">Ajustar automaticamente a opacidade do papel de parede para temas claro e escuro</string>
+    <string name="settings_focus_card_day_opacity">Opacidade do papel de parede no modo dia</string>
+    <string name="settings_focus_card_night_opacity">Opacidade do papel de parede no modo noite</string>
+    <string name="settings_focus_card_kernel">Cartão do kernel</string>
+    <string name="settings_focus_card_app">Cartão de aplicativos</string>
+    <string name="settings_focus_card_device">Cartão de status do dispositivo</string>
+    <string name="settings_focus_card_storage">Cartão de armazenamento</string>
+    <string name="settings_focus_card_wallpaper_selected">Papel de parede definido</string>
+    <string name="dashboard_card_background_title">Papel de parede do cartão do painel</string>
+    <string name="settings_dashboard_card_background">Papel de parede do cartão do painel</string>
+    <string name="settings_dashboard_card_background_enabled">Papel de parede do painel ativado; pressione longamente o cartão do painel para gerenciar</string>
+    <string name="settings_dashboard_card_background_summary">Ativar papel de parede para o cartão do painel DashboardUI</string>
+    <string name="dashboard_card_background_clear">Limpar papel de parede do painel</string>
+    <string name="dashboard_card_background_clear_confirm">Tem certeza de que deseja limpar o papel de parede do cartão do painel?</string>
+    <string name="dashboard_card_background_saved">Papel de parede do painel salvo com sucesso</string>
+    <string name="dashboard_card_background_error">Falha ao salvar papel de parede do painel</string>
+    <string name="dashboard_card_background_cleared">Papel de parede do painel limpo</string>
+    <string name="dashboard_card_background_restore">Restaurar padrão</string>
+    <string name="dashboard_card_background_restored">Papel de parede do painel restaurado</string>
+    <string name="settings_dashboard_card_dual_dim">Ativar escurecimento duplo dia/noite</string>
+    <string name="settings_dashboard_card_dual_dim_desc">Ajustar automaticamente o escurecimento do papel de parede do painel para temas claro e escuro</string>
+    <string name="settings_dashboard_card_day_dim">Escurecimento do papel de parede do painel no modo dia</string>
+    <string name="settings_dashboard_card_night_dim">Escurecimento do papel de parede do painel no modo noite</string>
+    <string name="settings_dashboard_card_opacity">Opacidade do papel de parede do painel</string>
+    <string name="settings_dashboard_card_dual_opacity">Ativar opacidade dupla dia/noite</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">Ajustar automaticamente a opacidade do papel de parede do painel para temas claro e escuro</string>
+    <string name="settings_dashboard_card_day_opacity">Opacidade do papel de parede do painel no modo dia</string>
+    <string name="settings_dashboard_card_night_opacity">Opacidade do papel de parede do painel no modo noite</string>
+    <string name="settings_title_image_permission_required">Conceda a permissão de armazenamento para selecionar uma imagem de título</string>
+    <string name="settings_background_permission_required">Conceda a permissão de armazenamento para selecionar uma imagem de fundo</string>
+    <string name="settings_sound_effect_save_failed">Falha ao salvar o efeito sonoro</string>
+    <string name="settings_startup_sound_save_failed">Falha ao salvar o som de inicialização</string>
+    <string name="settings_info_copy">Toque longo para copiar informações</string>
+    <string name="settings_info_copy_summary">Toque e segure um item do painel de informações da tela inicial para copiar seu conteúdo</string>
+    <string name="home_info_copied">%1$s copiado</string>
+</resources>

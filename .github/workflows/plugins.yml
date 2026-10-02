@@ -1,0 +1,31 @@
+name: Build dm plugins (merge)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+    paths: [ 'merge/dm/**', 'scripts/build-merge-plugins.sh', '.github/workflows/plugins.yml' ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-plugins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Build all dm plugins to tgz
+        run: |
+          bash scripts/build-merge-plugins.sh merge-plugins-out
+
+      - name: Upload plugin tgz artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dm-plugins
+          path: merge-plugins-out/*.tgz
+          if-no-files-found: error

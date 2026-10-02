@@ -1,0 +1,438 @@
+package me.bmax.apatch.util
+
+import android.content.Context
+import android.os.Build
+import android.system.Os
+import com.topjohnwu.superuser.ShellUtils
+import me.bmax.apatch.apApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileWriter
+import java.io.PrintWriter
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
+import me.bmax.apatch.R
+
+/**
+ * 发送日志的时间窗口。
+ *
+ * 窗口作用于**所有带时间信息的采集项**：
+ *
+ * | 采集项 | 怎么裁 |
+ * |---|---|
+ * | `logcat.txt` | `logcat -d -T '<起点>'`，ROM 不认 `-T` 时回落到按行首时间戳过滤 |
+ * | `dmesg.txt` | 行首是相对开机秒，按 `/proc/uptime` 换算下界后过滤 |
+ * | `tombstones` / `dropbox` / `pstore` / `diag` / `oplus` / `bootlog` | `find -mmin` 出清单交给 `tar -T` |
+ * | `kallsyms.txt` | 窗口内没有任何崩溃转储就不采集（它只用于符号化） |
+ *
+ * 其余项（`props` / `mounts` / `cpuinfo` / `packages` / `defconfig` / `ap_tree`）是**当前状态
+ * 快照**，没有时间维度，无论选哪个窗口都原样收集。
+ *
+ * 所以「选了短窗口但归档没小多少」有三种正常原因：设备刚开机（缓冲区本来就短于窗口）、
+ * 窗口内确实发生过崩溃（转储被保留）、或剩下的体积本就来自无时间维度的状态快照。
+ * `basic.txt` 里的 `Collected` 与 `Uptime` 两行就是为了让收报告的人一眼分辨这三种情况。
+ *
+ * @param minutes 回看多少分钟；0 表示全量。
+ */
+enum class LogWindow(val minutes: Int, val labelRes: Int) {
+    M10(10, R.string.dsh_log_window_10m),
+    M30(30, R.string.dsh_log_window_30m),
+    H1(60, R.string.dsh_log_window_1h),
+    H12(720, R.string.dsh_log_window_12h),
+    All(0, R.string.dsh_log_window_all),
+}
+
+/** shell 里的 $，用普通字符串写出来，免得与原始字符串的插值语法打架。 */
+private const val DOLLAR = "\$"
+
+/**
+ * 采集容器内 dsh 自己写的日志。
+ *
+ * 为什么要有这一项：应用收的 `dsh.log` 只是 dsh 进程的 **stdout**，而插件落盘的日志
+ * （例如 `/root/.dsh/dsh-easyrewrite.log`）与 dsh 内部的结构化日志都不在里面。
+ * 真机上「删除会话报错」只在前端弹了一句，后端有没有留痕完全看不到 —— 就是缺这一项。
+ *
+ * 逐文件限长（每个 64 KB、最多 20 个），免得某天日志涨到几十兆把归档撑爆；失败不致命
+ * （容器没起来时这一项就是空的），原因记进 basic.txt 的 Notes。
+ */
+private val DshHomeLogsCommand = """
+for f in ${DOLLAR}(find /root/.dsh -maxdepth 3 -name "*.log" -type f -size -8M 2>/dev/null | head -20); do
+  echo "=== ${DOLLAR}f ==="
+  tail -c 65536 "${DOLLAR}f" 2>/dev/null
+  echo
+done
+"""
+
+/**
+ * dropbox 里算「崩溃转储」的条目名。
+ *
+ * 反面清单同样重要：`SYSTEM_BOOT` / `SYSTEM_RESTART` / `SYSTEM_LAST_KMSG` 这类每次开机
+ * 都会写，把它们当崩溃会让 kallsyms（压缩后 600 KB 上下）几乎每次都被收进归档。
+ */
+private val CRASH_DUMP_HINTS = listOf(
+    "tombstone", "crash", "anr", "not_responding", "watchdog", "wtf", "native", "panic", "oops",
+)
+
+/** 这个路径算不算真正的崩溃转储（见 [CRASH_DUMP_HINTS]）。 */
+private fun isCrashDump(path: String): Boolean {
+    val p = path.trim().lowercase()
+    if (p.isEmpty()) return false
+    // tombstones 与 pstore 里的一切都是崩溃产物，不必看文件名
+    if (p.startsWith("/data/tombstones") || p.startsWith("/sys/fs/pstore")) return true
+    val name = p.substringAfterLast('/')
+    return CRASH_DUMP_HINTS.any { it in name }
+}
+
+/**
+ * 归档内文本的脱敏词表。
+ *
+ * bugreport 是**要发给别人的**（issue、群里），里面绝不能有能用来访问这台设备的东西。
+ * 实测真机报告里就带着 WebUI 的认证 token（dsh 服务端把带 token 的地址打进了启动日志，
+ * 应用原样收进 dsh.log），它等于这台设备上 DSH 的完整入口；`props` 里还有
+ * `persist.netd.stable_secret` 这类稳定的设备标识。
+ *
+ * 逐条替换而不是整段丢弃：其余内容对诊断有用。
+ */
+private val SECRET_PATTERNS = listOf(
+    // ?token=… / &token=… （URL 里的认证 token）
+    Regex("""(?i)([?&]token=)[A-Za-z0-9_\-]{6,}"""),
+    // key=value / key: value 形式的敏感字段
+    // 结尾允许 ] 与 [ ：getprop 的输出是 [key]: [value]
+    Regex(
+        """(?i)(\b(?:password|passwd|secret|token|api[_-]?key|apikey|authorization|credential|access[_-]?key)\b\]?\s*[=:]\s*\[?)([^\s\]\n]+)"""
+    ),
+    // 设备稳定标识
+    Regex("""(?i)(\b(?:serialno|serial|android_id|stable_secret|device_id)\b\]?\s*[=:]\s*\[?)([^\s\]\n]+)"""),
+    Regex("""(?i)(androidboot\.(?:serialno|android_id|device_id)\s*=\s*)(\S+)"""),
+)
+
+/** 把 [text] 里的凭据与设备标识替换成占位符。 */
+private fun redact(text: String): String =
+    SECRET_PATTERNS.fold(text) { acc, re -> re.replace(acc) { m -> m.groupValues[1] + "<redacted>" } }
+
+/**
+ * 原地脱敏：读回、替换、写回。失败只记一笔（[notes]），不致命。
+ *
+ * 这些文件已经由 [prepareOut] 变成应用属主，所以这里写得进去 —— 顺序不能反。
+ */
+private fun redactInPlace(file: File, notes: MutableList<String>) {
+    if (!file.isFile || file.length() == 0L) return
+    runCatching { file.writeText(redact(file.readText())) }
+        .onFailure { notes += "${file.name} 脱敏失败: ${it.message}" }
+}
+
+/**
+ * 让 [file] 变成一个**属主是应用**的空文件，供 root shell 写入。
+ *
+ * 为什么必须这样（真机踩出来的，不是理论）：
+ *  - root 的 `>` 重定向与 `tar -czf` 会**新建**一个 root:root 的文件，之后应用自己再写它
+ *    就是 EACCES —— beta.44 上表现为「选时间窗口采集日志时崩溃」，崩在裁剪 dmesg 那一步；
+ *  - root 的 umask 若是 077，新文件是 0600，应用**连读都读不了**，归档里那一项永远是空的。
+ *
+ * 先由应用建好（属主应用、0600）之后，root 的写入只是截断一个已存在的文件：属主与权限都不变。
+ *
+ * 历史遗留（旧版本留下的 root 文件）靠「删除只需要**目录**写权限」清掉 —— 目录属主是应用。
+ * 清不掉时返回 false，调用方写入失败会在 basic.txt 的 Notes 里看到原因，而不是再崩一次。
+ */
+private fun prepareOut(file: File): Boolean {
+    file.parentFile?.mkdirs()
+    if (file.exists() && !file.canWrite()) {
+        // 旧版本用 root 直接建的：删掉重建，否则它会把后续每一次采集都变成 EACCES
+        if (!file.delete()) {
+            android.util.Log.w("LogEvent", "清理不可写的旧采集文件失败: ${file.name}")
+            return false
+        }
+    }
+    if (!file.exists()) {
+        runCatching { file.createNewFile() }
+            .onFailure { android.util.Log.w("LogEvent", "创建采集文件失败 ${file.name}: ${it.message}") }
+    }
+    return file.exists()
+}
+
+suspend fun getBugreportFile(context: Context, window: LogWindow = LogWindow.All): File = withContext(Dispatchers.IO) {
+
+    val bugreportDir = File(context.cacheDir, "bugreport")
+    bugreportDir.mkdirs()
+
+    val dmesgFile = File(bugreportDir, "dmesg.txt")
+    val logcatFile = File(bugreportDir, "logcat.txt")
+    val tombstonesFile = File(bugreportDir, "tombstones.tar.gz")
+    val dropboxFile = File(bugreportDir, "dropbox.tar.gz")
+    val pstoreFile = File(bugreportDir, "pstore.tar.gz")
+    val diagFile = File(bugreportDir, "diag.tar.gz")
+    val oplusFile = File(bugreportDir, "oplus.tar.gz")
+    val bootlogFile = File(bugreportDir, "bootlog.tar.gz")
+    val kallsymsFile = File(bugreportDir, "kallsyms.txt")
+    val cpuinfoFile = File(bugreportDir, "cpuinfo.txt")
+    val cmdlineFile = File(bugreportDir, "cmdline.txt")
+    val mountsFile = File(bugreportDir, "mounts.txt")
+    val fileSystemsFile = File(bugreportDir, "filesystems.txt")
+    val apFileTree = File(bugreportDir, "ap_tree.txt")
+    val appListFile = File(bugreportDir, "packages.txt")
+    val propFile = File(bugreportDir, "props.txt")
+    val packageConfigFile = File(bugreportDir, "package_config")
+    val kernelConfig = File(bugreportDir, "defconfig")
+
+    // 采集期的异常都记在这里，最后写进 basic.txt。不翻译 —— 诊断字段一律原文。
+    // 以前这里不留痕：裁剪失败直接抛出去，整份报告连同应用一起没了（真机报过 EACCES 崩溃）。
+    val notes = mutableListOf<String>()
+
+    val cutoffMillis = System.currentTimeMillis() - window.minutes * 60_000L
+    val cutoffTs = SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US).format(cutoffMillis)
+
+    // 所有**由 root shell 写入**的文件都先由应用建好，理由见 [prepareOut]。
+    // 漏掉哪一个，那一个就是下一次真机崩溃的位置。
+    listOf(
+        dmesgFile, logcatFile,
+        tombstonesFile, dropboxFile, pstoreFile, diagFile, oplusFile, bootlogFile,
+        kallsymsFile, cpuinfoFile, cmdlineFile, mountsFile, fileSystemsFile,
+        apFileTree, appListFile, propFile, packageConfigFile, kernelConfig,
+    ).forEach { prepareOut(it) }
+
+    tryGetRootShell(context).use { shell ->
+        // 崩溃转储目录按 mtime 收窗口内的文件：find 出相对路径清单，再交给 tar -T。
+        // toybox find 的 `-mmin -N` 语义是「距今不足 N 分钟」（compare_numsign 的 '-' 分支），
+        // GNU find 同义，两边都可用。只列 -type f：清单里出现目录会让 tar 递归整棵子树，
+        // 把目录下的旧文件一起带进来。
+        //
+        // 清单落在 bugreportDir，不在被扫描目录内 —— 否则它自己刚创建、mtime 是现在，
+        // 会被 find 命中而进归档。目录不存在时 `cd` 失败、`&&` 短路，清单保持空，
+        // tar 产出空归档（toybox `tar_main` 里 `!TT.incl && !FLAG(T)` 才报 empty archive，
+        // 给了 -T 就不报），与改动前对缺失目录的行为一致。
+        //
+        // extra 里的 `--exclude` 必须排在文件参数**之前**：GNU tar 的 --exclude 是位置相关的，
+        // 放在 `.` 或 `-T` 之后会打印 "has no effect" 并以失败退出（toybox 的参数解析不看
+        // 位置，所以旧写法只是在设备上侥幸生效）。
+        fun tarDir(out: File, dir: String, extra: String = "") {
+            if (window == LogWindow.All) {
+                shell.newJob().add("tar -czf ${out.absolutePath} -C $dir $extra .").exec()
+                return
+            }
+            val list = File(bugreportDir, "${out.name}.list")
+            shell.newJob().add(
+                "touch ${list.absolutePath}; " +
+                    "cd $dir && find . -type f -mmin -${window.minutes} > ${list.absolutePath}; " +
+                    "tar -czf ${out.absolutePath} -C $dir $extra -T ${list.absolutePath}; " +
+                    "rm -f ${list.absolutePath}"
+            ).exec()
+        }
+
+        shell.newJob().add("dmesg > ${dmesgFile.absolutePath}").exec()
+        if (window == LogWindow.All) {
+            shell.newJob().add("logcat -d > ${logcatFile.absolutePath}").exec()
+        } else {
+            shell.newJob().add("logcat -d -T '$cutoffTs' > ${logcatFile.absolutePath}").exec()
+        }
+        // -T 在个别 ROM 上不被接受会输出空文件：回落到全量 + 行首时间戳自行过滤。
+        if (window != LogWindow.All && logcatFile.length() == 0L) {
+            val full = ShellUtils.fastCmd(shell, "logcat -d")
+            runCatching { logcatFile.writeText(filterLogcatByTime(full, cutoffMillis)) }
+                .onFailure { notes += "logcat 回退过滤失败: ${it.message}" }
+        }
+        // dmesg 行首是相对开机秒（无绝对时间），按 /proc/uptime 换算窗口下界再过滤。
+        val uptimeSeconds = ShellUtils.fastCmd(shell, "cat /proc/uptime")
+            .trim().substringBefore(' ').toDoubleOrNull()
+        if (window != LogWindow.All && uptimeSeconds != null && dmesgFile.length() > 0) {
+            val cutoffUptime = uptimeSeconds - window.minutes * 60.0
+            // 这一步就是崩溃点：文件是 root 建的，应用写进去就是 EACCES。
+            // 现在文件先由应用建好；万一还有别的意外，也只记一笔，不让整份报告崩掉 ——
+            // 未裁剪的内容照样在归档里，只是比选定的窗口大。
+            runCatching { dmesgFile.writeText(filterDmesgByUptime(dmesgFile.readText(), cutoffUptime)) }
+                .onFailure { notes += "dmesg 裁剪失败: ${it.message}" }
+        }
+        tarDir(tombstonesFile, "/data/tombstones")
+        tarDir(dropboxFile, "/data/system/dropbox")
+        tarDir(pstoreFile, "/sys/fs/pstore")
+        tarDir(diagFile, "/data/vendor/diag", "--exclude=./minidump.gz")
+        tarDir(oplusFile, "/mnt/oplus/op2/media/log/boot_log/")
+        tarDir(bootlogFile, "/data/adb/ap/log")
+
+        shell.newJob().add("cat /proc/1/mountinfo > ${mountsFile.absolutePath}").exec()
+        shell.newJob().add("cat /proc/filesystems > ${fileSystemsFile.absolutePath}").exec()
+        // kallsyms 是这份归档里最大的一项（实测 4.3 MB 原始 / 620 KB 压缩，占归档六成以上），
+        // 唯一用途是给内核崩溃地址符号化。窗口内没有任何崩溃转储时就别收了。
+        //
+        // 判据不能是「dropbox 目录里有任何文件」：SYSTEM_BOOT / SYSTEM_RESTART 这类条目
+        // **每次开机都会写**，于是刚开机采集时必然命中 —— 一份 10 分钟窗口、开机 134 秒的
+        // 真机报告里 4.3 MB 的 kallsyms 就是这么进来的（归档 960 KB，它一个人占 620 KB）。
+        // 只认真正的崩溃转储：tombstones 与 pstore 里的一切，加上 dropbox 里名字像崩溃的那些。
+        val dumps = if (window == LogWindow.All) "" else ShellUtils.fastCmd(
+            shell,
+            "find /data/tombstones /sys/fs/pstore -type f -mmin -${window.minutes} 2>/dev/null; " +
+                "find /data/system/dropbox -type f -mmin -${window.minutes} 2>/dev/null"
+        )
+        val wantKallsyms = window == LogWindow.All ||
+            dumps.lineSequence().any { isCrashDump(it) }
+        if (wantKallsyms) {
+            shell.newJob().add("cat /proc/kallsyms > ${kallsymsFile.absolutePath}").exec()
+        }
+        shell.newJob().add("cat /proc/cpuinfo > ${cpuinfoFile.absolutePath}").exec()
+        shell.newJob().add("cat /proc/cmdline > ${cmdlineFile.absolutePath}").exec()
+        shell.newJob().add("ls -alRZ /data/adb > ${apFileTree.absolutePath}").exec()
+        shell.newJob().add("cp /data/system/packages.list ${appListFile.absolutePath}").exec()
+        shell.newJob().add("getprop > ${propFile.absolutePath}").exec()
+        shell.newJob().add("cp /data/adb/ap/package_config ${packageConfigFile.absolutePath}").exec()
+        shell.newJob().add("zcat /proc/config.gz > ${kernelConfig.absolutePath}").exec()
+
+        val selinux = ShellUtils.fastCmd(shell, "getenforce")
+
+        // basic information
+        val buildInfo = File(bugreportDir, "basic.txt")
+        PrintWriter(FileWriter(buildInfo)).use { pw ->
+            pw.println("Kernel: ${System.getProperty("os.version")}")
+            pw.println("BRAND: " + Build.BRAND)
+            pw.println("MODEL: " + Build.MODEL)
+            pw.println("PRODUCT: " + Build.PRODUCT)
+            pw.println("MANUFACTURER: " + Build.MANUFACTURER)
+            pw.println("SDK: " + Build.VERSION.SDK_INT)
+            pw.println("PREVIEW_SDK: " + Build.VERSION.PREVIEW_SDK_INT)
+            pw.println("FINGERPRINT: " + Build.FINGERPRINT)
+            pw.println("DEVICE: " + Build.DEVICE)
+            pw.println("Manager: " + Version.getManagerVersion())
+            pw.println("SELinux: $selinux")
+            pw.println("LogWindow: " + context.getString(window.labelRes))
+            // 应用内语言：dsh.log 与通知文案现在跟随它，收到报告的人得知道日志是哪种语言
+            // 写出来的（空 = 跟随系统）。诊断字段一律不翻译，所以这里给的是原始 tag。
+            pw.println("AppLocale: " + me.bmax.apatch.util.LocaleCtx.appLocaleTags().ifEmpty { "(system)" })
+            pw.println("SystemLocale: " + Locale.getDefault().toLanguageTag())
+            // 窗口只能裁掉「有时间信息」的内容；采集时刻和开机时长写进来，
+            // 收到报告的人一眼能看出「归档没变小」是因为设备刚开机、缓冲区本来就短
+            pw.println("Collected: " + SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(System.currentTimeMillis()))
+            pw.println("Uptime: " + uptimeSeconds.let { if (it == null) "unknown" else "%.0fs".format(it) })
+
+            val uname = Os.uname()
+            pw.println("KernelRelease: ${uname.release}")
+            pw.println("KernelVersion: ${uname.version}")
+            pw.println("Mahcine: ${uname.machine}")
+            pw.println("Nodename: ${uname.nodename}")
+            pw.println("Sysname: ${uname.sysname}")
+
+            if (notes.isNotEmpty()) pw.println("Notes: " + notes.joinToString("; "))
+            pw.println("DshRuntime: ${me.bmax.apatch.dsh.DshRuntime.state.value.runtimeVersion}")
+            pw.println("DshPhase: ${me.bmax.apatch.dsh.DshRuntime.state.value.phase}")
+            // 两个都记：选的是什么、实际跑的是什么。x86_64 上 proroot 不可用会静默
+            // 回退，只记一个的话报障包会跟 dsh.log 自相矛盾。
+            pw.println("ContainerRuntime: ${me.bmax.apatch.dsh.DshRuntime.effectiveRuntimeId()}")
+            pw.println("ContainerRuntimePref: ${me.bmax.apatch.dsh.DshRuntime.runtimeId()}")
+            pw.println("PermissionChannel: ${me.bmax.apatch.dsh.PermissionManager.status.value.channel}")
+            // 没有这一行，日后看到 dmesg / dropbox / tombstones 段为空时无法区分
+            // 「采集代码坏了」和「用户没启用特权，su 段本来就采不到」
+            pw.println(
+                "ElevationEnabled: " +
+                    me.bmax.apatch.dsh.PermissionManager.elevationEnabled(context)
+            )
+        }
+
+        // DSH 启动日志（替代原来的内核模块列表）
+        val dshLogFile = File(bugreportDir, "dsh.log")
+        dshLogFile.writeText(runCatching { me.bmax.apatch.dsh.DshRuntime.tailLog(2000) }.getOrDefault(""))
+
+        // 上一次运行的那份（起服务时轮转过来的）。少了它，「重启之后再采集」就永远看不到
+        // 重启之前发生的错误 —— 真机上导入会话的报错就这么凭空消失了。
+        val dshPrevLogFile = File(bugreportDir, "dsh-prev.log")
+        dshPrevLogFile.writeText(
+            runCatching { me.bmax.apatch.dsh.DshRuntime.tailPrevLog(2000) }.getOrDefault("")
+        )
+
+        // 容器里 dsh **自己**写的日志（/root/.dsh 下的 *.log）。应用那份 dsh.log 收的只是
+        // dsh 进程的 stdout；插件自己落盘的日志与 dsh 内部的结构化日志都不在里面，而
+        // 「会话删不掉」这类问题恰恰要往后端日志里找。
+        val dshHomeLogFile = File(bugreportDir, "dsh-home-logs.txt")
+        runCatching {
+            me.bmax.apatch.dsh.DshRuntime.execRootfsForOutput(DshHomeLogsCommand, 60_000L)
+        }.onSuccess { dshHomeLogFile.writeText(it) }
+            .onFailure { notes += "容器日志采集失败: ${it.message}" }
+
+        // 应用自己的备份/恢复日志（filesDir/backup_log.log）：导出与导入的每一步大小、
+        // 用了哪条加密路、校验结果都在里面。用户报「导出的包只有 49 字节」时，最需要的就是
+        // 这份东西 —— 而它原来根本不在报告里，只能靠来回问。
+        val backupLogFile = File(bugreportDir, "backup-log.txt")
+        runCatching {
+            val src = File(apApp.filesDir, "backup_log.log")
+            if (src.isFile) {
+                val lines = src.readLines()
+                // 只留最后 400 行：这类日志是追加的，旧内容对定位没有帮助
+                lines.takeLast(400).joinToString("\n").also {
+                    if (lines.size > 400) notes += "backup_log.log 只取了最后 400 行（共 ${lines.size} 行）"
+                }
+            } else {
+                ""
+            }
+        }.onSuccess { backupLogFile.writeText(it) }
+            .onFailure { notes += "备份日志采集失败: ${it.message}" }
+
+        // 打包之前过一遍脱敏：dsh.log 里有 WebUI 的 token（dsh 服务端自己打印的启动地址），
+        // 容器日志里可能还有别的凭据，props / cmdline 里有设备稳定标识。
+        // 归档是要发给别人的，这些不能在里面。
+        redactInPlace(dshLogFile, notes)
+        redactInPlace(dshPrevLogFile, notes)
+        redactInPlace(dshHomeLogFile, notes)
+        redactInPlace(propFile, notes)
+        redactInPlace(cmdlineFile, notes)
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
+        val current = LocalDateTime.now().format(formatter)
+
+        val targetFile = File(context.cacheDir, "DSH-Folk_bugreport_${current}.tar.gz")
+
+        shell.newJob().add("tar czf ${targetFile.absolutePath} -C ${bugreportDir.absolutePath} .")
+            .exec()
+        shell.newJob().add("rm -rf ${bugreportDir.absolutePath}").exec()
+        val uid = android.os.Process.myUid()
+        shell.newJob().add("chown $uid:$uid ${targetFile.absolutePath}").exec()
+        shell.newJob().add("chmod 0644 ${targetFile.absolutePath}").exec()
+
+        targetFile
+    }
+}
+
+/**
+ * 按行首时间戳过滤 logcat 全量输出（`-T` 兜底用）。
+ *
+ * logcat 行首是 `MM-DD HH:MM:SS.mmm`（无年份），窗口最长只有 12 小时，所以只要把
+ * 「未来太远」的行当作跨年（往回推一年）即可正确落在当前窗口。没有可解析时间戳的行
+ * （头部标题等）一律保留，宁可多给不漏。
+ */
+private fun filterLogcatByTime(text: String, cutoffMillis: Long): String {
+    val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
+    val now = System.currentTimeMillis()
+    val year = Calendar.getInstance().get(Calendar.YEAR)
+    val yearMs = 366L * 24 * 60 * 60 * 1000L
+    return text.lineSequence().filter { line ->
+        val ts = line.take(18)
+        if (ts.length < 18) return@filter true
+        val parsed = try {
+            val cur = fmt.parse("$year-$ts")?.time ?: return@filter true
+            // 未来超过 6 小时 = 实际是去年同一日期（跨年边界）
+            if (cur - now > 6 * 60 * 60 * 1000L) cur - yearMs else cur
+        } catch (e: Exception) {
+            return@filter true
+        }
+        parsed >= cutoffMillis
+    }.joinToString("\n")
+}
+
+/**
+ * 按行首相对开机秒过滤 dmesg。
+ *
+ * dmesg 行首是 `[ 1234.567890]`，那是**开机以来的秒数**，没有绝对时间，所以窗口下界要
+ * 用采集时刻的 `/proc/uptime` 换算：`uptime - 窗口秒数`。下界为负（开机时长还不够一个
+ * 窗口）说明整段 dmesg 都在窗口内，原样返回。
+ *
+ * 没有可解析时间戳的行（多行续行、内核自己打的无前缀输出）一律保留。
+ */
+private fun filterDmesgByUptime(text: String, cutoffUptime: Double): String {
+    if (cutoffUptime <= 0.0) return text
+    return text.lineSequence().filter { line ->
+        val open = line.indexOf('[')
+        val close = line.indexOf(']')
+        if (open != 0 || close <= 1) return@filter true
+        val secs = line.substring(1, close).trim().toDoubleOrNull() ?: return@filter true
+        secs >= cutoffUptime
+    }.joinToString("\n")
+}

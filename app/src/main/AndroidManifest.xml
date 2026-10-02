@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- Android 10 及以下靠这两条读写共享存储；11 起被 MANAGE_EXTERNAL_STORAGE 取代，
+         所以加 maxSdkVersion，免得在新系统上出现一对永远拿不到、又出现在权限列表里的条目。
+         PermissionUtils.hasAllFilesAccess 按同一条界线分支。 -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <!-- 用于访问外部存储上的媒体文件。
+         Android 13 起 READ_EXTERNAL_STORAGE 被按类型拆成三个：只给照片的用户不会
+         同时给音频，所以三个都要声明、也要分别检查（见 PermissionUtils.MediaType）。
+         READ_MEDIA_VISUAL_USER_SELECTED 是 Android 14 的「仅选定照片」——不声明它就
+         无法区分「用户拒绝了」和「用户只给了几张」，两者对 agent 的含义完全不同。 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <!-- 录音：容器里的 agent 通过 /native/mic/record 让宿主录一段音。
+         只在应用处于前台时可用 —— 我们的前台服务类型是 specialUse，它**不**授予
+         后台录音；Android 9 起后台录音只会拿到静音，而不是报错。 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 相机：/native/camera/photo 让宿主无预览地拍一张照。
+         同样只在前台可用 —— Android 9 起后台进程访问相机拿不到画面。 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 日历：读事件 + 新建事件（/native/calendar/*）。 -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <!-- 通讯录：只读（/native/contacts/list）。没有写入接口，改别人的通讯录
+         不该由容器里的代码代劳。 -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- 位置：/native/location。只申请前台位置 —— ACCESS_BACKGROUND_LOCATION 是
+         独立的一次授权、且必须先拿到前台位置才能申请，而这项能力本来就要求前台。
+         COARSE 与 FINE 都声明：Android 12 起用户可以只给「大致位置」，
+         少声明 COARSE 会让那种选择变成「完全没有位置」。 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 电话状态：运营商、网络制式、SIM 与通话状态（/native/phone/info）。
+         没有 CALL_PHONE —— 拨号走 ACTION_DIAL 只把号码填进拨号盘，由用户按下通话键。
+         通话记录不在本次范围内；短信能力单独由 READ_SMS 控制。 -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- 短信：读取与发送分开授权；发送端点不提供删除或修改能力。 -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- 传感器：普通传感器（加速度/陀螺/光/气压…）不需要权限，这两项是例外 ——
+         心率属于人体传感器，计步器在 Android 10 起归入身体活动。 -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <!-- 修改系统设置（亮度、休眠时间、自动旋转…）。protectionLevel 含 appop，
+         requestPermissions() 拿不到，只能跳 ACTION_MANAGE_WRITE_SETTINGS；
+         用 Settings.System.canWrite() 检查。 -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- 静音/勿扰：setRingerMode 进 SILENT、以及在勿扰开启时改音量都需要它。
+         同样是特殊权限，走 ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS。 -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Shizuku API：作为客户端向已安装的 Shizuku / Sui 申请授权。
+         不要重复声明同名 <permission>，官方 Shizuku 已声明，重复会导致
+         INSTALL_FAILED_DUPLICATE_PERMISSION。 -->
+    <uses-permission
+        android:name="moe.shizuku.manager.permission.API_V23"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- DSH 前台服务：proot + node 是本进程子进程，进程被冻结/回收 WebUI 就断，
+         必须以前台服务常驻。
+
+         类型必须是 specialUse，不能用 dataSync：targetSdk 35+ 起 dataSync 有
+         「24 小时内累计 6 小时」上限，到点系统回调 Service.onTimeout()，几秒内不
+         stopSelf 就抛 RemoteServiceException 把进程打掉；而且 BOOT_COMPLETED 接收器
+         被明令禁止拉起 dataSync 类型（会抛 ForegroundServiceStartNotAllowedException），
+         我们的开机自启正好就是这条路径。specialUse 两条限制都不适用。
+         （specialUse 的用途说明只在上架 Google Play 时被审核，本项目走 GitHub 分发。） -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 无线 ADB 配对需要读 WiFi 状态解析本机 IP 与 mDNS 发现。
+         ACCESS_WIFI_STATE / ACCESS_NETWORK_STATE 同时供 /native/network 读网络状态。
+         注意 Android 10 起 getConnectionInfo() 的 SSID/BSSID 需要位置权限才返回真值，
+         没有位置权限时系统给的是占位串 —— /native/network 会据此省略这两个字段，
+         而不是把 "<unknown ssid>" 当成网络名交出去。 -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 无线调试自动开启（配对成功后由 adb shell 授予）；未授予时相关功能自动降级 -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    <!-- 应用内更新：下载并校验 APK 后唤起系统安装器。
+         不做静默安装（需要 device owner 或系统签名）；sha256 校验不通过一律不装。 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- 上面那些权限会**隐式**声明硬件要求，必须逐条改成 required=false。
+         Android 的规则：申请 CAMERA 等于要求 android.hardware.camera 与
+         camera.autofocus，ACCESS_FINE_LOCATION 等于要求 GPS，RECORD_AUDIO 等于要求
+         麦克风，ACCESS_WIFI_STATE 等于要求 WiFi —— 而且默认都是 required=true。
+
+         本应用的核心是在容器里跑 Node，没有摄像头 / GPS / 麦克风时其余功能一个不少：
+         那些能力本来就默认关闭，而 /native/capabilities 会如实报 available:false。
+         不写这几行，一台没有自动对焦或没有陀螺仪的平板会被应用商店直接判为不兼容。 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.wifi" android:required="false" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.light" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.proximity" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.barometer" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.heartrate" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false" />
+
+    <!-- 包可见性（Android 11+）。
+         targetSdk 30 起应用默认看不到其它应用，而 TextToSpeech 内部要 bind 一个由**别的
+         应用**提供的引擎服务 —— 不声明这条查询，`TextToSpeech` 找不到任何引擎，
+         OnInitListener 直接回 ERROR，语音合成永远不可用。这不是权限问题，加了也不会多
+         获得任何能力：它只让我们能解析到 TTS 引擎这一类服务。 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".APApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.APatch"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="34">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Splash" />
+
+        <activity-alias
+            android:name=".ui.MainActivityFileHandler"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="*/*" />
+                <data android:scheme="content" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityDefault"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAlias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_alt"
+            android:roundIcon="@mipmap/ic_launcher_alt_round"
+            android:label="@string/app_name"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAliasSu"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/app_name_short"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".ui.MainActivityAliasAltSu"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_alt"
+            android:roundIcon="@mipmap/ic_launcher_alt_round"
+            android:label="@string/app_name_short"
+            android:targetActivity=".ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 内置 WebUI：只加载本机 127.0.0.1，不对外暴露 -->
+        <activity
+            android:name=".ui.DshWebUiActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="false"
+            android:label="@string/dsh_open_webui" />
+
+        <activity
+            android:name=".ui.CrashHandleActivity"
+            android:exported="false" />
+
+        <!-- MT 管理器「一键启动」的落点：被系统标为 stopped 的应用不会因为一次 provider
+             查询而被拉起，MT 那边就表现为目录空白。这个 Activity 只做 finish()，
+             用户看不到界面，但进程被唤起、stopped 标记被清掉。
+             全限定名沿用 MT 的约定（MT 按名字找入口），改名等于失效。 -->
+        <activity
+            android:name="bin.mt.file.content.MTDataFilesWakeUpActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:taskAffinity="${applicationId}.MTDataFilesWakeUp" />
+
+        <provider
+            android:name=".util.SafeFileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!-- 免 root 文件访问：把应用数据目录（含 rootfs/root/.dsh）注册进系统文件选择器。
+             MANAGE_DOCUMENTS 是签名级权限，只有系统持有，普通应用只能通过用户主动挑中的 URI 访问。 -->
+        <provider
+            android:name=".util.DshDocumentsProvider"
+            android:authorities="${applicationId}.documents"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
+        <!-- Shizuku 客户端 Provider（官方实现）：接收 Shizuku / Sui 推送的 Binder。
+             DSH-Folk 只做客户端，不再内置 Shizuku Server。 -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+        <!-- 自启动方式之一：开机广播。
+             directBootAware 保持 false，且**不**注册 LOCKED_BOOT_COMPLETED —— 后者在用户
+             解锁前就送到，此时应用的 CE 存储（filesDir / SharedPreferences）还没挂载，
+             读到的会是空配置，等于按「未开启自启」处理。 -->
+        <receiver
+            android:name=".receiver.BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+        <!-- 通知读取依赖系统的 Notification Access 特殊授权。 -->
+        <service
+            android:name=".dsh.DshNotificationListener"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- DSH 运行时前台服务 -->
+        <service
+            android:name=".dsh.HarnessService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Runs a local DeepSeek Harness (Node.js) server inside a proot container for as long as the user keeps it enabled; the server is the app's primary function and must stay alive while the UI is in the background." />
+        </service>
+
+        <!-- 自启动方式之三：无障碍服务（见 DshAutostartService 的 KDoc）。
+             这个服务什么都不做，存在的唯一理由是系统会在开机后主动 bind 无障碍服务、
+             且被杀之后还会重新 bind —— 那是唯一一条既不要 root、又不受国产 ROM
+             「自启动管理」白名单约束的启动路径。
+
+             exported 必须为 true：bind 它的是 system_server，不是本应用。权限门由
+             BIND_ACCESSIBILITY_SERVICE 把守（只有系统持有它），所以对外仍然是关着的。
+
+             这里刻意**没有** canRetrieveWindowContent（配置在 dsh_autostart_a11y.xml 里），
+             那一位才是「能读取屏幕内容」的来源。 -->
+        <service
+            android:name=".dsh.DshAutostartService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/dsh_autostart_a11y" />
+        </service>
+
+        <!-- 原生能力桥的无障碍能力（读屏 + 操作界面）。
+
+             与上面那个自启服务是**两个独立的开关**：那一个刻意没有 canRetrieveWindowContent
+             （只用来被系统 bind），这一个的配置里打开了它 —— 用户当初为自启打开无障碍时，
+             不该连读屏权限一起交出去。见 DshA11yService 的 KDoc 与 res/xml/dsh_a11y.xml。
+
+             exported 同样必须为 true（bind 它的是 system_server）；权限门由
+             BIND_ACCESSIBILITY_SERVICE 把守，对外仍然是关着的。 -->
+        <service
+            android:name=".dsh.DshA11yService"
+            android:exported="true"
+            android:label="@string/dsh_a11y_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/dsh_a11y" />
+        </service>
+
+        <!-- Shizuku 用户服务：由 Shizuku 在**它自己的进程**里实例化，命令因此以 Shizuku 的身份
+             执行（Sui/root 模式 uid 0，普通 adb 模式 2000）。应用侧不绑定它就什么也不会发生；
+             exported=false 且没有 intent-filter，外部无法启动它。见 DshShizukuShell 的 KDoc。 -->
+        <service
+            android:name=".dsh.DshShizukuShellService"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

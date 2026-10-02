@@ -1,0 +1,178 @@
+name: Build DSH runtime rootfs
+# 带上 flavor：同一通道的完整版与精简版是两个不同的 release 位置，
+# run 名字不带口味时两次运行在列表里完全重名，看不出哪次发了哪一份。
+run-name: Build DSH runtime (${{ inputs.channel }} / ${{ inputs.flavor }} / ${{ inputs.arch }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      dsh_version:
+        description: '@deepseek-ai/dsh version (npm dist-tag or exact)'
+        required: false
+        default: 'latest'
+      node_version:
+        description: 'Node.js version (e.g. v24.19.0)'
+        required: false
+        default: 'v24.19.0'
+      arch:
+        description: 'Target architecture'
+        required: false
+        default: 'both'
+        type: choice
+        options: [ both, arm64, amd64 ]
+      channel:
+        description: 'Release channel (stable / beta)'
+        required: false
+        default: 'stable'
+        type: choice
+        options: [ stable, beta ]
+      flavor:
+        description: 'Runtime flavor: full = 含文档预览/转换；slim = 精简版（砍类型声明/sourcemap/文档/测试与 LibreOffice，产物约小 63MB）'
+        required: false
+        default: 'full'
+        type: choice
+        options: [ full, slim ]
+      release_tag:
+        description: 'Override the release tag to publish to (default: runtime-latest / runtime-beta-latest from channel). Used to republish historical runtime tags.'
+        required: false
+        default: ''
+      min_app_version:
+        description: 'Minimum DSH-Folk app version required by this runtime (empty = take baseVersionName() from build.gradle.kts; none = no requirement)'
+        required: false
+        default: ''
+      publish:
+        description: 'Publish to the selected runtime release'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  # 把 arch 输入摊成 matrix。放单独一个 job 而不是给 matrix 项写 if：
+  # 后者会留下一堆 skipped 的空 job，看不出到底跑了哪些架构。
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      arches: ${{ steps.set.outputs.arches }}
+      min_app: ${{ steps.minapp.outputs.min_app_version }}
+      default_tag: ${{ steps.tag.outputs.default_tag }}
+    steps:
+      - uses: actions/checkout@v5
+
+      # 通道 × 口味 → 滚动 tag。四个组合各占一个互不覆盖的 release 位置。
+      # 集中算一次，避免下面 build / publish 两处各写一份三元表达式（那样两边漂移时
+      # 会出现「构建发到 runtime-latest、上传发到 runtime-slim-latest」这种半截状态）。
+      - id: tag
+        run: |
+          case "${{ inputs.channel }}/${{ inputs.flavor }}" in
+            stable/full) T=runtime-latest ;;
+            beta/full)   T=runtime-beta-latest ;;
+            stable/slim) T=runtime-slim-latest ;;
+            beta/slim)   T=runtime-slim-beta-latest ;;
+            *) echo "::error::unknown channel/flavor: ${{ inputs.channel }}/${{ inputs.flavor }}"; exit 1 ;;
+          esac
+          echo "default_tag=$T" >> "$GITHUB_OUTPUT"
+          echo "release tag: $T"
+
+      # 运行时要求的最低 App 版本：输入优先，留空则取仓库 build.gradle.kts 的
+      # baseVersionName() —— 运行时与 App 同源发布时要求自动对齐，不会漂移。
+      # 需要「明确不设要求」时填 none：留空等于自动取当前 App 版本，而存量用户
+      # 往往停在更旧的 App 上，那道门会让他们拿不到只修了 rootfs 的运行时。
+      - id: minapp
+        env:
+          REQUESTED: ${{ inputs.min_app_version }}
+        run: |
+          V="$REQUESTED"
+          if [ -z "$V" ]; then
+            V=$(grep -oP 'fun baseVersionName\(\): String = "\K[^"]+' build.gradle.kts | head -1 || true)
+          fi
+          case "$V" in none|None|NONE) V="" ;; esac
+          echo "min_app_version=$V" >> "$GITHUB_OUTPUT"
+          echo "minimum app version: ${V:-(none)}"
+
+      - id: set
+        run: |
+          case "${{ inputs.arch }}" in
+            arm64) A='["arm64"]' ;;
+            amd64) A='["amd64"]' ;;
+            *)     A='["arm64","amd64"]' ;;
+          esac
+          echo "arches=$A" >> "$GITHUB_OUTPUT"
+          echo "building: $A"
+
+  rootfs:
+    name: Assemble ${{ matrix.arch }} rootfs
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      # 一个架构失败不该带走另一个：产物互不相干，各自发布。
+      fail-fast: false
+      matrix:
+        arch: ${{ fromJSON(needs.plan.outputs.arches) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Build rootfs
+        env:
+          DSH_VERSION: ${{ inputs.dsh_version }}
+          NODE_VER: ${{ inputs.node_version }}
+          TARGET_ARCH: ${{ matrix.arch }}
+          OUT: ${{ github.workspace }}/out
+          RELEASE_TAG: ${{ inputs.release_tag != '' && inputs.release_tag || needs.plan.outputs.default_tag }}
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          RUNTIME_FLAVOR: ${{ inputs.flavor }}
+          MIN_APP_VERSION: ${{ needs.plan.outputs.min_app }}
+        run: bash runtime-builder/build-rootfs.sh
+
+      - name: Summarize
+        run: |
+          ls -la out
+          {
+            echo "### DSH runtime (${{ matrix.arch }} / ${{ inputs.flavor }})"
+            echo
+            echo '```json'
+            cat out/metadata*.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-runtime-rootfs-${{ matrix.arch }}
+          path: |
+            out/rootfs*.tar.gz
+            out/metadata*.json
+          retention-days: 7
+
+      # stable/runtime-latest 与 beta/runtime-beta-latest 都是滚动 tag；必须覆盖同名资产。
+      #
+      # 每个架构只上传**自己的**资产（arm64 用无后缀的旧名，amd64 带 -x86_64）：
+      # 用通配符一把梭在两条并行时会互相覆盖，而 arm64 的旧名一旦被 amd64 的内容
+      # 顶掉，所有存量用户下一次检查更新就会拿到跑不了的 rootfs。
+      - name: Publish selected runtime release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARCH: ${{ matrix.arch }}
+          RELEASE_TAG: ${{ inputs.release_tag != '' && inputs.release_tag || needs.plan.outputs.default_tag }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
+              --title "DSH runtime (${{ inputs.channel }})" \
+              --notes "Rolling ${{ inputs.channel }} container runtime for DSH-Folk. Assets are replaced in place; each metadata*.json describes the matching rootfs*.tar.gz." \
+              --latest=false
+          fi
+          if [ "$ARCH" = "arm64" ]; then
+            SUFFIX=""
+          else
+            SUFFIX="-x86_64"
+          fi
+          test -f "out/rootfs${SUFFIX}.tar.gz"
+          test -f "out/metadata${SUFFIX}.json"
+          gh release upload "$RELEASE_TAG" \
+            "out/rootfs${SUFFIX}.tar.gz" "out/metadata${SUFFIX}.json" --clobber

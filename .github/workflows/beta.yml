@@ -1,0 +1,260 @@
+name: Build DSH-Folk beta
+
+# 测试版通道。
+#
+# 为什么不直接让 App 去下 Actions 的 artifact：**artifact 的下载地址需要认证**
+# （实测匿名 GET .../actions/artifacts/<id>/zip 返回 401，而列表接口 200），
+# artifact 还是 zip 包、30 天后过期。要让 App 能匿名下载、能续传、能按 sha256 校验，
+# 只有 release 资产这一条路。所以这个工作流把构建产物发成一个 **prerelease**，
+# App 端的「接受测试版更新」开关就是在读它。
+#
+# 为什么用 release 变体而不是 debug：
+#  - debug 变体的包名是 top.funcun.folkpatch.debug（与正式版共存的独立应用），
+#    装上它根本不是「升级」，而是多一个图标；
+#  - debug 签名与正式版不同，即使包名一样也无法覆盖安装。
+# 测试版必须能原地替换正式版，所以它走 release 变体 + 同一个 keystore，
+# 只有版本名带 -beta.N 和 prerelease 标记与正式版不同。
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_version:
+        description: 'Version this beta leads to (e.g. 1.8.1)'
+        required: true
+        type: string
+      notes:
+        description: 'Extra release notes (optional)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: beta-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  beta:
+    name: Build and publish beta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # 版本号规则必须与 build.gradle.kts 的基准一致：1.8.0 → 10800。
+      #
+      # versionCode 用**目标版本**的号（1.8.1 → 10801），而不是再加一个 beta 偏移：
+      #  - 它必须大于当前正式版，否则装了正式版的人收不到测试版（compareVersions 判不更新）；
+      #  - 它又不能大于将来那个正式版，否则正式版发出来时装不回去（系统拒绝降级）。
+      # 相同 versionCode 的覆盖安装是允许的（AOSP PackageManagerServiceUtils.checkDowngrade
+      # 只在 after < before 时抛 INSTALL_FAILED_VERSION_DOWNGRADE，相等时只比 revisionCode，
+      # 而我们不设它），所以「beta 与目标正式版同号」正好落在两个约束的交集里。版本**名**
+      # 里的 -beta.N 才是区分先后的那一位，App 侧的 compareVersions 认它（正式版 > 预发布版）。
+      - name: Derive version
+        id: v
+        run: |
+          TARGET="${{ inputs.target_version }}"
+          # 允许四段式补丁版（1.9.2.2）。正式版的号已经从 10903 走到 109031/109032，
+          # 三段的 beta（最高 10999）永远压不过它，装了正式版的用户会撞
+          # INSTALL_FAILED_VERSION_DOWNGRADE —— 测试版通道等于失效。
+          if ! printf '%s' "$TARGET" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+            echo "::error::target_version must look like 1.8.1 or 1.9.2.2, got '$TARGET'"
+            exit 1
+          fi
+          MAJOR=${TARGET%%.*}
+          REST=${TARGET#*.}
+          MINOR=${REST%%.*}
+          REST2=${REST#*.}
+          PATCH=${REST2%%.*}
+          REV=''
+          case "$REST2" in *.*) REV=${REST2#*.} ;; esac
+          CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          # 四段式：第四段是加在基准号上的增量（1.9.2.2 → 10904），与 build.gradle.kts 的
+          # baseVersionCode()、tools/check-changelog.js 是同一条规则 —— 三处脱钩会让测试版的
+          # versionCode 落在正式版的错误一侧。最终 APK 号是 CODE*10+ABI 偏移（app/build.gradle.kts）。
+          if [ -n "$REV" ]; then CODE=$((CODE + REV)); fi
+          # 下限＝当前正式版基准号 baseVersionCode()：正式版可能被手动抬高（1.9.5 显式定为
+          # 10950，公式只给 10905），若 beta 仍按公式推导就会低于已发正式版，装了正式版的用户
+          # 撞 INSTALL_FAILED_VERSION_DOWNGRADE。取 max(公式号, 基准号) 保证测试版号永远盖得过
+          # 最近一个正式版（相同号可覆盖安装；先后由名字里的 -beta.N 与 App 的 compareVersions 区分）。
+          BASE=$(grep -oE 'fun baseVersionCode\(\): Int = [0-9]+' build.gradle.kts | grep -oE '[0-9]+$' | head -1)
+          if [ -n "$BASE" ] && [ "$CODE" -lt "$BASE" ]; then
+            echo "::notice::versionCode $CODE 低于基准 $BASE，抬到基准以免降级"
+            CODE=$BASE
+          fi
+          NAME="${TARGET}-beta.${GITHUB_RUN_NUMBER}"
+          echo "name=$NAME"   >> "$GITHUB_OUTPUT"
+          echo "code=$CODE"   >> "$GITHUB_OUTPUT"
+          echo "tag=v$NAME"   >> "$GITHUB_OUTPUT"
+          echo "beta $NAME (versionCode $CODE)"
+
+      - uses: ./.github/actions/setup-build-env
+
+      # 与 build.yml 的 release job 同一套源码自检：版本说明三处一致、Kotlin 词法闭合、
+      # 原生能力桥的一致性（Cap↔分组↔端点↔资源串）等十项。
+      # 放在编译之前是因为这些问题的报错都指不到真正的那一行，而测试版每次都要
+      # 走一遍完整构建 + 发布，让它们在上面拦下来代价最低。
+      - name: Static source checks
+        run: |
+          node tools/check-changelog.js
+          node tools/check-kotlin-comments.js
+          node tools/check-strings.js
+          node tools/check-i18n.js
+          node tools/check-refs.js
+          node tools/check-native-logic.js
+          node tools/check-native-caps.js
+          node tools/check-web-shim.js
+          node tools/check-backup-logic.js
+          node tools/check-bugreport-files.js
+          node tools/check-text-clipping.js
+          node tools/check-backup-crypto.js
+          node tools/check-wizard-gate.js
+          node tools/check-cookie-samesite.js
+          node tools/check-plugin-update.js
+          node tools/check-race-channel.js
+          node tools/check-fs-scope.js
+          node tools/check-host-prompt.js
+          node tools/check-file-handoff.js
+          node tools/check-imports.js $(find app/src/main/java -name "*.kt")
+
+      # 与 build.yml 的 release job 同一套校验：缺任何一项就硬失败。
+      # 用 debug key 悄悄签出一个「测试版」的后果更隐蔽 —— 用户装不上，
+      # 而错误信息只会说「应用未安装」。
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PRIVATE_PASSWORD }}
+        run: |
+          missing=""
+          [ -n "$KEYSTORE_BASE64" ]   || missing="$missing KEYSTORE_BASE64"
+          [ -n "$KEYSTORE_PASSWORD" ] || missing="$missing KEYSTORE_PASSWORD"
+          [ -n "$KEY_ALIAS" ]         || missing="$missing KEY_ALIAS"
+          [ -n "$KEY_PASSWORD" ]      || missing="$missing KEY_PRIVATE_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "::error::missing release signing secrets:$missing"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > dsh-folk.jks
+          {
+            printf 'KEYSTORE_FILE=../dsh-folk.jks\n'
+            printf 'KEYSTORE_PASSWORD=%s\n' "$KEYSTORE_PASSWORD"
+            printf 'KEY_ALIAS=%s\n' "$KEY_ALIAS"
+            printf 'KEY_PASSWORD=%s\n' "$KEY_PASSWORD"
+          } > keystore.properties
+
+      # 同 build.yml：细粒度 PAT 读不了 job 日志（logs 接口要 admin 权限），
+      # 所以把 gradle 输出留一份到文件，失败时把编译错误转成注解 ——
+      # 否则「构建失败」就是全部信息。pipefail 不能少，否则 tee 会吞掉退出码。
+      - name: Build
+        run: |
+          set -o pipefail
+          ./gradlew assembleRelease --no-daemon --stacktrace \
+            -PdshVersionName='${{ steps.v.outputs.name }}' \
+            -PdshVersionCode='${{ steps.v.outputs.code }}' 2>&1 | tee gradle-build.log
+
+      - name: Surface compile errors
+        if: failure()
+        run: |
+          { grep -E "^(e:|w: .*error|FAILURE:|\* What went wrong)" gradle-build.log || true; } | head -60 | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
+          tail -40 gradle-build.log | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
+
+      # R8 混淆映射：release 变体的崩溃栈（如 dsh-fs 的 StackOverflow）里全是 s.d0 之类的
+      # 混淆名，只有 mapping.txt 能把它翻回真实类/方法。beta.yml 改这一步不动 App 源码，
+      # 所以同一 commit 重建出的 mapping 与已发 beta 的混淆名一致，可用来解已有崩溃栈。
+      - name: Upload R8 mapping
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-${{ github.sha }}
+          path: app/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+          if-no-files-found: warn
+
+      # 命名必须带 ABI：App 端 pickApkAsset 按文件名里的 arm64-v8a / x86_64
+      # 挑本机架构的包，名字里没有 ABI 会被当成旧的单包 release 而发错架构。
+      - name: Collect APKs
+        run: |
+          NAME="${{ steps.v.outputs.name }}"
+          found=0
+          for abi in arm64-v8a x86_64; do
+            APK=$(find app/build/outputs/apk/release -name "*${abi}*.apk" -type f | head -1)
+            if [ -z "$APK" ]; then
+              echo "::error::beta APK for ${abi} not produced"
+              continue
+            fi
+            OUT="DSH-Folk-${NAME}-${abi}.apk"
+            mv "$APK" "$OUT"
+            sha256sum "$OUT" > "$OUT.sha256"
+            echo "  $OUT  $(stat -c %s "$OUT") bytes"
+            found=$((found + 1))
+          done
+          if [ "$found" -ne 2 ]; then
+            echo "::error::expected 2 beta APKs (one per ABI), got $found"
+            exit 1
+          fi
+
+      - name: Verify signer
+        run: |
+          checked=0
+          for apk in DSH-Folk-*.apk; do
+            [ -f "$apk" ] || continue
+            keytool -printcert -jarfile "$apk" > signer.txt
+            grep -E "Owner" signer.txt || true
+            if grep -q "CN=Android Debug" signer.txt; then
+              echo "::error::$apk is signed with the Android debug key"
+              rm -f signer.txt
+              exit 1
+            fi
+            rm -f signer.txt
+            checked=$((checked + 1))
+          done
+          if [ "$checked" -ne 2 ]; then
+            echo "::error::expected to verify 2 beta APKs, verified $checked"
+            exit 1
+          fi
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f dsh-folk.jks keystore.properties
+
+      # tag 必须是**版本形**的（v1.8.1-beta.7）：App 的 UpdateChecker 用
+      # ^[vV]?\d+(\.\d+)+([-+].*)?$ 过滤 tag，一个滚动的 `beta-latest` 会被直接忽略，
+      # 开关就成了摆设。每个 beta 一个 tag，所以列表接口取 30 条而不是 10 条。
+      #
+      # --prerelease 是这条通道的开关本体：App 侧「不接受测试版」时按 prerelease
+      # 标记与 tag 后缀两道判断把它排除掉。漏了这个标记，所有人都会被推上测试版。
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.v.outputs.tag }}"
+          {
+            printf 'Beta build from `%s` (run #%s).\n\n' "${GITHUB_SHA:0:7}" "$GITHUB_RUN_NUMBER"
+            printf 'Signed with the release key, so it upgrades a release install in place.\n'
+            printf 'Less tested than a release — report anything odd.\n'
+            if [ -n "${{ inputs.notes }}" ]; then
+              printf '\n%s\n' "${{ inputs.notes }}"
+            fi
+          } > notes.md
+          gh release create "$TAG" \
+            --title "DSH-Folk ${{ steps.v.outputs.name }}" \
+            --notes-file notes.md \
+            --prerelease \
+            --latest=false \
+            DSH-Folk-*.apk DSH-Folk-*.apk.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-folk-beta-${{ github.sha }}
+          path: |
+            DSH-Folk-*.apk
+            DSH-Folk-*.apk.sha256
+          retention-days: 30

@@ -1,0 +1,604 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="desktop_app_name">デスクトップのアプリ名</string>
+    <string name="home">ホーム</string>
+    <string name="failure">失敗しました。</string>
+    <string name="settings_nav_layout_title">ナビゲーションレイアウトの設定</string>
+    <string name="settings_nav_layout_summary">一部のナビゲーションコンポーネントを表示または非表示にします。</string>
+    <string name="settings_nav_scheme">ナビゲーションスキーム</string>
+    <string name="settings_nav_mode_auto">自動伝統</string>
+    <string name="settings_nav_mode_bottom">常にボトムバー</string>
+    <string name="settings_nav_mode_rail">常にサイドレール</string>
+    <string name="settings_nav_mode_floating">フローティングボトムバー</string>
+    <string name="settings_floating_auto_hide">自動非表示</string>
+    <string name="settings_floating_auto_hide_summary">3秒間操作がないとフローティングバーを自動的に非表示</string>
+    <string name="settings_floating_swipe_hide">スワイプで非表示</string>
+    <string name="settings_floating_swipe_hide_summary">下にスワイプで非表示、上にスワイプで表示</string>
+    <string name="settings_navbar_glass_effect">すりガラス効果</string>
+    <string name="settings_navbar_glass_effect_summary">フローティングナビゲーションバーにすりガラス効果を適用</string>
+    <string name="settings_navbar_glass_blur_strength">ぼかし強度</string>
+    <string name="settings_navbar_glass_transparency">背景の透明度</string>
+    <string name="settings_navbar_glass_highlight_strength">ハイライト強度</string>
+    <string name="settings_navbar_glass_specular">鏡面反射</string>
+    <string name="settings_navbar_glass_specular_summary">ナビゲーションバーの上部に鏡面ハイライトを有効にする</string>
+    <string name="settings_navbar_glass_inner_glow">インナーグロー</string>
+    <string name="settings_navbar_glass_inner_glow_summary">ナビゲーションバーの下部にさりげない発光効果を有効にする</string>
+    <string name="settings_navbar_glass_border">ガラスボーダー</string>
+    <string name="settings_navbar_glass_border_summary">ナビゲーションバーの周囲にさりげないボーダーを有効にする</string>
+    <string name="settings_compact_rounded_bar">コンパクト丸角スタイル</string>
+    <string name="settings_compact_rounded_bar_summary">丸みを帯びたコンパクトなフローティングバーを使用</string>
+    <string name="settings_stats_top_layout">上部レイアウト</string>
+    <string name="settings_stats_top_layout_list">リスト</string>
+    <string name="settings_stats_top_layout_grid">グリッド</string>
+    <string name="reboot">再起動</string>
+    <string name="settings">設定</string>
+    <string name="reboot_recovery">リカバリーで再起動</string>
+    <string name="reboot_bootloader">Bootloader で再起動</string>
+    <string name="reboot_download">ダウンロードモードで再起動</string>
+    <string name="reboot_edl">EDL で再起動</string>
+    <string name="reboot_fastbootd">FastbootD で再起動</string>
+    <string name="about">アプリについて</string>
+    <string name="developer_and_maintainer">開発者 | メンテナ</string>
+    <string name="settings_app_language">言語</string>
+    <string name="system_default">システムのデフォルト</string>
+    <string name="settings_grid_working_card_hide_check">ステータスアイコンを非表示</string>
+    <string name="settings_grid_working_card_hide_check_summary">動作中のカードのチェックマークまは警告アイコンを非表示にします。</string>
+    <string name="settings_grid_working_card_hide_text">ステータステキストを非表示</string>
+    <string name="settings_grid_working_card_hide_text_summary">動作中のカードの「動作中」または「未インストール」のテキストを非表示にします。</string>
+    <string name="settings_grid_working_card_hide_mode">動作モードを非表示</string>
+    <string name="settings_grid_working_card_hide_mode_summary">動作中のカードの「完全」または「一部」のテキストを非表示にします。</string>
+    <string name="settings_folkx_engine_title">FolkX アニメーションエンジン</string>
+    <string name="settings_folkx_engine_summary">トップレベルのページの切り替え時にスムーズな物理ベースのスプリングアニメーションを使用します。</string>
+    <string name="settings_folkx_animation_type">アニメーションタイプ</string>
+    <string name="settings_folkx_animation_speed">アニメーション速度</string>
+    <string name="settings_folkx_animation_linear">リニアモーション</string>
+    <string name="settings_folkx_animation_spatial">空間モーション</string>
+    <string name="settings_folkx_animation_fade">フェードイン/アウト</string>
+    <string name="settings_folkx_animation_vertical">垂直にスライド</string>
+    <string name="settings_folkx_animation_diagonal">斜めにスライド</string>
+    <string name="send_log">ログを送信</string>
+    <string name="settings_clean_storage">アプリデータをクリーンアップ</string>
+    <string name="settings_clean_storage_summary">残留ファイルによるダウンロード・適用失敗を修復</string>
+    <string name="settings_clean_storage_confirm">ダウンロードしたテーマ、インポートした音楽、サウンド効果とすべてのキャッシュを削除し、ディレクトリを再作成します。設定は保持されます。続行しますか？</string>
+    <string name="settings_clean_storage_done">クリーンアップ完了</string>
+
+    <string name="home_kernel">カーネル バージョン</string>
+    <string name="home_fingerprint">フィンガープリント</string>
+    <string name="home_selinux_status">SELinux ステータス</string>
+    <string name="home_selinux_status_disabled">無効</string>
+    <string name="home_selinux_status_enforcing">強制</string>
+    <string name="home_selinux_status_permissive">許容</string>
+    <string name="home_selinux_status_unknown">不明</string>
+    <string name="home_device_info">デバイス</string>
+    <string name="home_system_version">システム バージョン</string>
+    <string name="apm_remove">削除</string>
+    <string name="apm_update">更新</string>
+    <string name="enable_web_debugging">WebView デバッグを有効化</string>
+    <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合のみ有効化してください。</string>
+    <string name="apm_enable_module_banner">モジュールバナーを有効化</string>
+    <string name="apm_enable_module_banner_summary">モジュールのバナー画像が利用可能な場合に表示します。</string>
+    <string name="apm_enable_folk_banner">カスタムモジュールバナー</string>
+    <string name="apm_enable_folk_banner_summary">モジュールカードを長押しでバナー画像を選択します。</string>
+    <string name="apm_banner_api_mode">API モード</string>
+    <string name="apm_banner_api_mode_summary">モジュールバナーでランダム画像 API またはローカルディレクトリを使用します。</string>
+    <string name="apm_banner_api_source">構成 API ソース</string>
+    <string name="apm_banner_api_source_hint">API URL またはローカルパスを入力</string>
+    <string name="apm_banner_api_source_saved">API ソースを保存しました</string>
+    <string name="apm_banner_api_source_not_configured">未構成</string>
+    <string name="apm_banner_api_url_configured">API URL 構成済み</string>
+    <string name="apm_banner_local_dir_configured">ローカルディレクトリが構成されています。</string>
+    <string name="apm_banner_clear_cache">キャッシュを消去</string>
+    <string name="apm_banner_cache_cleared">バナーキャッシュを消去しました。</string>
+    <string name="apm_banner_api_config_title">構成 API ソース</string>
+    <string name="apm_banner_api_config_desc">ランダム画像 API URL またはローカルディレクトリのパスを入力してください。各モジュールに固有のバナー画像が付与されます。</string>
+    <string name="apm_banner_api_examples_title">例:</string>
+    <string name="apm_banner_api_examples">API: https://picsum.photos/800/400\nローカル: /sdcard/Pictures/Banners</string>
+    <!-- API Marketplace -->
+    <string name="apm_api_marketplace_title">API マーケットプレイス</string>
+    <string name="apm_api_preview">プレビュー</string>
+    <string name="apm_api_apply">適用</string>
+    <string name="apm_api_preview_title">API プレビュー</string>
+    <string name="apm_api_preview_failed">プレビューの読み込みに失敗しました。</string>
+    <string name="apm_api_url_label">API URL:</string>
+    <string name="apm_api_apply_success">API ソースを適用しました。</string>
+    <string name="apm_api_verifying">検証中…</string>
+    <string name="apm_api_retry">再試行</string>
+    <string name="apm_api_empty">利用可能な API ソースがありません</string>
+    <string name="settings_banner_custom_opacity">バナーの透過</string>
+    <string name="settings_banner_custom_opacity_summary">壁紙モードを使用する代わりにカスタム可能な透過バナーを使用します。</string>
+    <string name="settings_banner_opacity">バナーの透過率</string>
+    <string name="home_more_menu_feedback_or_suggestion">フィードバックまたは提案</string>
+    <string name="home_more_menu_about">アプリについて</string>
+    <string name="home_more_menu_music_play">音楽を再生</string>
+    <string name="home_more_menu_music_pause">音楽を一時停止</string>
+
+    <!-- Plugin strings -->
+
+    <string name="amber_theme">アンバー</string>
+    <string name="blue_theme">ブルー</string>
+    <string name="blue_grey_theme">ブルーグレー</string>
+    <string name="brown_theme">ブラウン</string>
+    <string name="cyan_theme">シアン</string>
+    <string name="deep_orange_theme">ディープオレンジ</string>
+    <string name="deep_purple_theme">ディープパープル</string>
+    <string name="green_theme">グリーン</string>
+    <string name="indigo_theme">インディゴ</string>
+    <string name="light_blue_theme">ライトブルー</string>
+    <string name="light_green_theme">ライトグリーン</string>
+    <string name="lime_theme">ライム</string>
+    <string name="orange_theme">オレンジ</string>
+    <string name="pink_theme">ピンク</string>
+    <string name="purple_theme">パープル</string>
+    <string name="red_theme">レッド</string>
+    <string name="sakura_theme">サクラ</string>
+    <string name="teal_theme">ティール</string>
+    <string name="yellow_theme">イエロー</string>
+    <string name="ink_wash_theme">インクウォッシュ</string>
+    <string name="theme_color">テーマカラー</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="theme_system">システム</string>
+    <string name="loading_themes">テーマを読み込み中…</string>
+    <string name="loading_apis">APIソースを読み込み中…</string>
+    <string name="retry">再試行</string>
+    <string name="about_powered_by">%1$s が提供しています</string>
+    <string name="github">GitHub</string>
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+    <!-- Online Script Strings -->
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">クラッシュレポート</string>
+    <string name="crash_handle_copy">コピー</string>
+    <!-- About Screen Strings -->
+    <string name="about_app_version">アプリのバージョン: %s</string>
+    <string name="about_github">GitHub</string>
+    <!-- App Title Strings -->
+    <string name="settings_app_dpi">アプリの DPI</string>
+    <string name="dpi_apply_settings">適用</string>
+
+<!-- Umount Service -->
+    <string name="settings_app_title">アプリのタイトル</string>
+    <string name="app_title_custom">カスタム</string>
+    <string name="settings_custom_app_title">アプリ名を設定</string>
+    <string name="custom_app_title_dialog_title">カスタムアプリ名</string>
+    <string name="custom_app_title_dialog_hint">アプリ名を入力</string>
+    <string name="custom_app_title_dialog_confirm">決定</string>
+    <string name="cancel">キャンセル</string>
+    <string name="settings_custom_background">カスタム背景</string>
+    <string name="settings_custom_background_enabled">カスタム背景が有効化されています</string>
+    <string name="settings_custom_background_opacity">カードの透過度</string>
+    <string name="settings_custom_background_blur">背景のぼかし</string>
+    <string name="settings_custom_background_dim">背景を暗転させる</string>
+    <string name="settings_custom_background_dual_dim">日中/夜間のデュアル調光を有効化する</string>
+    <string name="settings_custom_background_dual_dim_desc">ライトテーマとダークテーマに合わせて背景の暗さを自動調整</string>
+    <string name="settings_custom_background_day_dim">日中時に背景を暗転</string>
+    <string name="settings_custom_background_night_dim">夜間時に背景を暗転</string>
+    <string name="settings_multi_background_mode">マルチ背景モード</string>
+    <string name="settings_multi_background_mode_summary">ページごとの背景画像を設定します。</string>
+    <string name="settings_select_home_background">ホームページの背景</string>
+    <string name="settings_select_settings_background">設定の背景</string>
+    <string name="settings_advanced_title_style">高度なタイトルスタイル</string>
+    <string name="settings_advanced_title_style_summary">トップバータイトルをカスタム画像に置き換えます。</string>
+    <string name="settings_advanced_title_style_enabled">高度なタイトルスタイルが有効化されています</string>
+    <string name="settings_select_title_image">タイトル画像を選択</string>
+    <string name="settings_title_image_selected">タイトル画像が選択されました。</string>
+    <string name="settings_title_image_saved">タイトル画像の保存に成功しました。</string>
+    <string name="settings_title_image_error">タイトル画像の保存に失敗しました。</string>
+    <string name="settings_clear_title_image">タイトル画像を消去</string>
+    <string name="settings_clear_title_image_confirm">このタイトル画像を消去してもよろしいですか？</string>
+    <string name="settings_title_image_cleared">タイトル画像を消去しました。</string>
+    <string name="settings_title_image_day_opacity">日中モードの不透明度</string>
+    <string name="settings_title_image_night_opacity">夜間モードの不透明度</string>
+    <string name="settings_title_image_dim">背景を暗くする</string>
+    <string name="settings_title_image_offset_x">水平の位置</string>
+    <!-- Font Settings -->
+    <string name="settings_custom_font">カスタムフォント</string>
+    <string name="settings_select_font_file">フォントファイルを選択</string>
+    <string name="settings_custom_font_enabled">カスタムフォントが有効化されています</string>
+    <string name="settings_custom_font_summary">アプリにカスタム TTF フォントを使用します。</string>
+    <string name="settings_font_selected">カスタムフォントが選択されました。</string>
+    <string name="settings_custom_font_error">フォントファイルの保存に失敗しました。</string>
+    <string name="settings_custom_font_saved">カスタムフォントの保存に成功しました。</string>
+    <string name="settings_clear_font">デフォルトのフォントに復元</string>
+    <string name="settings_clear_font_confirm">デフォルトのフォントに復元しますか？</string>
+    <string name="settings_font_cleared">デフォルトのフォントに復元しました。</string>
+    <string name="settings_select_background_image">背景画像を選択</string>
+    <string name="settings_custom_background_summary">カスタム背景画像を設定します</string>
+    <string name="settings_custom_background_saved">背景の保存が成功しました。</string>
+    <string name="settings_custom_background_error">背景の保存に失敗しました。</string>
+    <string name="settings_crop_not_supported">このデバイスでは切り抜きに対応していません、元の画像を保存しました。</string>
+    <string name="settings_crop_dialog_title">壁紙を切り抜く</string>
+    <string name="settings_crop_dialog_message">画像を切り抜きますか？</string>
+    <string name="settings_crop_dialog_crop">はい</string>
+    <string name="settings_crop_dialog_direct">いいえ</string>
+    <string name="settings_background_selected">背景が選択されました。</string>
+    <string name="settings_background_image_cleared">背景画像を消去しました</string>
+    <string name="settings_clear_background">背景を消去</string>
+    <string name="settings_clear_background_confirm">背景画像を消去してもよろしいですか？</string>
+    <string name="settings_alt_icon">代替アイコン</string>
+    <string name="alt_icon_summary">代替アイコンをランチャーに使用します。</string>
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">動画の背景</string>
+    <string name="settings_video_background_summary">動画を背景として使用します。</string>
+    <string name="settings_select_video">動画を選択</string>
+    <string name="settings_video_selected">動画が選択されました。</string>
+    <string name="settings_clear_video_background">動画の背景を消去</string>
+    <string name="settings_clear_video_background_confirm">動画の背景を消去してもよろしいですか？</string>
+    <string name="settings_video_volume">動画の音量</string>
+    <!-- KPM AutoLoad Strings -->
+    
+    <!-- Module Backup/Restore Strings -->
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">FolkPatch へようこそ</string>
+    <string name="welcome_desc_1">FolkPatch は、高度なカスタマイズ性と使いやすさを両立した Root 管理ツールです。KernelPatch ベースで構築されています。</string>
+    <string name="welcome_title_2">自由なカスタマイズ</string>
+    <string name="welcome_desc_2">色、背景、フォント、サウンド、振動まですべてを自由にカスタマイズ。テーマストアでさらに多くのスタイルを探しましょう！</string>
+    <string name="welcome_title_3">カーネル制御</string>
+    <string name="welcome_desc_3">高度なカーネル機能はワンタップでアクセス。設定を開き、右上のチューニングアイコンをタップして FolkPatch Hide、Umount、Path Hide などを使用できます。</string>
+    <string name="welcome_title_4">準備はいいですか？</string>
+    <string name="welcome_desc_4">基本機能を理解しました。最も柔軟な Root 管理体験をお楽しみください！</string>
+    <string name="welcome_prev">前へ</string>
+    <string name="welcome_next">次へ</string>
+    <string name="welcome_skip">スキップ</string>
+    <string name="welcome_got_it">始める</string>
+
+    
+    <!-- Hide Settings Strings -->
+    <string name="home_hide_fingerprint">フィンガープリントを非表示</string>
+    <string name="home_hide_fingerprint_summary">フィンガープリント情報のカードを非表示にします。</string>
+    <!-- Auto Backup Strings -->
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">ホームレイアウトのスタイル</string>
+    <string name="settings_home_layout_default">リスト UI</string>
+    <string name="settings_home_layout_grid">グリッド UI</string>
+    <string name="settings_home_layout_focus">フォーカス UI</string>
+    <string name="settings_home_layout_circle">サークル UI</string>
+    <string name="settings_home_layout_dashboard_pro">ダッシュボード UI</string>
+    <string name="settings_save_theme">テーマを保存</string>
+    <string name="settings_import_theme">テーマをインポート</string>
+    <string name="settings_theme_saved">テーマを保存しました。</string>
+    <string name="settings_theme_imported">テーマをインポートしました。</string>
+    <string name="settings_theme_save_failed">テーマの保存に失敗しました。</string>
+    <string name="settings_theme_import_failed">テーマのインポートに失敗しました。</string>
+    <string name="settings_reset_theme">テーマをリセット</string>
+    <string name="settings_reset_theme_confirm">すべてのテーマ設定をデフォルトにリセットしてもよろしいですか？すべてのカスタム背景、フォント、音楽、サウンド効果が消去されます。</string>
+    <string name="settings_theme_reset">テーマをデフォルトにリセット</string>
+    <string name="settings_theme_reset_failed">テーマのリセットに失敗しました。</string>
+    <!-- Theme Strings -->
+    <string name="theme_export_title">テーマをエクスポート</string>
+    <string name="theme_import_title">テーマをインポート</string>
+    <string name="theme_name">テーマ名</string>
+    <string name="theme_type">テーマタイプ</string>
+    <string name="theme_type_phone">スマートフォン</string>
+    <string name="theme_type_tablet">タブレット</string>
+    <string name="theme_version">バージョン</string>
+    <string name="theme_author">作者</string>
+    <string name="theme_description">説明</string>
+    <string name="theme_export_action">エクスポート</string>
+    <string name="theme_import_action">インポート</string>
+    <string name="theme_import_confirm">このテーマをインポートしてもよろしいですか？</string>
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">動作中カードの背景</string>
+    <string name="settings_grid_working_card_background_enabled">カスタムカード背景が有効化されています</string>
+    <string name="settings_grid_working_card_background_summary">動作中カードのカスタム背景画像です。</string>
+    <string name="settings_grid_working_card_background_selected">背景が選択されました。</string>
+    <string name="settings_grid_working_card_dual_opacity">日中/夜間でのデュアル透過を有効化する</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">ライトテーマとダークテーマに合わせてカードの透明度を自動調整</string>
+    <string name="settings_grid_working_card_day_opacity">日中モードのカード透過</string>
+    <string name="settings_grid_working_card_night_opacity">夜間モードのカード透過</string>
+    <string name="settings_clear_grid_working_card_background">カードの背景を消去する</string>
+    <string name="settings_clear_grid_working_card_background_confirm">カードの背景画像を消去してもよろしいですか？</string>
+    <string name="settings_grid_working_card_background_saved">カードの背景の保存に成功しました。</string>
+    <string name="settings_grid_working_card_background_error">カードの背景の保存に失敗しました。</string>
+    <string name="settings_grid_working_card_background_cleared">カードの背景を消去しました。</string>
+    <!-- Biometric Strings -->
+    <string name="action_biometric">生体認証</string>
+    <string name="msg_biometric">生体認証で確認してください</string>
+    <string name="msg_enable_biometric">アプリを開くときに確認を求めるため、生体認証を有効にしますか？</string>
+    <string name="settings_biometric_login">生体認証</string>
+    <string name="settings_biometric_login_summary">アプリを開くときに生体認証を要求します。</string>
+    <string name="settings_strong_biometric">強力な生体認証</string>
+    <string name="settings_strong_biometric_summary">モジュールのインストール/アンインストール/無効化で認証を要求します。</string>
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">テーマストア</string>
+    <string name="theme_source_official">公式</string>
+    <string name="theme_source_third_party">サードパーティー</string>
+    <string name="theme_store_author">作者: %s</string>
+    <string name="theme_store_version">バージョン: %s</string>
+    <string name="theme_source">ソース</string>
+    <string name="theme_store_download">ダウンロード</string>
+    <string name="theme_store_search_hint">テーマを検索...</string>
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">自動で更新を確認する</string>
+    <string name="settings_auto_update_check_summary">アプリの開始時に更新を自動で確認します。</string>
+    <string name="settings_check_update">更新を確認</string>
+    <string name="update_available_title">更新が利用可能です</string>
+    <string name="update_available_message">バージョンが低すぎることが検出されました。新しいバージョンをダウンロードしますか？</string>
+    <string name="update_action">更新</string>
+    <string name="update_close">閉じる</string>
+    <string name="update_latest">最新のバージョンを使用しています</string>
+    <string name="settings_category_general">一般</string>
+    <string name="settings_category_appearance">外観</string>
+    <string name="settings_appearance_font">フォント設定</string>
+    <string name="settings_appearance_theme">テーマ設定</string>
+
+    <string name="settings_nav_custom_icons">カスタムナビアイコン</string>
+    <string name="settings_nav_custom_icons_summary">下部バーのアイコンをカスタム画像に置き換えます</string>
+    <string name="nav_icon_home">ホームアイコン</string>
+    <string name="nav_icon_superuser">Terminal Icon</string>
+    <string name="nav_icon_apm">Plugins Icon</string>
+    <string name="nav_icon_settings">設定アイコン</string>
+    <string name="nav_icon_clear">デフォルトに戻す</string>
+    <string name="nav_icon_custom_selected">カスタム</string>
+    <string name="nav_icon_default">デフォルト</string>
+    <string name="nav_icon_cleared">アイコンをデフォルトに戻しました</string>
+    <string name="nav_icon_set">アイコンを更新しました</string>
+    <string name="nav_icon_set_failed">アイコンの保存に失敗しました</string>
+
+    <string name="settings_theme_mode">モード設定</string>
+    <string name="settings_theme_mode_summary">内蔵ストアとブラウザ互換モードを切り替えます</string>
+    <string name="theme_mode_builtin">ビルトインモード</string>
+    <string name="theme_mode_builtin_desc">内蔵テーマストアでテーマの閲覧、ダウンロード、適用を行う</string>
+    <string name="theme_mode_compat">互換モード</string>
+    <string name="theme_mode_compat_desc">ブラウザでテーマを直接ダウンロード（インポートに問題がある端末向け）</string>
+    <string name="theme_mode_onboarding_title">テーマモードを選択</string>
+    <string name="theme_mode_onboarding_msg">テーマの閲覧とインストール方法を選択してください。後で設定から変更できます。</string>
+    <string name="theme_mode_builtin_label">内蔵ストア</string>
+    <string name="theme_mode_compat_label">ブラウザモード</string>
+    <string name="theme_mode_switched">テーマモードを %s に変更しました</string>
+    <string name="theme_mode_current">現在: %s</string>
+    <string name="theme_mode_switch_title">テーマモード切替</string>
+    <string name="theme_mode_switch_msg">モードを変更すると、テーマの閲覧とインストール方法が変わります。続行しますか？</string>
+    <string name="settings_appearance_banner">バナー設定</string>
+    <string name="settings_appearance_layout">レイアウト設定</string>
+    <string name="settings_appearance_background">背景設定</string>
+    <string name="settings_appearance_night_mode">ナイトモード設定</string>
+    <string name="settings_amoled_theme">AMOLEDブラックテーマ</string>
+    <string name="settings_amoled_theme_desc">ダークモードで完全な黒い背景を使用</string>
+    <string name="settings_switch_icon">ボタンインジケーターを有効化</string>
+    <string name="settings_switch_icon_desc">スイッチボタンにステータスアイコンを表示</string>
+    <string name="settings_discrete_slider">区分スライダー</string>
+    <string name="settings_discrete_slider_desc">スライダートラックに目盛りを表示</string>
+    <string name="settings_category_behavior">動作</string>
+    <string name="settings_category_function">機能</string>
+    <string name="settings_category_security">セキュリティ</string>
+    <!-- Background Music Strings -->
+    <string name="settings_background_music">BGM</string>
+    <string name="settings_background_music_summary">アプリがフォアグラウンド時に BGM を再生します。</string>
+    <string name="settings_background_music_playing">再生中: %s</string>
+    <string name="settings_background_music_enabled">BGM が有効化されています</string>
+    <string name="settings_select_music_file">音楽ファイルを選択</string>
+    <string name="settings_music_selected">音楽が選択されました。</string>
+    <string name="settings_clear_music">音楽を消去</string>
+    <string name="settings_clear_music_confirm">BGM を消去しますか？</string>
+    <string name="settings_music_auto_play">自動再生</string>
+    <string name="settings_music_auto_play_summary">アプリを開いたときに音楽を自動再生します。</string>
+    <string name="settings_music_looping">ループ再生</string>
+    <string name="settings_music_looping_summary">現在の曲をループ再生します。</string>
+    <string name="settings_music_volume">音量</string>
+    <string name="settings_music_saved">音楽の保存に成功しました。</string>
+    <string name="settings_music_save_error">音楽の保存に失敗しました。</string>
+    <string name="settings_music_cleared">音楽を消去しました。</string>
+    <string name="settings_category_multimedia">マルチメディア</string>
+    <string name="settings_category_general_summary">Language, updates, animations, icon and name, DPI</string>
+    <string name="settings_category_appearance_summary">テーマ、色、レイアウト、背景、フォント</string>
+    <string name="settings_category_behavior_summary">Web debugging, info copy, home cards, plugin badge</string>
+    <string name="settings_category_security_summary">Biometric authentication for opening the app</string>
+    <string name="settings_category_backup_summary">DSH config export/import, WebDAV sync</string>
+    <string name="settings_category_function_summary">Container runtime, permission channel, wireless ADB</string>
+    <string name="settings_category_multimedia_summary">BGM、効果音、バイブレーション</string>
+    <string name="settings_music_playback_control">再生のコントロール</string>
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">テーマを絞り込む</string>
+    <string name="theme_store_filter_author">作者</string>
+    <string name="theme_store_filter_author_hint">作者の名前を入力</string>
+    <string name="theme_store_filter_source">ソース</string>
+    <string name="theme_store_filter_source_all">すべて</string>
+    <string name="theme_store_filter_type">デバイスタイプ</string>
+    <string name="theme_store_filter_apply">適用</string>
+    <string name="theme_store_filter_reset">リセット</string>
+    <!-- My Themes Page -->
+    <string name="my_themes_title">マイテーマ</string>
+    <string name="my_themes_empty">テーマはまだありません</string>
+    <string name="my_themes_empty_action">テーマストアを参照</string>
+    <string name="my_themes_apply">テーマを適用</string>
+    <string name="my_themes_delete">テーマを削除</string>
+    <string name="my_themes_delete_confirm">このテーマを削除してもよろしいですか？</string>
+    <string name="my_themes_deleted">テーマを削除しました。</string>
+    <string name="my_themes_applied">テーマを適用しました。</string>
+    <string name="my_themes_apply_failed">テーマの適用に失敗しました — 長押しで削除して再ダウンロードしてください</string>
+    <!-- Download Dialog -->
+    <string name="theme_download_title">テーマをダウンロード中</string>
+    <string name="theme_download_completed">ダウンロード完了</string>
+    <string name="theme_download_failed">ダウンロード失敗</string>
+    <string name="theme_download_progress">進捗</string>
+    <string name="theme_download_file">テーマファイル</string>
+    <string name="theme_download_image">画像のプレビュー</string>
+    <string name="theme_download_cancel">キャンセル</string>
+    <string name="theme_download_pause">一時停止</string>
+    <string name="theme_download_apply">テーマを適用</string>
+    <string name="theme_download_go_to_my_themes">マイテーマ</string>
+    <string name="theme_download_finalizing">ファイナライズ中...</string>
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">権限が必要です</string>
+    <string name="file_picker_permission_desc">ファイルを参照するには「すべてのファイルへのアクセス」の権限を許可してください。</string>
+    <string name="file_picker_grant_permission">権限を許可</string>
+    <string name="file_picker_cancel">キャンセル</string>
+    <string name="file_picker_internal_storage">内部ストレージ</string>
+    <string name="file_picker_no_files">ファイルなし</string>
+    <string name="file_picker_filtered_files">%1$s 個のファイルを表示</string>
+    <string name="file_picker_close">ファイル選択を閉じる</string>
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">デバイスのステータス</string>
+    <string name="home_device_status_battery_temp">バッテリー温度</string>
+    <string name="home_device_status_cpu_load">CPU の負荷</string>
+    <string name="home_device_status_battery_level">バッテリーレベル</string>
+    <string name="home_storage_title">ストレージ</string>
+    <string name="home_storage_internal">内部ストレージ</string>
+    <string name="home_storage_ram">RAM</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">スワップファイル</string>
+    <string name="home_info_auth_auth">認証</string>
+    <string name="home_info_auth_na">N/A</string>
+    <string name="home_info_device_model">デバイスモデル</string>
+    <string name="settings_list_card_hide_status_badge">クラシックの絵文字を使用する</string>
+    <string name="settings_list_card_hide_status_badge_summary">ホームのステータスバッジにクラシックの絵文字を使用します。</string>
+    <string name="settings_list_info_show_icons">情報項目のアイコン</string>
+    <string name="settings_list_info_show_icons_summary">情報カードの各項目の横にアイコンを表示</string>
+    <string name="settings_custom_badge_text">カスタムバッジテキスト</string>
+    <string name="settings_custom_badge_text_summary">バッジのテキスト表示を変更します。</string>
+    <string name="settings_custom_badge_text_full_half">完全/一部 (デフォルト)</string>
+    <string name="settings_custom_badge_text_lkm">LKM</string>
+    <string name="settings_custom_badge_text_gki">GKI</string>
+    <string name="settings_custom_badge_text_n_gki">非 GKI</string>
+    <string name="settings_custom_badge_text_oki">OKI</string>
+    <string name="settings_custom_badge_text_built_in">内蔵</string>
+    <!-- Install Mode Select -->
+    <!-- SuperUser App Action Dialog -->
+
+    <!-- SU Audit Log -->
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">バッジカウントの設定</string>
+    <string name="enable_badge_count_summary">ナビゲーション項目のバッジカウント表示を設定します。</string>
+    <string name="settings_sound_effect">サウンド効果</string>
+    <string name="settings_sound_effect_summary">タップ時にサウンド効果を再生します。</string>
+    <string name="settings_sound_effect_enabled">有効</string>
+    <string name="settings_sound_effect_playing">選択済み: %s</string>
+    <string name="settings_sound_effect_source">サウンドソース</string>
+    <string name="settings_sound_effect_source_local">ローカルファイル</string>
+    <string name="settings_sound_effect_source_preset">プリセット</string>
+    <string name="settings_sound_effect_preset_title">プリセットのサウンド</string>
+    <string name="settings_select_sound_effect">サウンド効果を選択</string>
+    <string name="settings_sound_effect_selected">サウンド効果が選択されました。</string>
+    <string name="settings_sound_effect_scope">効果のスコープ</string>
+    <string name="settings_sound_effect_scope_global">グローバル (常に再生)</string>
+    <string name="settings_sound_effect_scope_bottom_bar">ボトムバーのみ</string>
+    <string name="settings_clear_sound_effect">サウンド効果を消去</string>
+    <string name="settings_clear_sound_effect_confirm">サウンド効果を消去してもよろしいですか？</string>
+    <string name="settings_sound_effect_cleared">サウンド効果を消去しました。</string>
+    <string name="settings_startup_sound">起動時のサウンド</string>
+    <string name="settings_startup_sound_summary">アプリの起動時にサウンドを再生します。</string>
+    <string name="settings_startup_sound_enabled">起動時のサウンドが有効化されています</string>
+    <string name="settings_startup_sound_playing">再生中: %s</string>
+    <string name="settings_select_startup_sound">起動時のサウンドを選択</string>
+    <string name="settings_startup_sound_selected">起動時のサウンドが選択されました。</string>
+    <string name="settings_clear_startup_sound">起動時のサウンドを消去</string>
+    <string name="settings_clear_startup_sound_confirm">起動時のサウンドを消去してもよろしいですか？</string>
+    <string name="settings_startup_sound_cleared">起動時のサウンドを消去しました。</string>
+    <string name="settings_vibration">振動フィードバック</string>
+    <string name="settings_vibration_summary">タッチイベント時に振動させます。</string>
+    <string name="settings_vibration_enabled">振動を有効化</string>
+    <string name="settings_vibration_intensity">振動の強さ</string>
+    <string name="settings_vibration_scope">振動スコープ</string>
+    <string name="settings_vibration_scope_global">グローバル (常に)</string>
+    <string name="settings_vibration_scope_bottom_bar">ボトムバーのみ</string>
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">バックアップ</string>
+    <string name="settings_enable_cloud_backup">クラウドバックアップを有効化する</string>
+    <string name="settings_enable_cloud_backup_summary">フラッシュされたモジュールをクラウドサービスに自動でバックアップします。</string>
+    <string name="settings_configure_webdav">WebDAV サービスを構成</string>
+    <string name="webdav_config_title">WebDAV の構成</string>
+    <string name="webdav_url">WebDAV の URL</string>
+    <string name="webdav_username">ユーザー名</string>
+    <string name="webdav_password">パスワード</string>
+    <string name="webdav_test_success">テストが成功しました。</string>
+    <string name="webdav_test_failed">テストに失敗: %s</string>
+    <string name="save">保存</string>
+    <string name="test">テスト</string>
+    <string name="webdav_path_label">パス (例:/Backup)</string>
+    <string name="webdav_view_logs">ログを表示</string>
+    <string name="webdav_backup_logs_title">ログをバックアップ</string>
+    <string name="webdav_no_logs">ログは見つかりません</string>
+    <string name="webdav_clear_logs">消去</string>
+    <string name="close">閉じる</string>
+    <string name="settings_predictive_back">予測バックジェスチャー</string>
+    <string name="settings_predictive_back_summary">Android 14+ の予測バックジェスチャーアニメーションを有効にする</string>
+
+    <string name="home_device_status_battery_charging">充電中</string>
+    <string name="home_device_status_cpu_temp">CPU 温度</string>
+    <string name="home_device_status_memory_trend">メモリ推移</string>
+    <string name="home_device_status_cpu_freq">CPU 周波数</string>
+    <string name="home_network_rx">ダウンロード</string>
+    <string name="home_network_tx">アップロード</string>
+    <string name="settings_home_layout_stats">統計UI</string>
+    <string name="home_device_status_gpu_load">GPU</string>
+
+
+
+    <string name="settings_search_title">設定を検索</string>
+    <string name="settings_search_empty_hint">すべての設定を検索するには入力してください…</string>
+    <string name="settings_no_results">結果が見つかりません</string>
+
+    <!-- Color Generation -->
+    <string name="color_generation_classic">クラシック</string>
+    <string name="color_generation_custom">カスタム</string>
+
+    <!-- Color Standard -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- Color Style -->
+    <string name="color_style_tonal_spot">トナルスポット</string>
+    <string name="color_style_vibrant">ビビッド</string>
+    <string name="color_style_content">コンテンツ</string>
+    <string name="color_style_expressive">エクスプレッシブ</string>
+    <string name="color_style_rainbow">レインボー</string>
+    <string name="color_style_fruit_salad">フルーツサラダ</string>
+    <string name="color_style_monochrome">モノクローム</string>
+    <string name="color_style_neutral">ニュートラル</string>
+    <string name="color_style_fidelity">フィデリティ</string>
+    <string name="settings_focus_card_background">FocusUI カード壁紙</string>
+    <string name="settings_focus_card_background_enabled">FocusUI カード壁紙が有効になりました。カードを長押しして壁紙を管理</string>
+    <string name="settings_focus_card_background_summary">FocusUI カード壁紙と長押し壁紙管理を有効化</string>
+    <string name="settings_focus_card_dual_dim">昼/夜デュアル調光を有効化</string>
+    <string name="settings_focus_card_dual_dim_desc">ライトテーマとダークテーマに応じてカード壁紙の暗さを自動調整</string>
+    <string name="settings_focus_card_day_dim">昼モードのカード壁紙の暗さ</string>
+    <string name="settings_focus_card_night_dim">夜モードのカード壁紙の暗さ</string>
+    <string name="settings_focus_card_opacity">カード壁紙の不透明度</string>
+    <string name="settings_focus_card_dual_opacity">昼/夜デュアル透明度を有効化</string>
+    <string name="settings_focus_card_dual_opacity_desc">ライトテーマとダークテーマに応じてカード壁紙の透明度を自動調整</string>
+    <string name="settings_focus_card_day_opacity">昼モードのカード壁紙の透明度</string>
+    <string name="settings_focus_card_night_opacity">夜モードのカード壁紙の透明度</string>
+    <string name="settings_focus_card_kernel">カーネルカード</string>
+    <string name="settings_focus_card_app">アプリカード</string>
+    <string name="settings_focus_card_device">デバイス状態カード</string>
+    <string name="settings_focus_card_storage">ストレージカード</string>
+    <string name="settings_focus_card_wallpaper_selected">壁紙を設定済み</string>
+    <string name="dashboard_card_background_title">ダッシュボードカード壁紙</string>
+    <string name="settings_dashboard_card_background">ダッシュボードカード壁紙</string>
+    <string name="settings_dashboard_card_background_enabled">ダッシュボード壁紙有効。カードを長押しして管理</string>
+    <string name="settings_dashboard_card_background_summary">DashboardUI ダッシュボードカードの壁紙を有効化</string>
+    <string name="dashboard_card_background_clear">ダッシュボード壁紙をクリア</string>
+    <string name="dashboard_card_background_clear_confirm">ダッシュボードカードの壁紙をクリアしてもよろしいですか？</string>
+    <string name="dashboard_card_background_saved">ダッシュボード壁紙を保存しました</string>
+    <string name="dashboard_card_background_error">ダッシュボード壁紙の保存に失敗</string>
+    <string name="dashboard_card_background_cleared">ダッシュボード壁紙をクリアしました</string>
+    <string name="dashboard_card_background_restore">デフォルトに戻す</string>
+    <string name="dashboard_card_background_restored">ダッシュボード壁紙を復元しました</string>
+    <string name="settings_dashboard_card_dual_dim">昼/夜デュアル調光を有効化</string>
+    <string name="settings_dashboard_card_dual_dim_desc">ライトテーマとダークテーマに応じてダッシュボード壁紙の暗さを自動調整</string>
+    <string name="settings_dashboard_card_day_dim">昼モードのダッシュボード壁紙の暗さ</string>
+    <string name="settings_dashboard_card_night_dim">夜モードのダッシュボード壁紙の暗さ</string>
+    <string name="settings_dashboard_card_opacity">ダッシュボード壁紙の不透明度</string>
+    <string name="settings_dashboard_card_dual_opacity">昼/夜デュアル透明度を有効化</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">ライトテーマとダークテーマに応じてダッシュボード壁紙の透明度を自動調整</string>
+    <string name="settings_dashboard_card_day_opacity">昼モードのダッシュボード壁紙の透明度</string>
+    <string name="settings_dashboard_card_night_opacity">夜モードのダッシュボード壁紙の透明度</string>
+    <string name="settings_title_image_permission_required">タイトル画像を選択するにはストレージ権限を許可してください</string>
+    <string name="settings_background_permission_required">背景画像を選択するにはストレージ権限を許可してください</string>
+    <string name="settings_sound_effect_save_failed">効果音の保存に失敗しました</string>
+    <string name="settings_startup_sound_save_failed">起動音の保存に失敗しました</string>
+    <string name="settings_info_copy">長押しで情報をコピー</string>
+    <string name="settings_info_copy_summary">ホーム画面の情報欄の項目を長押しすると内容をコピーできます。</string>
+    <string name="home_info_copied">%1$sをコピーしました。</string>
+</resources>

@@ -1,0 +1,823 @@
+// DSH-Folk host-capability prompt plugin (cordis / dsh plugin, single zero-dependency ESM file).
+//
+// Purpose: tell the agent inside the container that it runs on an Android host, which extra
+// commands that host provides (dsh-fs / dsh-native), and which capabilities are actually on
+// right now.
+//
+// Why systemPrompt.section instead of AGENTS.md:
+//   - A section registered in the global layer is visible to every agent preset, while the web
+//     profile disables the global agent-instructions row and mounts it per preset instead — so
+//     an AGENTS.md rule silently disappears when the user switches preset.
+//   - It lands in the system-prompt prefix: stable KV cache, no conversation-history cost, and
+//     nothing to re-inject after compaction.
+//   - `text` may be a provider function, so flipping a switch changes the very next assemble
+//     without restarting dsh.
+//
+// Why this text is English while the app UI is localized: every section dsh itself registers
+// (harness:identity, tool:read, tool:bash …) is English. A mixed-script system prompt nudges
+// the model's output language, which is not ours to decide — the user's language is passed as
+// a FACT below (`locale`) so the model can honour it deliberately.
+//
+// Facts come from /root/.dsh/host-facts.json, written by the app (DshHostPrompt.kt).
+// Reading a file rather than querying the bridge: a section text provider is synchronous, so
+// no HTTP can happen here.
+
+import { readFileSync, statSync } from 'node:fs';
+
+/** cordis plugin name. */
+export const name = 'dsh-folk-host';
+
+/** Only the prompt registry is needed. */
+export const inject = ['systemPrompt'];
+
+/** Host fact file; the app rewrites it on every relevant state change. */
+const FACTS_PATH = '/root/.dsh/host-facts.json';
+
+/** Section name and order: end of the tool-guidance band (100–199), after each tool's own text. */
+const SECTION_NAME = 'host:dsh-folk';
+const SECTION_ORDER = 165;
+
+/** Capability id -> model-facing usage. Ids match DshNativeBridge.Cap on the app side. */
+const CAP_USAGE = {
+  notify: [
+    'dsh-native notify <title> [body] [--id N] [--ongoing]  # post a notification; --id 0..999 to update/cancel later',
+    'dsh-native notify-cancel [--id N]                      # cancel one you posted',
+    'dsh-native notify-list [--limit N]                     # read active system notifications',
+    'dsh-native notify-dismiss <key>|--all                  # dismiss system notifications; full control',
+  ],
+  full_screen_notify: [
+    'dsh-native notify-full-screen <title> [body]            # urgent full-screen alert',
+  ],
+  toast: ['dsh-native toast <text>                                # brief on-screen message'],
+  vibrate: ['dsh-native vibrate [--ms N] [--amplitude 1..255]      # vibrate, 3000ms max'],
+  torch: ['dsh-native torch <on|off>                              # camera flash as a flashlight'],
+  clipboard: [
+    'dsh-native clip get                                    # read the clipboard (foreground only)',
+    'dsh-native clip set <text> [--label L]                 # write the clipboard',
+  ],
+  intent: [
+    'dsh-native share <text> [--title T]                    # bring up the system share sheet',
+    'dsh-native open <https URL>                            # hand a link to the system browser',
+    'dsh-native dial <number>                               # put a number in the dialer (user presses call)',
+  ],
+  device: ['dsh-native device                                      # model / Android version / battery'],
+  media: [
+    'dsh-native media list [--type image|video|audio] [--q name] [--limit N]',
+    'dsh-native media get <id> [--type image|video|audio]   # copies the file into /tmp, returns its path',
+  ],
+  mic: ['dsh-native mic record [--ms N]                         # record up to 30000ms into /tmp'],
+  camera: [
+    'dsh-native camera photo [--facing back|front] [--max N]  # no preview; copies a JPEG into /tmp',
+  ],
+  tts: [
+    'dsh-native tts say <text> [--lang zh-CN] [--rate 0.1..3] [--pitch 0.5..2]  # read aloud, waits until done',
+    'dsh-native tts file <text> [--lang L] [--rate 0.1..3] [--pitch 0.5..2]  # synthesise a wav into /tmp, returns its path',
+    'dsh-native tts voices                                  # which languages/voices this device can actually read',
+  ],
+  calendar: [
+    'dsh-native calendar list [--days N] [--limit N]        # upcoming events, repeats expanded',
+    'dsh-native calendar add <title> --start <epochMs> [--end <epochMs>] [--minutes N] [--location L] [--description D]',
+  ],
+  contacts: [
+    'dsh-native contacts list [--q name-or-number] [--limit N]  # names and numbers, read only',
+  ],
+  location: [
+    'dsh-native location [--maxAge ms] [--wait ms]          # cached fix first, GPS only if needed',
+  ],
+  phone: [
+    'dsh-native phone                                       # carrier / network type / SIM / call state',
+  ],
+  sensors: [
+    'dsh-native sensors list                                # which sensors this device has',
+    'dsh-native sensors read <id>                           # one sample, e.g. light, accelerometer',
+  ],
+  network: [
+    'dsh-native network                                     # transport, validated, metered, wifi signal',
+  ],
+  volume: [
+    'dsh-native volume                                      # every stream with its max',
+    'dsh-native volume set <0..100> [--stream music|ring|alarm|notification|call|system]',
+    'dsh-native ringer <normal|vibrate|silent>              # needs Do Not Disturb access',
+  ],
+  settings: [
+    'dsh-native settings                                    # brightness / timeout / auto-rotate',
+    'dsh-native settings brightness <1..100> [--auto 0|1]',
+    'dsh-native settings timeout <ms>',
+    'dsh-native settings rotation <0|1>',
+  ],
+  install: [
+    'dsh-native install                                     # may this device install unknown apps?',
+  ],
+  usage: [
+    'dsh-native usage list [--days N] [--limit N]           # recent app foreground usage',
+  ],
+  a11y: [
+    'dsh-native a11y tree [--depth N] [--max N]      # read the current screen as a node tree',
+    'dsh-native a11y click <text-or-id> [--class C] [--index N]   # tap that node',
+    'dsh-native a11y tap <x> <y> [--ms N]            # tap a coordinate from a tree you just read',
+    'dsh-native a11y swipe <x1> <y1> <x2> <y2> [--ms N]',
+    'dsh-native a11y text <text> [--target <text-or-id>]  # type into an editable field',
+    'dsh-native a11y global <back|home|recents|notifications|quick_settings|lock_screen|power_dialog>',
+    'dsh-native a11y screenshot                      # capture the current screen; copies a PNG into /tmp, returns its path',
+  ],
+  shell: [
+    'dsh-native shell [--su] [--timeout ms] [--] <command...>   # run through the privileged channel',
+    '    --reason <why> is required like everywhere else; put -- before a command that has its own --flags',
+  ],
+  sms: [
+    'dsh-native sms list [--limit N]                        # recent SMS, read only',
+    'dsh-native sms send <number> <text>                    # send an SMS',
+  ],
+};
+
+/** Per-capability caveats; only worth tokens while that capability is on. */
+const CAP_CAVEAT = {
+  notify:
+    'A notification interrupts the user. Post one when the task is genuinely done or genuinely ' +
+    'needs a human, never to report progress.',
+  full_screen_notify:
+    'This one needs two separate permissions and fails without either: POST_NOTIFICATIONS for the ' +
+    'notification itself, and (on Android 14+) the full-screen-intent permission, which only the ' +
+    'user can grant on a system settings page. On 409 no_android_permission / ' +
+    'no_full_screen_permission, say which one is missing and stop — it is not transient, and a ' +
+    'full-screen alert is intrusive enough that retrying is worse than not sending it.',
+  vibrate:
+    'Tablets and emulators often have no vibrator at all, in which case this reports ' +
+    'available:false with reason no_vibrator — that is a property of the device, not a transient ' +
+    'error, so do not retry. Vibration is silent feedback: it only reaches the user if the phone is ' +
+    'on them.',
+  torch:
+    'Not every device has a camera flash: tablets and some phones report available:false with ' +
+    'reason no_torch — a device property, not a transient error, so do not retry. It stays on until ' +
+    'you turn it off (nothing reverts it for the user), so pair every `torch on` with a later ' +
+    '`torch off` and say what you left it as.',
+  clipboard:
+    'Clipboard reads are subject to Android background limits: 409 not_foreground when the app is ' +
+    'not in the foreground. That is a state, not an error — do not retry.',
+  intent:
+    'Sharing, opening links and dialling all start an Activity, so they need the app in the ' +
+    'foreground; the background answer is 409 not_foreground. `dial` only fills the dialer — the ' +
+    'user still presses call — so it never places a call on its own.',
+  media:
+    'media get does NOT stream bytes back: it copies the file into the container and returns a path ' +
+    'under /tmp, which you then read with ordinary file tools. Media permission is per type on ' +
+    'Android 13+, so `granted` in the list response tells you which types you may actually read — ' +
+    'an absent type means "not permitted", not "no such files".',
+  mic:
+    'Recording needs the app in the foreground: in the background Android hands out SILENCE rather ' +
+    'than an error, so the host refuses with 409 not_foreground instead of returning a silent file. ' +
+    'Recording is a physically intrusive act — only do it when the user asked for it in this turn.',
+  camera:
+    'Like mic, the camera needs the app in the foreground (a background app gets a black frame) and ' +
+    'the photo lands in /tmp as a path, not as bytes. Taking a picture is physically intrusive — ' +
+    'only when the user asked in this turn.',
+  tts:
+    'The one capability that works in the background — that is its purpose: when the phone is in a ' +
+    'pocket, saying something out loud is the only way to reach the user. It uses whatever engine the ' +
+    'device has, so whether it can read a given language is a property of the device, not of the text: ' +
+    'check tts voices before assuming Chinese or any non-English language will be spoken correctly, ' +
+    'because setting an unsupported language silently falls back to the default voice and produces ' +
+    'gibberish. say waits until the utterance finishes, so do not fire two in a row expecting both to ' +
+    'be heard. Speaking is audible to everyone nearby, so keep it short and do not read out private ' +
+    'content unless the user asked for exactly that.',
+  calendar:
+    'Times are epoch MILLISECONDS in the device timezone. calendar add creates a real event the ' +
+    'user will see and get reminders for, so confirm the details before writing rather than ' +
+    'guessing a time. There is no delete endpoint: a wrong event has to be removed by hand.',
+  contacts:
+    'Read only, and it returns just names and numbers. Do not dump the whole address book into ' +
+    'your reasoning — pass --q and --limit to fetch only who you actually need.',
+  location:
+    'A cached fix is returned when recent enough (fresh:false says so); only otherwise is the GPS ' +
+    'woken, which can take tens of seconds indoors. precise:false means the user granted only ' +
+    'approximate location and the coordinates are deliberately blurred to a few kilometres — do ' +
+    'not present them as a street address.',
+  phone:
+    'Network environment only. There is no dialling, no SMS and no IMEI: Android does not hand ' +
+    'those to ordinary apps, and this host will not proxy them.',
+  sensors:
+    'One sample per call, not a stream. Most sensors need no permission; heart rate and step count ' +
+    'do, and the list response says which ones are missing a permission rather than hiding them ' +
+    'silently. proximity and light settle fast; expect a 409 read_timeout on sensors this device ' +
+    'only updates on change.',
+  network:
+    'validated:false with connected:true is the captive-portal case: associated but no real ' +
+    'internet. The bandwidth numbers are the system ESTIMATE, not a measurement — never report ' +
+    'them as a speed test. ssidHidden:true means location permission is missing, not that the ' +
+    'network has no name.',
+  volume:
+    'Percentages, because the number of steps differs per stream and per device; the raw value and ' +
+    'max come back in the response. Setting silent, or changing volume while Do Not Disturb is on, ' +
+    'needs Do Not Disturb access and fails with 403 no_dnd_access otherwise. Nothing restores the ' +
+    'previous level for the user — say what you changed.',
+  settings:
+    'Brightness is 1..100 (never 0 — a black screen is unrecoverable by hand). If autoBrightness ' +
+    'is still true in the response, the system will overwrite your value within seconds; pass ' +
+    '--auto 0 when you mean it to stick. These changes are global and permanent: report the ' +
+    'before/after values the response gives you.',
+  install:
+    'Status only — it installs nothing. Use it before suggesting the in-app update: when ' +
+    'canRequestInstall is false the download will succeed and the install will not.',
+  usage:
+    'Read only. Use --days and --limit to request the smallest useful window; foregroundMs is an ' +
+    'Android aggregate, not a live process timer.',
+  a11y:
+    'This acts on whatever the user is looking at, not on this app. Read the tree first, then ' +
+    'click by text or id rather than by coordinates: bounds are device specific. It needs the ' +
+    'user to turn on the DSH-Folk accessibility service (a SEPARATE switch from the one used ' +
+    'for boot autostart) and returns no_a11y_service until then. Secure windows (lock screen, ' +
+    'password fields) answer no_window — the system refusing, not a bug. Prefer click over tap: ' +
+    'a node click survives layout shifts. Do this only when the user asked for it in this ' +
+    'turn, and never drive the UI to work around a permission the user has not granted.',
+  shell:
+    'The host runs this for you through the channel the user picked (root / Shizuku / wireless ADB); ' +
+    'you never become root inside the container. Read-only commands need the read level, anything ' +
+    'that changes device state needs read+write, and how often you are asked depends on the ' +
+    'strictness the user chose (strict = every single call pops a dialog). Reasons such as ' +
+    'no_channel, adb_write_disabled, root_unavailable, root_lost, timeout, busy, denied_by_user ' +
+    'are states to report, not errors to retry. `dsh-native caps` lists the exact read-only ' +
+    'commands (and whether the channel is ready) — check it before assuming a command needs ' +
+    'permission, because under strict strictness a wrong guess costs the user a tap.',
+  sms:
+    'Read only. SMS bodies are private: use a small --limit and do not repeat unrelated messages.',
+};
+
+let cached = null;
+let cachedMtime = -1;
+
+/**
+ * Read the host facts, invalidating on mtime — flipping a switch in settings takes effect on the
+ * very next assemble.
+ * @returns {object|null} parsed facts, or null when unreadable/malformed.
+ */
+function readFacts() {
+  let mtime;
+  try {
+    mtime = statSync(FACTS_PATH).mtimeMs;
+  } catch {
+    cached = null;
+    cachedMtime = -1;
+    return null;
+  }
+  if (cached !== null && mtime === cachedMtime) return cached;
+  try {
+    const parsed = JSON.parse(readFileSync(FACTS_PATH, 'utf8'));
+    cached = typeof parsed === 'object' && parsed !== null ? parsed : null;
+  } catch {
+    cached = null;
+  }
+  cachedMtime = mtime;
+  return cached;
+}
+
+/** Non-empty string, or null. */
+function str(v) {
+  return typeof v === 'string' && v !== '' ? v : null;
+}
+
+/**
+ * Render the host-environment section.
+ * @param {object|null} f host facts.
+ * @returns {string} section text; empty string when it must not be injected (renderPrompt drops
+ *   empty sections, so that is a zero-cost off switch).
+ */
+function render(f) {
+  if (f === null || f.promptEnabled === false) return '';
+
+  const lines = [];
+  lines.push('# Host environment: DSH-Folk (Android)');
+  lines.push('');
+  lines.push(
+    'You are running inside DSH-Folk, an Android app: Ubuntu in a proot container on a phone, not a ' +
+      'server. There is no display and no systemd, and the container stops when Android kills the app.'
+  );
+
+  const env = [];
+  const version = str(f.appVersion);
+  const device = str(f.device);
+  const release = str(f.androidRelease);
+  const abi = str(f.abi);
+  const runtime = str(f.containerRuntime);
+  if (version !== null) env.push('DSH-Folk ' + version);
+  if (device !== null) env.push(device);
+  if (release !== null) {
+    env.push('Android ' + release + (typeof f.sdkInt === 'number' ? ' (API ' + f.sdkInt + ')' : ''));
+  }
+  if (abi !== null) env.push(abi);
+  if (runtime !== null) env.push('container ' + runtime);
+  if (env.length > 0) {
+    lines.push('');
+    lines.push('Environment: ' + env.join(' · '));
+  }
+
+  // The user's language is a fact, not a reason to translate this section.
+  const locale = str(f.locale);
+  if (locale !== null) {
+    lines.push('');
+    lines.push(
+      "The device language is " +
+        locale +
+        '. Reply in the language the user writes in, and localize anything you put on their screen ' +
+        '(notification and toast text goes to a phone set to ' +
+        locale +
+        ').'
+    );
+  }
+
+  // Shared storage: say up front that ordinary file tools already work, so the agent does not
+  // assume the bridge is mandatory.
+  lines.push('');
+  lines.push('## Shared storage');
+  lines.push('');
+  if (f.storageMounted !== true) {
+    lines.push(
+      "The phone's shared storage is currently NOT mounted (the Shared-storage switch is off), so " +
+        '`/sdcard` does not exist in the container and `dsh-fs` refuses every file endpoint with ' +
+        '`reason: "storage_off"`. You cannot read the user\u2019s phone files right now. If you need ' +
+        'them, tell the user ONCE to turn on **Settings \u203a Features \u203a Shared storage** (it takes ' +
+        'effect after dsh restarts), then carry on \u2014 do not retry in a loop.'
+    );
+  } else {
+    lines.push(
+      "The phone's shared storage is bind-mounted into the container \u2014 `/sdcard` and " +
+        '`/storage/emulated/0` are both it, and ordinary read/write/glob/grep and shell commands work ' +
+        'on it directly. Prefer those when you need to touch user files.'
+    );
+    const denied = Array.isArray(f.storageDenied)
+      ? f.storageDenied.filter((x) => typeof x === 'string' && x)
+      : [];
+    const allowed = Array.isArray(f.storageAllowed)
+      ? f.storageAllowed.filter((x) => typeof x === 'string' && x)
+      : [];
+    if (allowed.length > 0) {
+      lines.push('');
+      lines.push(
+        'Only these directories are mounted (an allow-list); everything else under /sdcard is ' +
+          'absent, not empty: ' +
+          allowed.join(', ') +
+          '.'
+      );
+    }
+    if (denied.length > 0) {
+      lines.push('');
+      lines.push(
+        'These directories are deliberately hidden and read as empty/absent \u2014 a privacy choice, ' +
+          'not an error, so do not retry or route around it: ' +
+          denied.join(', ') +
+          '. `dsh-fs` obeys the same masking and answers those paths with `reason: "no_access"` ' +
+          '(distinct from `bad_path` = a malformed path), so do not retry them. ' +
+          '(`dsh-native media` does NOT \u2014 it queries the system ' +
+          'media store, which is separate.)'
+      );
+    }
+
+    // Workspace mount: when the user has mapped phone storage into the workspace, tell the agent
+    // which paths those are, and that the write tool cannot publish there (no hardlinks on
+    // shared storage) — read/edit and shell redirection are the right tools for those files.
+    if (f.workspaceStorageMounted === true) {
+      const mappings = Array.isArray(f.workspaceStorageMappings)
+        ? f.workspaceStorageMappings
+            .map((m) => m && typeof m === 'object' ? m : null)
+            .filter(Boolean)
+        : [];
+      lines.push('');
+      lines.push('### Phone storage inside the workspace');
+      lines.push('');
+      if (mappings.length > 0) {
+        lines.push(
+          'The user has bind-mounted parts of the phone\u2019s shared storage into the workspace: ' +
+            mappings.map((m) => '`' + (m.src ? '/sdcard/' + m.src : '/sdcard') + '` \u2192 `/root/workspace/' + m.dest + '`').join(', ') +
+            '.'
+        );
+      }
+      if (f.storageHardlinkSupported === false) {
+        lines.push('');
+        lines.push(
+          'These mounted folders sit on shared storage (sdcardfs/FUSE), which has NO hard-link, symlink, or exec ' +
+            'bits. The dsh `write` tool publishes a file via a temp file plus an atomic link(), so writing inside ' +
+            'any of those folders FAILS with EINVAL. Do not retry `write` there and do not place node_modules, git ' +
+            'repos, or anything needing symlinks/exec bits in them. To create or change a file there, use the `edit` ' +
+            'tool (in-place) or a shell redirect (`cat > file …` / `printf … > file`), both of which work normally, ' +
+            'the same as `read` and `dsh-fs`.'
+        );
+      }
+    }
+    if (f.fsBridge === true) {
+      lines.push('');
+      lines.push(
+        'A `dsh-fs` command also goes through the host with a narrower, audited surface (every path ' +
+          'segment validated, symlinks cannot escape the root, same allow/deny masking as the mount). ' +
+          'It is easier for a few things:'
+      );
+      lines.push('');
+      lines.push('```');
+      lines.push("dsh-fs find . --glob '*.log' [--maxDepth N] [--limit N]   # budgeted recursive search");
+      lines.push('dsh-fs list [path] [--recursive] [--maxDepth N] [--limit N]');
+      lines.push('dsh-fs space [path]                                        # free space');
+      lines.push('dsh-fs read <path> [--offset N] [--length N]               # paged read, binary to stdout');
+      lines.push('dsh-fs write <localFile> [remotePath] [--append]           # replaces the target only once complete');
+      lines.push('dsh-fs stat|mkdir|rm [-r]|mv|cp <path…>');
+      lines.push('dsh-fs health');
+      lines.push('```');
+      lines.push('');
+      lines.push('All paths are relative to `/sdcard`. Check `dsh-fs space` before writing: full phones are normal.');
+    } else {
+      lines.push('');
+      lines.push(
+        'The `dsh-fs` command exists but every file endpoint currently answers 403 ' +
+          '(`reason: "no_storage"`): Android requires "All files access", which has not been granted. ' +
+          'The bind mount above may still be readable, so try ordinary file tools first. If they also ' +
+          'fail, tell the user once to grant it in **Settings \u203a Features \u203a Shared storage** and move on ' +
+          '— do not retry dsh-fs in a loop.'
+      );
+    }
+  }
+
+  // Native capabilities: list only what is genuinely on, and say what to do when it is not.
+  lines.push('');
+  lines.push('## Native capabilities (dsh-native)');
+  lines.push('');
+  const bridgeOn = f.nativeBridge === true;
+  const capAccess = f.nativeCaps && typeof f.nativeCaps === 'object' && !Array.isArray(f.nativeCaps)
+    ? f.nativeCaps
+    : Object.fromEntries((Array.isArray(f.nativeCaps) ? f.nativeCaps : []).map((c) => [c, 'read_write']));
+  const caps = Object.keys(capAccess);
+  const usable = caps.filter((c) => Object.prototype.hasOwnProperty.call(CAP_USAGE, c));
+
+  // 「仅本次」配额：一次调用，不是一项能力。单独渲染，且必须说明它会被用掉/过期。
+  const onceGrants =
+    f.nativeOnce && typeof f.nativeOnce === 'object' && !Array.isArray(f.nativeOnce)
+      ? Object.entries(f.nativeOnce).filter(([c, a]) => typeof a === 'string')
+      : [];
+  const elevateSeconds = typeof f.elevateTtlMs === 'number' ? Math.round(f.elevateTtlMs / 1000) : 60;
+  const onceMinutes =
+    typeof f.onceTtlMs === 'number' ? Math.max(1, Math.round(f.onceTtlMs / 60000)) : 3;
+
+  // 权限不够时不再是「先申请、再调用」：**能力调用本身就会阻塞着问用户**，用户批准后由 App 直接
+  // 执行这次调用并把真实结果还给 agent。这段话在三个分支里都要说，否则「能力没勾」那支会把 agent
+  // 赶去设置页，而它其实直接调那一次就行。
+  const elevateLines = () => {
+    const out = [];
+    out.push(
+      '**No access yet? Make the call anyway.** Such a call is not answered with a plain 403: the ' +
+        'host holds it open while a confirmation dialog appears **in the DSH-Folk app** and the user ' +
+        'decides — Allow (level sticks), Allow once (that one call only), Deny, or nothing at all for ' +
+        'about ' +
+        elevateSeconds +
+        ' seconds, which counts as a deny. Then it either **runs your command and returns the real ' +
+        'result**, or fails with `reason: "denied_by_user"` / `"request_expired"`. There is no second ' +
+        'call to make: do not file a request first, and do not repeat the call to "confirm".'
+    );
+    out.push('');
+    out.push(
+      'The dialog shows the command you are running, built from the call itself, so the user is judging ' +
+        'what you are about to do rather than an access level. Keep the flags in and the command ' +
+        'readable — that text is what they are reading.'
+    );
+    out.push('');
+    out.push('Two endings mean "the user said yes in the app, but the phone said no":');
+    out.push(
+      '- `no_android_permission` — Android itself still lacks the system permission. The user gets a ' +
+        'second dialog with a jump into system settings; the message names what is missing. Tell them ' +
+        'which permission it is and stop — do not retry in a loop, the next attempt asks again.'
+    );
+    out.push(
+      '- `not_foreground` (409) — nobody can see a dialog right now, so the call was refused instead of ' +
+        'hanging on a dialog that will never appear. Ask the user to bring the DSH-Folk app to the ' +
+        'front, then retry once.'
+    );
+    out.push('');
+    out.push(
+      'A blocked call is not a hung call: it can take up to about ' +
+        elevateSeconds +
+        ' seconds, and several minutes more if the user has to go grant an Android permission. Do not ' +
+        'fire the same call again meanwhile — only one request can wait at a time (409 ' +
+        '`request_pending`).'
+    );
+    out.push('');
+    out.push(
+      '`dsh-native elevate <cap> <read|write|read_write|control> --reason <why> [--command <cmd>]` still ' +
+        'exists for wanting a level raised **without running anything** (valid levels: `dsh-native caps` ' +
+        '→ `accessOptions`). It blocks the same way and answers with the decision itself: 200 with ' +
+        '`status: "allowed"` or `"once"`, or 403 `denied_by_user` / `request_expired`. A bare request ' +
+        'has no command to show, so pass `--command` — the exact command you will run afterwards, ' +
+        'multi-line fine, ~2000 characters max — or the user sees only this elevation call itself.'
+    );
+    out.push(
+      'A 200 with `status: "already_granted"` (or `"already_granted_once"`) means the level was already ' +
+        'there and nothing was asked: just make the call.'
+    );
+    out.push(
+      'After an **Allow once**, `dsh-native caps` shows `caps.<cap>.once`. It covers exactly one call, ' +
+        'is valid for about ' +
+        onceMinutes +
+        ' minutes, and only a call that actually reaches the device spends it — a failure caused by a ' +
+        'missing system permission leaves it armed.'
+    );
+    out.push(
+      'Never file a second request while one is being answered, and after a deny or an expiry do not ask ' +
+        'again for the same thing — say what you were blocked on and move on.'
+    );
+    return out;
+  };
+  if (!bridgeOn) {
+    lines.push(
+      '`dsh-native` can borrow the host to post notifications, show a toast, vibrate, toggle the ' +
+        'flashlight, use the ' +
+        'clipboard, open a share sheet or link, put a number in the dialer, read device info and ' +
+        'network state, read sensors, ' +
+        'read the media library, take a photo, record audio, speak text aloud, read location, ' +
+        'calendar and contacts, ' +
+        'and change volume or system settings — but the master switch is currently **off**, so ' +
+        'every call (including `elevate`) returns 403 `disabled`.'
+    );
+    lines.push('');
+    lines.push(
+      'If you need it, tell the user ONCE to open **Settings › Features › Native capabilities** and ' +
+        'turn on the master switch, then carry on with something else. Do not retry, and do not keep ' +
+        'asking. Once the master switch is on, a capability that is not ticked yet is still reachable: ' +
+        'call it and the host asks the user for you (see below).'
+    );
+    lines.push('');
+    lines.push(...elevateLines());
+  } else if (usable.length === 0) {
+    lines.push(
+      'The `dsh-native` master switch is **on**, but no individual capability is enabled yet. That is ' +
+        'not a dead end: call the capability you need and the host holds the call while the user is ' +
+        'asked (see below) — they can allow that one call without touching settings. Send them to ' +
+        '**Settings › Features › Native capabilities** only if they would rather enable it themselves. ' +
+        'Do not retry in a loop.'
+    );
+    lines.push('');
+    lines.push(...elevateLines());
+    lines.push('');
+    lines.push('```');
+    lines.push('dsh-native caps                                        # access, accessOptions, pending, once');
+    lines.push('dsh-native elevate <cap> <read|write|read_write|control> --reason <why> --command <cmd>');
+    lines.push('        # only to raise a level without running anything; a normal call asks by itself');
+    lines.push('```');
+  } else {
+    lines.push(
+      'These capabilities are **on** and can be called directly. On failure stderr carries a JSON ' +
+        '`reason` — read it and act on it rather than retrying blindly:'
+    );
+    lines.push('');
+    lines.push('```');
+    for (const cap of usable) {
+      const access = capAccess[cap];
+      for (const line of CAP_USAGE[cap]) {
+        const writeCommand = / notify |notify-cancel|notify-dismiss|notify-full-screen| clip set | calendar add | volume set | ringer | settings (brightness|timeout|rotation)| sms send | toast | vibrate | torch | share | open | dial | mic record | camera photo | tts (say|file)/.test(' ' + line);
+        const readCommand = /notify-list| clip get | calendar list | sms list | tts voices|a11y screenshot/.test(line);
+        if ((access === 'read_write') || (access === 'control') || (access === 'write' && writeCommand) ||
+            (access === 'read' && !writeCommand) || (!readCommand && !writeCommand)) lines.push(line);
+      }
+    }
+    lines.push('Every dsh-native capability call must include --reason <concrete purpose>; calls are audited.');
+    lines.push('dsh-native caps                                        # access, accessOptions, once, pending, lastElevation');
+    lines.push('dsh-native elevate <cap> <read|write|read_write|control> --reason <why> --command <cmd>');
+    lines.push('        # only to raise a level without running anything; a normal call asks by itself');
+    lines.push('```');
+
+    // 「仅本次」配额：只在真的存在时出现，且必须说清它是一次而不是一项。
+    if (onceGrants.length > 0) {
+      lines.push('');
+      lines.push(
+        'One-shot grant(s) currently armed — the user chose **Allow once**: ' +
+          onceGrants.map(([c, a]) => '`' + c + '` at `' + a + '`').join(', ') +
+          '. Exactly the next call of that capability goes through and then it reverts (the grant also dies ' +
+          'after about ' +
+          onceMinutes +
+          ' minutes). Make that one call now, and do not turn it into several writes. A call that fails ' +
+          'for a device reason — a missing system permission — does not spend the grant.'
+      );
+    }
+
+    const caveats = usable.map((c) => CAP_CAVEAT[c]).filter((x) => typeof x === 'string');
+    if (caveats.length > 0) {
+      lines.push('');
+      for (const c of caveats) lines.push('- ' + c);
+    }
+    const off = Object.keys(CAP_USAGE).filter((c) => !usable.includes(c));
+    if (off.length > 0) {
+      lines.push('');
+      lines.push(
+        'Not ticked yet: ' +
+          off.join(', ') +
+          '. Calling one of those is fine — the host will hold that call and ask the user (below). Send ' +
+          'them to Settings › Features › Native capabilities only if they would rather enable it there ' +
+          'themselves. Do not retry, and do not pressure the user.'
+      );
+    }
+    lines.push('');
+    lines.push(...elevateLines());
+
+    // Ticked but the OS permission is missing: the call fails, or worse, silently does nothing.
+    // Only the counter-intuitive ones get their own line — an ordinary 403 with a reason is
+    // self-explanatory and does not need prompt real estate.
+    if (usable.includes('notify') && f.notificationPermission === false) {
+      lines.push('');
+      lines.push(
+        'Note: the system notification permission is NOT granted, so `notify` returns success while ' +
+          'the user sees nothing. Ask them to grant notifications first.'
+      );
+    }
+    if (usable.includes('location') && f.preciseLocation === false) {
+      lines.push('');
+      lines.push(
+        'Note: only APPROXIMATE location is granted. Coordinates come back deliberately blurred to ' +
+          'a few kilometres — usable for a city, not for an address. Do not ask for the precise ' +
+          'permission repeatedly; many people grant this on purpose.'
+      );
+    }
+    if (usable.includes('settings') && f.writeSettings === false) {
+      lines.push('');
+      lines.push(
+        'Note: "Modify system settings" is NOT granted, so every settings write returns 403 ' +
+          '(`reason: "no_write_settings"`). It cannot be requested from code — only the user can ' +
+          'grant it on a system page. Say so once and move on.'
+      );
+    }
+    if (usable.includes('volume') && f.dndAccess === false) {
+      lines.push('');
+      lines.push(
+        'Note: Do Not Disturb access is NOT granted. Reading volume works; setting silent/vibrate, ' +
+          'and changing volume while DND is on, return 403 (`reason: "no_dnd_access"`).'
+      );
+    }
+    if (usable.includes('install') && f.canRequestInstall === false) {
+      lines.push('');
+      lines.push(
+        'Note: this device does not currently allow installing unknown apps, so an in-app update ' +
+          'would download fine and then fail to install.'
+      );
+    }
+    if (usable.includes('media')) {
+      const granted = Array.isArray(f.mediaPermissions)
+        ? f.mediaPermissions.filter((t) => typeof t === 'string')
+        : [];
+      lines.push('');
+      if (granted.length === 0) {
+        lines.push(
+          'Note: no media read permission is granted, so every `media` call returns 403 ' +
+            '(`reason: "no_media_permission"`). Ask the user to grant it, once.'
+        );
+      } else if (granted.length < 3) {
+        lines.push(
+          'Media permission is granted for ' +
+            granted.join(', ') +
+            ' only; the other types answer 403 (`reason: "no_media_permission"`). That means ' +
+            '"not permitted", not "nothing found".'
+        );
+      }
+    }
+    if (usable.includes('mic') && f.microphonePermission === false) {
+      lines.push('');
+      lines.push(
+        'Note: the microphone permission is NOT granted, so `mic record` returns 409 ' +
+          '(`reason: "no_audio_permission"`). Ask the user to grant it, once.'
+      );
+    }
+  }
+
+  // Elevation decides whether shell commands can succeed at all, so it earns its own line.
+  // Privilege is only mentioned when there IS a channel. Saying "there is a privileged channel
+  // and it is off" makes the model suggest a fix the user may not even be able to apply (no root,
+  // no Shizuku, no wireless debugging on that device) — so when nothing is detected, stay quiet.
+  const elevation = f.elevation && typeof f.elevation === 'object' ? f.elevation : null;
+  if (elevation !== null) {
+    const uid = Number(elevation.uid);
+    const canRoot = elevation.canRoot === true;
+    // ready=false 是「用户选了这条通道，但还差一步」：root 没验过、Shizuku 没授权、
+    // ADB 没配对。这种状态以前整段消失，于是 agent 以为设备上根本没有提权途径 ——
+    // 而用户明明刚开过。现在照旧渲染，只是换成「先让用户补上那一步」的说法。
+    const ready = elevation.ready !== false;
+    const reason = str(elevation.reason);
+    lines.push('');
+    lines.push('## Privileged channel');
+    lines.push('');
+    if (!ready) {
+      const askTail =
+        'Ask for it ONCE, in one sentence, and say what you would use it for. Until then, either ' +
+        'work without privilege or tell the user what is blocked. Do not retry the same privileged ' +
+        'call hoping for a different answer.';
+      const justTryTail =
+        'So: try the call you actually need (one meaningful command, not a loop). Only mention ' +
+        'privilege to the user if the call fails — and then say what you could not do, not "please ' +
+        'enable root". Do not retry the same call hoping for a different answer.';
+      // 三条原因要分开讲：root 那条根本不需要用户先做什么（授权过就是静默的，没授权过
+      // 第一次调用会自己弹系统框），把这种用户支使去设置页只会让他觉得你没搞懂。
+      const howTo =
+        reason === 'root_unverified'
+          ? 'su is present and **the app verifies it by itself**, so you do NOT need to send the ' +
+            'user anywhere: just make the call. If this app has never been granted root, that ' +
+            'first call is what triggers the system su prompt (the user taps Allow once and it ' +
+            'works from then on). If it comes back root_lost, the grant was refused — say so and ' +
+            'let the user decide, do not retry.'
+          : reason === 'shizuku_unauthorized'
+            ? 'This one needs the user: ask them to grant this app permission in Shizuku (the ' +
+              'permission card in Settings › Security has the button that opens it).'
+            : reason === 'adb_unpaired'
+              ? 'This one needs the user: ask them to finish the wireless-ADB pairing.'
+              : 'This one needs the user to finish enabling the channel.';
+      lines.push(
+        'The user has SELECTED a privileged channel — **' +
+          str(elevation.channel) +
+          '** — but it is not ready yet (`reason: "' +
+          reason +
+          '"`). ' +
+          howTo +
+          ' ' +
+          (reason === 'root_unverified' ? justTryTail : askTail)
+      );
+      lines.push('');
+    }
+    lines.push(
+      (ready
+        ? 'The user has a privileged channel enabled: **' + str(elevation.channel) + '**. '
+        : 'Once it is usable, the channel is **' + str(elevation.channel) + '**: ') +
+        'Run privileged commands with `dsh-native shell [--su] -- <command>` — the host runs ' +
+        'them for you through that channel. You do NOT get it inside the container: `su` here is ' +
+        'still proot pretending, so never use bare `su` and never assume you are root.'
+    );
+    lines.push('');
+    if (str(elevation.fellBackFrom)) {
+      lines.push(
+        'The user asked for **' +
+          str(elevation.fellBackFrom) +
+          '**, but that is not usable right now, so calls go through **' +
+          str(elevation.channel) +
+          '** instead. Do not describe the fallback as what the user chose; if the difference ' +
+          'matters for the task (root-only paths such as /data), say what is missing.'
+      );
+      lines.push('');
+    }
+    lines.push(
+      (ready ? 'Identity you get: ' : 'Identity you would get: ') +
+        (uid === 0
+          ? 'uid 0 (full Android privilege).'
+          : 'uid ' +
+            uid +
+            ' (the shell user), which can read most system state and change device settings but ' +
+            'cannot touch other apps\u2019 data. ' +
+            (canRoot
+              ? '`--su` escalates to uid 0 on this channel.'
+              : '`--su` is NOT available on this channel — do not ask for it.')) +
+        ' Read-only commands run as-is; anything that changes device state needs the write level.'
+    );
+    lines.push('');
+    const strictness = str(f.privStrictness) || 'strict';
+    if (!ready) {
+      // 还没就绪，讲弹窗频率只会让 agent 以为现在就能调
+    } else if (strictness === 'strict') {
+      lines.push(
+        'Strictness is **strict**: EVERY privileged call opens a confirmation dialog that the user ' +
+          'must answer (allow once / deny), even for `getprop`. So batch your work into as few, as ' +
+          'meaningful calls as possible, and never fire a loop of small commands — each one costs ' +
+          'the user a tap. If the user denies or the dialog times out, stop and say what you could ' +
+          'not do; do not retry the same command.'
+      );
+    } else if (strictness === 'normal') {
+      lines.push(
+        'Strictness is **normal**: read-only commands run without asking; anything that changes ' +
+          'device state opens a confirmation dialog first.'
+      );
+    } else {
+      lines.push(
+        'Strictness is **loose**: commands within the granted level run without asking; only ' +
+          'dangerous ones (uninstall, reboot, wiping data, typing into text fields) ask first.'
+      );
+    }
+    lines.push('');
+    lines.push(
+        'Failures carry a machine-readable reason: no_channel (the user turned the channel off), ' +
+        'root_unverified / shizuku_unauthorized / adb_unpaired (the user selected a channel but has ' +
+        'not finished enabling it — ask once, see above), ' +
+        'adb_write_disabled / adb_root_disabled (a switch for the wireless-ADB channel is off), ' +
+        'root_unavailable (this channel cannot be root), root_lost / channel_lost (the channel ' +
+        'went away — tell the user to refresh permissions), timeout (504, dropped), busy (429, ' +
+        'another privileged command is still running), denied_by_user / request_expired. All of ' +
+        'those are STATES, not transient errors: report them, do not retry in a loop.'
+    );
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Register the host-environment section.
+ * @param {import('@deepseek-ai/cordis').Context} ctx context carrying the systemPrompt service.
+ */
+export function apply(ctx) {
+  ctx.effect(
+    () =>
+      ctx.systemPrompt.section({
+        name: SECTION_NAME,
+        order: SECTION_ORDER,
+        text: () => render(readFacts()),
+      }),
+    'dsh-folk-host.section()'
+  );
+}
+
+// Exposed for the host-side equivalence tests (does not affect plugin loading).
+export const __test = { render, CAP_USAGE, CAP_CAVEAT, FACTS_PATH, SECTION_NAME, SECTION_ORDER };

@@ -1,0 +1,675 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">اسم تطبيق سطح المكتب</string>
+
+    <string name="home">الرئيسية</string>
+
+    <string name="failure">فشل</string>
+
+
+
+    <string name="settings_nav_layout_title">إعدادات تخطيط التنقل</string>
+    <string name="settings_nav_layout_summary">إخفاء أو إظهار بعض مكونات التنقل</string>
+    <string name="settings_nav_scheme">مخطط التنقل</string>
+    <string name="settings_nav_mode_auto">تلقائي تقليدي</string>
+    <string name="settings_nav_mode_bottom">شريط سفلي دائمًا</string>
+    <string name="settings_nav_mode_rail">شريط جانبي دائمًا</string>
+    <string name="settings_nav_mode_floating">شريط سفلي عائم</string>
+    <string name="settings_floating_auto_hide">إخفاء تلقائي</string>
+    <string name="settings_floating_auto_hide_summary">إخفاء الشريط العائم تلقائيًا بعد 3 ثوانٍ بدون تفاعل</string>
+    <string name="settings_floating_swipe_hide">إخفاء بالتمرير</string>
+    <string name="settings_floating_swipe_hide_summary">إخفاء الشريط عند التمرير لأسفل، إظهاره عند التمرير لأعلى</string>
+    <string name="settings_navbar_glass_effect">تأثير الزجاج المصنفر</string>
+    <string name="settings_navbar_glass_effect_summary">تطبيق تأثير الزجاج المصنفر على شريط التنقل العائم</string>
+    <string name="settings_navbar_glass_blur_strength">قوة التمويه</string>
+    <string name="settings_navbar_glass_transparency">شفافية الخلفية</string>
+    <string name="settings_navbar_glass_highlight_strength">شدة التمييز</string>
+    <string name="settings_navbar_glass_specular">انعكاس مرآوي</string>
+    <string name="settings_navbar_glass_specular_summary">تفعيل تمييز يشبه المرآة في أعلى شريط التنقل</string>
+    <string name="settings_navbar_glass_inner_glow">توهج داخلي</string>
+    <string name="settings_navbar_glass_inner_glow_summary">تفعيل تأثير توهج خفيف في أسفل شريط التنقل</string>
+    <string name="settings_navbar_glass_border">إطار زجاجي</string>
+    <string name="settings_navbar_glass_border_summary">تفعيل إطار خفيف حول شريط التنقل</string>
+    <string name="settings_compact_rounded_bar">نمط دائري مدمج</string>
+    <string name="settings_compact_rounded_bar_summary">استخدام شريط عائم مدمج مع زوايا دائرية وتباعد أقل</string>
+    <string name="settings_stats_top_layout">تخطيط علوي</string>
+    <string name="settings_stats_top_layout_list">قائمة</string>
+    <string name="settings_stats_top_layout_grid">شبكة</string>
+
+    <string name="reboot">إعادة التشغيل</string>
+    <string name="settings">الإعدادات</string>
+    <string name="reboot_recovery">إعادة التشغيل إلى الريكفري</string>
+    <string name="reboot_bootloader">إعادة التشغيل إلى البوتلودر</string>
+    <string name="reboot_download">إعادة التشغيل إلى وضع التنزيل</string>
+    <string name="reboot_edl">إعادة التشغيل إلى وضع EDL</string>
+    <string name="reboot_fastbootd">إعادة التشغيل إلى وضع FastbootD</string>
+    <string name="about">حول</string>
+    <string name="developer_and_maintainer">المطور | المشرف</string>
+    <string name="settings_app_language">اللغة</string>
+    <string name="system_default">افتراضي النظام</string>
+    <string name="settings_grid_working_card_hide_check">إخفاء أيقونة الحالة</string>
+    <string name="settings_grid_working_card_hide_check_summary">إخفاء علامة الصح أو أيقونة التحذير في بطاقة الحالة</string>
+    <string name="settings_grid_working_card_hide_text">إخفاء نص الحالة</string>
+    <string name="settings_grid_working_card_hide_text_summary">إخفاء نص "يعمل" أو "غير مثبت" في بطاقة الحالة</string>
+    <string name="settings_grid_working_card_hide_mode">إخفاء وضع العمل</string>
+    <string name="settings_grid_working_card_hide_mode_summary">إخفاء نص "كامل" أو "نصف" في بطاقة الحالة</string>
+
+    <string name="settings_folkx_engine_title">محرك FolkX للرسوم المتحركة</string>
+    <string name="settings_folkx_engine_summary">استخدام رسوم متحركة زنبركية سلسة قائمة على الفيزياء عند التبديل بين الصفحات الرئيسية</string>
+    <string name="settings_folkx_animation_type">نوع الرسوم المتحركة</string>
+    <string name="settings_folkx_animation_speed">سرعة الرسوم المتحركة</string>
+    <string name="settings_folkx_animation_linear">حركة خطية</string>
+    <string name="settings_folkx_animation_spatial">حركة مكانية</string>
+    <string name="settings_folkx_animation_fade">تلاشي للداخل/للخارج</string>
+    <string name="settings_folkx_animation_vertical">انزلاق عمودي</string>
+    <string name="settings_folkx_animation_diagonal">انزلاق قطري</string>
+
+
+    <!-- SuperUser App Action Dialog -->
+
+    <!-- SU Audit Log -->
+
+
+    <string name="send_log">إرسال السجلات</string>
+    <string name="settings_clean_storage">تنظيف بيانات التطبيق</string>
+    <string name="settings_clean_storage_summary">إصلاح فشل التنزيل أو التطبيق الناتج عن الملفات المتبقية</string>
+    <string name="settings_clean_storage_confirm">سيؤدي هذا إلى حذف السمات التي تم تنزيلها والموسيقى المستوردة والمؤثرات الصوتية وجميع ملفات التخزين المؤقت، ثم إعادة إنشاء المجلدات. سيتم الاحتفاظ بالإعدادات. هل تريد المتابعة؟</string>
+    <string name="settings_clean_storage_done">اكتمل التنظيف</string>
+    <string name="github">GitHub</string>
+
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">إصدار النواة</string>
+    <string name="home_fingerprint">البصمة الرقمية</string>
+
+    <string name="home_selinux_status">حالة SELinux</string>
+    <string name="home_selinux_status_disabled">معطل</string>
+    <string name="home_selinux_status_enforcing">مفروض</string>
+    <string name="home_selinux_status_permissive">متساهل</string>
+    <string name="home_selinux_status_unknown">غير معروف</string>
+
+
+    <string name="home_device_info">الجهاز</string>
+    <string name="home_system_version">إصدار النظام</string>
+
+
+
+    <string name="apm_remove">إزالة</string>
+    <string name="apm_update">تحديث</string>
+
+
+
+    <string name="enable_web_debugging">تمكين تصحيح أخطاء WebView</string>
+    <string name="enable_web_debugging_summary">يمكن استخدامه لتصحيح أخطاء واجهة المستخدم الرسومية للويب. يرجى تمكينه عند الحاجة فقط.</string>
+    <string name="apm_enable_module_banner">تمكين لافتة الوحدة</string>
+    <string name="apm_enable_module_banner_summary">عرض صورة اللافتة للوحدات إذا كانت متوفرة</string>
+    <string name="apm_enable_folk_banner">تخصيص لافتة الوحدة</string>
+    <string name="apm_enable_folk_banner_summary">اضغط مطولًا على بطاقة الوحدة لاختيار صورة اللافتة</string>
+    <string name="apm_banner_api_mode">وضع API</string>
+    <string name="apm_banner_api_mode_summary">استخدام API للصور العشوائية أو دليل محلي للافتات الوحدات</string>
+    <string name="apm_banner_api_source">تكوين مصدر API</string>
+    <string name="apm_banner_api_source_hint">أدخل عنوان API أو المسار المحلي</string>
+    <string name="apm_banner_api_source_saved">تم حفظ مصدر API</string>
+    <string name="apm_banner_api_source_not_configured">غير مكوّن</string>
+    <string name="apm_banner_api_url_configured">عنوان API مكوّن</string>
+    <string name="apm_banner_local_dir_configured">الدليل المحلي مكوّن</string>
+    <string name="apm_banner_clear_cache">مسح ذاكرة التخزين المؤقت</string>
+    <string name="apm_banner_cache_cleared">تم مسح ذاكرة التخزين المؤقت للافتات</string>
+    <string name="apm_banner_api_config_title">تكوين مصدر API</string>
+    <string name="apm_banner_api_config_desc">أدخل عنوان API للصور العشوائية أو مسار دليل محلي. ستتلقى كل وحدة لافتة فريدة.</string>
+    <string name="apm_banner_api_examples_title">أمثلة:</string>
+    <string name="apm_banner_api_examples">API: https://picsum.photos/800/400\nمحلي: /sdcard/Pictures/Banners</string>
+    <!-- سوق واجهة برمجة التطبيقات -->
+    <string name="apm_api_marketplace_title">سوق واجهة برمجة التطبيقات</string>
+    <string name="apm_api_preview">معاينة</string>
+    <string name="apm_api_apply">تطبيق</string>
+    <string name="apm_api_preview_title">معاينة واجهة برمجة التطبيقات</string>
+    <string name="apm_api_preview_failed">فشل تحميل المعاينة</string>
+    <string name="apm_api_url_label">عنوان واجهة برمجة التطبيقات:</string>
+    <string name="apm_api_apply_success">تم تطبيق مصدر واجهة برمجة التطبيقات بنجاح</string>
+    <string name="apm_api_verifying">جاري التحقق…</string>
+    <string name="apm_api_retry">إعادة المحاولة</string>
+    <string name="apm_api_empty">لا تتوفر مصادر واجهة برمجة التطبيقات</string>
+    <string name="settings_banner_custom_opacity">عتامة اللافتة</string>
+    <string name="settings_banner_custom_opacity_summary">استخدام عتامة مخصصة لللافتات بدلاً من اتباع وضع خلفية الشاشة</string>
+    <string name="settings_banner_opacity">شفافية اللافتة</string>
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">ملاحظات أو اقتراحات</string>
+    <string name="home_more_menu_about">حول</string>
+
+    <string name="home_more_menu_music_play">تشغيل الموسيقى</string>
+    <string name="home_more_menu_music_pause">إيقاف الموسيقى مؤقتًا</string>
+
+    <!-- Plugin strings -->
+
+    
+
+    
+    
+
+    <string name="amber_theme">عنبري</string>
+    <string name="blue_theme">أزرق</string>
+    <string name="blue_grey_theme">أزرق رمادي</string>
+    <string name="brown_theme">بني</string>
+    <string name="cyan_theme">سماوي</string>
+    <string name="deep_orange_theme">برتقالي داكن</string>
+    <string name="deep_purple_theme">أرجواني داكن</string>
+    <string name="green_theme">أخضر</string>
+    <string name="indigo_theme">نيلي</string>
+    <string name="light_blue_theme">أزرق فاتح</string>
+    <string name="light_green_theme">أخضر فاتح</string>
+    <string name="lime_theme">ليموني</string>
+    <string name="orange_theme">برتقالي</string>
+    <string name="pink_theme">وردي</string>
+    <string name="purple_theme">أرجواني</string>
+    <string name="red_theme">أحمر</string>
+    <string name="sakura_theme">ساكورا</string>
+    <string name="teal_theme">أزرق مخضر</string>
+    <string name="yellow_theme">أصفر</string>
+    <string name="theme_color">لون السمة</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="theme_system">النظام</string>
+    <string name="loading_themes">جارٍ تحميل السمات…</string>
+    <string name="loading_apis">جارٍ تحميل مصادر واجهة برمجة التطبيقات…</string>
+    <string name="retry">إعادة المحاولة</string>
+
+    <string name="about_powered_by">مدعوم من %1$s</string>
+    
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">تقرير التعطل</string>
+    <string name="crash_handle_copy">نسخ</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">إصدار التطبيق: %s</string>
+    <string name="about_github">GitHub</string>
+
+    <string name="settings_app_dpi">DPI التطبيق</string>
+    <string name="dpi_apply_settings">تطبيق</string>
+    <string name="settings_alt_icon">أيقونة بديلة</string>
+    <string name="alt_icon_summary">استخدم أيقونة المشغل البديلة</string>
+
+<string name="settings_app_title">عنوان التطبيق</string>
+    <string name="app_title_custom">مخصص</string>
+    <string name="settings_custom_app_title">تعيين اسم التطبيق</string>
+    <string name="custom_app_title_dialog_title">اسم التطبيق المخصص</string>
+    <string name="custom_app_title_dialog_hint">أدخل اسم التطبيق</string>
+    <string name="custom_app_title_dialog_confirm">تأكيد</string>
+    <string name="cancel">إلغاء</string>
+    <string name="settings_custom_background">خلفية مخصصة</string>
+    <string name="settings_custom_background_enabled">تمكين الخلفية المخصصة</string>
+    <string name="settings_custom_background_opacity">شفافية البطاقة</string>
+    <string name="settings_custom_background_blur">تمويه الخلفية</string>
+    <string name="settings_custom_background_dim">تعتيم الخلفية</string>
+    <string name="settings_custom_background_dual_dim">تمكين تعتيم مزدوج لليوم/الليل</string>
+    <string name="settings_custom_background_dual_dim_desc">ضبط تعتيم الخلفية تلقائيًا للسمات الفاتحة والداكنة</string>
+    <string name="settings_custom_background_day_dim">تعتيم الخلفية في وضع النهار</string>
+    <string name="settings_custom_background_night_dim">تعتيم الخلفية في وضع الليل</string>
+    <string name="settings_multi_background_mode">وضع الخلفيات المتعددة</string>
+    <string name="settings_multi_background_mode_summary">تعيين صور خلفية مختلفة لصفحات مختلفة</string>
+    <string name="settings_select_home_background">خلفية الصفحة الرئيسية</string>
+    <string name="settings_select_settings_background">خلفية الإعدادات</string>
+
+    <string name="settings_advanced_title_style">نمط العنوان المتقدم</string>
+    <string name="settings_advanced_title_style_summary">استبدال العنوان العلوي بصورة مخصصة</string>
+    <string name="settings_advanced_title_style_enabled">تمكين نمط العنوان المتقدم</string>
+    <string name="settings_select_title_image">تحديد صورة العنوان</string>
+    <string name="settings_title_image_selected">تم تحديد صورة العنوان</string>
+    <string name="settings_title_image_saved">تم حفظ صورة العنوان بنجاح</string>
+    <string name="settings_title_image_error">فشل حفظ صورة العنوان</string>
+    <string name="settings_clear_title_image">مسح صورة العنوان</string>
+    <string name="settings_clear_title_image_confirm">هل أنت متأكد من أنك تريد مسح صورة العنوان؟</string>
+    <string name="settings_title_image_cleared">تم مسح صورة العنوان</string>
+    <string name="settings_title_image_day_opacity">شفافية وضع النهار</string>
+    <string name="settings_title_image_night_opacity">شفافية وضع الليل</string>
+    <string name="settings_title_image_dim">تعتيم الخلفية</string>
+    <string name="settings_title_image_offset_x">الموضع الأفقي</string>
+
+
+    <!-- Font Settings -->
+    <string name="settings_custom_font">خط مخصص</string>
+    <string name="settings_select_font_file">تحديد ملف الخط</string>
+    <string name="settings_custom_font_enabled">تمكين الخط المخصص</string>
+    <string name="settings_custom_font_summary">استخدام خط TTF مخصص للتطبيق</string>
+    <string name="settings_font_selected">تم تحديد الخط المخصص</string>
+    <string name="settings_custom_font_error">فشل حفظ ملف الخط</string>
+    <string name="settings_custom_font_saved">تم حفظ الخط المخصص بنجاح</string>
+    <string name="settings_clear_font">استعادة الخط الافتراضي</string>
+    <string name="settings_clear_font_confirm">هل أنت متأكد من أنك تريد استعادة الخط الافتراضي؟</string>
+    <string name="settings_font_cleared">تمت استعادة الخط الافتراضي</string>
+    <string name="settings_select_background_image">تحديد صورة الخلفية</string>
+    <string name="settings_custom_background_summary">تعيين صورة خلفية مخصصة</string>
+    <string name="settings_custom_background_saved">تم حفظ الخلفية بنجاح</string>
+    <string name="settings_custom_background_error">فشل حفظ الخلفية</string>
+    <string name="settings_crop_not_supported">القص غير مدعوم على هذا الجهاز، يتم حفظ الصورة الأصلية</string>
+    <string name="settings_crop_dialog_title">قص الخلفية</string>
+    <string name="settings_crop_dialog_message">هل تريد قص الصورة؟</string>
+    <string name="settings_crop_dialog_crop">نعم</string>
+    <string name="settings_crop_dialog_direct">لا</string>
+    <string name="settings_background_selected">تم تحديد الخلفية</string>
+    <string name="settings_background_image_cleared">تم مسح صورة الخلفية</string>
+    <string name="settings_clear_background">مسح الخلفية</string>
+    <string name="settings_clear_background_confirm">هل أنت متأكد من أنك تريد مسح صورة الخلفية؟</string>
+
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">خلفية الفيديو</string>
+    <string name="settings_video_background_summary">استخدام فيديو كخلفية</string>
+    <string name="settings_select_video">تحديد فيديو</string>
+    <string name="settings_video_selected">تم تحديد الفيديو</string>
+    <string name="settings_clear_video_background">مسح خلفية الفيديو</string>
+    <string name="settings_clear_video_background_confirm">هل أنت متأكد من أنك تريد مسح خلفية الفيديو؟</string>
+    <string name="settings_video_volume">مستوى صوت الفيديو</string>
+    
+    <!-- KPM AutoLoad Strings -->
+
+    
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">مرحباً بك في FolkPatch</string>
+    <string name="welcome_desc_1">مدير Root عالي التخصيص وسهل الاستخدام مبني على KernelPatch. اجعل جهازك ملكك حقاً.</string>
+    <string name="welcome_title_2">تخصيص كامل</string>
+    <string name="welcome_desc_2">خصص كل شيء — الألوان والخلفيات والخطوط والأصوات وحتى الاهتزازات. تصفح متجر السمات لاكتشاف المزيد!</string>
+    <string name="welcome_title_3">التحكم في النواة</string>
+    <string name="welcome_desc_3">الوصول إلى ميزات النواة المتقدمة بنقرة واحدة. افتح الإعدادات وانقر على أيقونة الضبط لفتح FolkPatch Hide و Umount و Path Hide.</string>
+    <string name="welcome_title_4">جاهز للانطلاق</string>
+    <string name="welcome_desc_4">أنت جاهز! ابدأ في استكشاف أكثر تجارب Root مرونة. استمتع!</string>
+    <string name="welcome_prev">السابق</string>
+    <string name="welcome_next">التالي</string>
+    <string name="welcome_skip">تخطي</string>
+    <string name="welcome_got_it">ابدأ</string>
+
+
+    
+
+    <!-- Hide Settings Strings -->
+    <string name="home_hide_fingerprint">إخفاء البصمة الرقمية</string>
+    <string name="home_hide_fingerprint_summary">إخفاء البصمة الرقمية في بطاقة المعلومات</string>
+
+    
+    
+    <!-- Auto Backup Strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">نمط تخطيط الشاشة الرئيسية</string>
+    <string name="settings_home_layout_default">واجهة قائمة</string>
+    <string name="settings_home_layout_grid">واجهة شبكة</string>
+    <string name="settings_home_layout_focus">واجهة تركيز</string>
+    <string name="settings_home_layout_circle">واجهة دائرية</string>
+    <string name="settings_home_layout_dashboard_pro">واجهة لوحة معلومات</string>
+    <string name="settings_save_theme">حفظ السمة</string>
+    <string name="settings_import_theme">استيراد السمة</string>
+    <string name="settings_theme_saved">تم حفظ السمة</string>
+    <string name="settings_theme_imported">تم استيراد السمة</string>
+    <string name="settings_theme_save_failed">فشل حفظ السمة</string>
+    <string name="settings_theme_import_failed">فشل استيراد السمة</string>
+    <string name="settings_reset_theme">إعادة تعيين السمة</string>
+    <string name="settings_reset_theme_confirm">هل أنت متأكد من أنك تريد إعادة تعيين جميع إعدادات السمة إلى القيم الافتراضية؟ سؤؤدي هذا إلى مسح جميع الخلفيات والخطوط والموسيقى والمؤثرات الصوتية المخصصة.</string>
+    <string name="settings_theme_reset">تمت إعادة تعيين السمة</string>
+    <string name="settings_theme_reset_failed">فشل في إعادة تعيين السمة</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">تصدير السمة</string>
+    <string name="theme_import_title">استيراد السمة</string>
+    <string name="theme_name">اسم السمة</string>
+    <string name="theme_type">نوع السمة</string>
+    <string name="theme_type_phone">هاتف</string>
+    <string name="theme_type_tablet">جهاز لوحي</string>
+    <string name="theme_version">الإصدار</string>
+    <string name="theme_author">المؤلف</string>
+    <string name="theme_description">الوصف</string>
+    <string name="theme_export_action">تصدير</string>
+    <string name="theme_import_action">استيراد</string>
+    <string name="theme_import_confirm">هل أنت متأكد من أنك تريد استيراد هذه السمة؟</string>
+
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">خلفية بطاقة العمل</string>
+    <string name="settings_grid_working_card_background_enabled">تمكين خلفية البطاقة المخصصة</string>
+    <string name="settings_grid_working_card_background_summary">صورة خلفية مخصصة لبطاقة العمل</string>
+    <string name="settings_grid_working_card_background_selected">تم تحديد الخلفية</string>
+    <string name="settings_grid_working_card_dual_opacity">تمكين شفافية مزدوجة لليوم/الليل</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">ضبط شفافية البطاقة تلقائيًا للسمات الفاتحة والداكنة</string>
+    <string name="settings_grid_working_card_day_opacity">شفافية البطاقة في وضع النهار</string>
+    <string name="settings_grid_working_card_night_opacity">شفافية البطاقة في وضع الليل</string>
+    <string name="settings_clear_grid_working_card_background">مسح خلفية البطاقة</string>
+    <string name="settings_clear_grid_working_card_background_confirm">هل أنت متأكد من أنك تريد مسح صورة خلفية البطاقة؟</string>
+    <string name="settings_grid_working_card_background_saved">تم حفظ خلفية البطاقة بنجاح</string>
+    <string name="settings_grid_working_card_background_error">فشل حفظ خلفية البطاقة</string>
+    <string name="settings_grid_working_card_background_cleared">تم مسح خلفية البطاقة</string>
+
+    <!-- Biometric Strings -->
+    <string name="action_biometric">المصادقة البيومترية</string>
+    <string name="msg_biometric">يرجى التحقق من هويتك البيومترية</string>
+    <string name="msg_enable_biometric">تمكين المصادقة البيومترية لطلب التحقق عند فتح التطبيق؟</string>
+    <string name="settings_biometric_login">المصادقة البيومترية</string>
+    <string name="settings_biometric_login_summary">تتطلب مصادقة بيومترية عند فتح التطبيق</string>
+    <string name="settings_strong_biometric">المصادقة البيومترية القوية</string>
+    <string name="settings_strong_biometric_summary">تتطلب المصادقة عند تثبيت/إلغاء تثبيت/تعطيل الوحدات</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">متجر السمات</string>
+    <string name="theme_source_official">رسمي</string>
+    <string name="theme_source_third_party">طرف ثالث</string>
+    <string name="theme_store_author">المؤلف: %s</string>
+    <string name="theme_store_version">الإصدار: %s</string>
+    <string name="theme_source">المصدر</string>
+    <string name="theme_store_download">تنزيل</string>
+    <string name="theme_store_search_hint">ابحث عن سمات...</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">التحقق التلقائي من التحديثات</string>
+    <string name="settings_auto_update_check_summary">التحقق تلقائيًا من وجود تحديثات عند بدء تشغيل التطبيق</string>
+    <string name="settings_check_update">التحقق من وجود تحديثات</string>
+    <string name="update_available_title">التحديث متاح</string>
+    <string name="update_available_message">تم اكتشاف أن إصدارك منخفض جدًا، هل تريد تنزيل الإصدار الجديد؟</string>
+    <string name="update_action">تحديث</string>
+    <string name="update_close">إغلاق</string>
+    <string name="update_latest">أنت على أحدث إصدار</string>
+    <string name="settings_category_general">عام</string>
+    <string name="settings_category_appearance">المظهر</string>
+    <string name="settings_appearance_font">إعدادات الخط</string>
+    <string name="settings_appearance_theme">إعدادات المظهر</string>
+
+    <string name="settings_nav_custom_icons">أيقونات التنقل المخصصة</string>
+    <string name="settings_nav_custom_icons_summary">استبدال أيقونات الشريط السفلي بصور مخصصة</string>
+    <string name="nav_icon_home">أيقونة الرئيسية</string>
+    <string name="nav_icon_superuser">Terminal Icon</string>
+    <string name="nav_icon_apm">Plugins Icon</string>
+    <string name="nav_icon_settings">أيقونة الإعدادات</string>
+    <string name="nav_icon_clear">إعادة تعيين إلى الافتراضي</string>
+    <string name="nav_icon_custom_selected">مخصص</string>
+    <string name="nav_icon_default">افتراضي</string>
+    <string name="nav_icon_cleared">تم إعادة تعيين الأيقونة</string>
+    <string name="nav_icon_set">تم تحديث الأيقونة</string>
+    <string name="nav_icon_set_failed">فشل حفظ الأيقونة</string>
+
+    <string name="settings_theme_mode">وضع التكوين</string>
+    <string name="settings_theme_mode_summary">التبديل بين المتجر المدمج ووضع توافق المتصفح</string>
+    <string name="theme_mode_builtin">الوضع المدمج</string>
+    <string name="theme_mode_builtin_desc">استخدم متجر السمات المدمج لتصفح وتنزيل وتطبيق السمات</string>
+    <string name="theme_mode_compat">وضع التوافق</string>
+    <string name="theme_mode_compat_desc">استخدم المتصفح لتنزيل السمات مباشرة (للأجهزة التي تواجه مشكلات في الاستيراد)</string>
+    <string name="theme_mode_onboarding_title">اختيار وضع السمة</string>
+    <string name="theme_mode_onboarding_msg">كيف تريد تصفح وتثبيت السمات؟ يمكنك تغيير هذا لاحقًا في الإعدادات.</string>
+    <string name="theme_mode_builtin_label">المتجر المدمج</string>
+    <string name="theme_mode_compat_label">وضع المتصفح</string>
+    <string name="theme_mode_switched">تم تغيير وضع السمة إلى %s</string>
+    <string name="theme_mode_current">الحالي: %s</string>
+    <string name="theme_mode_switch_title">تبديل وضع السمة</string>
+    <string name="theme_mode_switch_msg">سيؤدي تغيير الوضع إلى التأثير على كيفية تصفحك وتثبيت السمات. هل تريد المتابعة؟</string>
+    <string name="settings_appearance_banner">إعدادات اللافتة</string>
+    <string name="settings_appearance_layout">إعدادات التخطيط</string>
+    <string name="settings_appearance_background">إعدادات الخلفية</string>
+    <string name="settings_appearance_night_mode">إعدادات الوضع الليلي</string>
+    <string name="settings_amoled_theme">سمة AMOLED السوداء</string>
+    <string name="settings_amoled_theme_desc">خلفية سوداء بالكامل للوضع الداكن</string>
+    <string name="settings_switch_icon">تمكين مؤشر الزر</string>
+    <string name="settings_switch_icon_desc">إظهار أيقونات الحالة على أزرار التبديل</string>
+    <string name="settings_discrete_slider">شريط تمرير متقطع</string>
+    <string name="settings_discrete_slider_desc">إظهار علامات التدرج على مسار شريط التمرير</string>
+    <string name="settings_category_behavior">السلوك</string>
+    <string name="settings_category_function">الوظيفة</string>
+    <string name="settings_category_security">الأمان</string>
+    
+    <!-- Background Music Strings -->
+    <string name="settings_background_music">موسيقى الخلفية</string>
+    <string name="settings_background_music_summary">تشغيل موسيقى الخلفية عندما يكون التطبيق في المقدمة</string>
+    <string name="settings_background_music_playing">قيد التشغيل: %s</string>
+    <string name="settings_background_music_enabled">تمكين موسيقى الخلفية</string>
+    <string name="settings_select_music_file">تحديد ملف موسيقى</string>
+    <string name="settings_music_selected">تم تحديد الموسيقى</string>
+    <string name="settings_clear_music">مسح الموسيقى</string>
+    <string name="settings_clear_music_confirm">هل أنت متأكد من أنك تريد مسح موسيقى الخلفية؟</string>
+    <string name="settings_music_auto_play">تشغيل تلقائي</string>
+    <string name="settings_music_auto_play_summary">تشغيل الموسيقى تلقائيًا عند فتح التطبيق</string>
+    <string name="settings_music_looping">تشغيل متكرر</string>
+    <string name="settings_music_looping_summary">تكرار الأغنية الحالية</string>
+    <string name="settings_music_volume">مستوى الصوت</string>
+    <string name="settings_music_saved">تم حفظ ملف الموسيقى</string>
+    <string name="settings_music_save_error">فشل حفظ ملف الموسيقى</string>
+    <string name="settings_music_cleared">تم مسح الموسيقى</string>
+    <string name="settings_category_multimedia">الوسائط المتعددة</string>
+    <string name="settings_category_general_summary">Language, updates, animations, icon and name, DPI</string>
+    <string name="settings_category_appearance_summary">السمة، الألوان، التخطيط، الخلفية، الخطوط</string>
+    <string name="settings_category_behavior_summary">Web debugging, info copy, home cards, plugin badge</string>
+    <string name="settings_category_security_summary">Biometric authentication for opening the app</string>
+    <string name="settings_category_backup_summary">DSH config export/import, WebDAV sync</string>
+    <string name="settings_category_function_summary">Container runtime, permission channel, wireless ADB</string>
+    <string name="settings_category_multimedia_summary">موسيقى الخلفية، الأصوات، الاهتزاز</string>
+    <string name="settings_music_playback_control">التحكم في التشغيل</string>
+
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">تصفية السمات</string>
+    <string name="theme_store_filter_author">المؤلف</string>
+    <string name="theme_store_filter_author_hint">أدخل اسم المؤلف</string>
+    <string name="theme_store_filter_source">المصدر</string>
+    <string name="theme_store_filter_source_all">الكل</string>
+    <string name="theme_store_filter_type">نوع الجهاز</string>
+    <string name="theme_store_filter_apply">تطبيق</string>
+    <string name="theme_store_filter_reset">إعادة تعيين</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">الإذن مطلوب</string>
+    <string name="file_picker_permission_desc">لتصفح الملفات، يرجى منح إذن "الوصول إلى جميع الملفات".</string>
+    <string name="file_picker_grant_permission">منح الإذن</string>
+    <string name="file_picker_cancel">إلغاء</string>
+    <string name="file_picker_internal_storage">التخزين الداخلي</string>
+    <string name="file_picker_no_files">لا توجد ملفات</string>
+    <string name="file_picker_filtered_files">عرض %1$s ملفات</string>
+    <string name="file_picker_close">إغلاق منتقي الملفات</string>
+
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">حالة الجهاز</string>
+    <string name="home_device_status_battery_temp">درجة حرارة البطارية</string>
+    <string name="home_device_status_cpu_load">تحميل وحدة المعالجة المركزية</string>
+    <string name="home_device_status_battery_level">مستوى البطارية</string>
+    <string name="home_storage_title">التخزين</string>
+    <string name="home_storage_internal">التخزين الداخلي</string>
+    <string name="home_storage_ram">ذاكرة الوصول العشوائي</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">ملف المبادلة</string>
+    <string name="home_info_auth_auth">مصادقة</string>
+    <string name="home_info_auth_na">غير متاح</string>
+    <string name="home_info_device_model">طراز الجهاز</string>
+
+    <string name="settings_list_card_hide_status_badge">استخدم الإيموجي الكلاسيكي</string>
+    <string name="settings_list_card_hide_status_badge_summary">شارة الحالة في الصفحة الرئيسية تتحول إلى إيموجي كلاسيكي</string>
+    <string name="settings_list_info_show_icons">أيقونات عناصر المعلومات</string>
+    <string name="settings_list_info_show_icons_summary">عرض أيقونة بجانب كل عنصر في بطاقة المعلومات</string>
+    <string name="settings_custom_badge_text">نص الشارة المخصص</string>
+    <string name="settings_custom_badge_text_summary">تعديل عرض نص الشارة، للمتعة فقط</string>
+
+    <!-- Install Mode Select -->
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">إعدادات عدد الشارات</string>
+    <string name="enable_badge_count_summary">تكوين عرض عدد الشارات لعناصر التنقل</string>
+    <string name="settings_sound_effect">Sound Effect</string>
+    <string name="settings_sound_effect_summary">Play sound effect on click</string>
+    <string name="settings_sound_effect_enabled">Enabled</string>
+    <string name="settings_sound_effect_playing">Selected: %s</string>
+    <string name="settings_sound_effect_source">مصدر الصوت</string>
+    <string name="settings_sound_effect_source_local">ملف محلي</string>
+    <string name="settings_sound_effect_source_preset">مسبق</string>
+    <string name="settings_sound_effect_preset_title">أصوات مسبقة</string>
+    <string name="settings_select_sound_effect">Select Sound Effect</string>
+    <string name="settings_sound_effect_selected">Sound effect file selected</string>
+    <string name="settings_sound_effect_scope">Effect Scope</string>
+    <string name="settings_sound_effect_scope_global">Global (Anywhere)</string>
+    <string name="settings_sound_effect_scope_bottom_bar">Bottom Bar Only</string>
+    <string name="settings_clear_sound_effect">Clear Sound Effect</string>
+    <string name="settings_clear_sound_effect_confirm">Are you sure you want to clear the sound effect?</string>
+    <string name="settings_sound_effect_cleared">Sound effect cleared</string>
+
+    <string name="settings_startup_sound">صوت بدء التشغيل</string>
+    <string name="settings_startup_sound_summary">تشغيل صوت عند بدء التطبيق</string>
+    <string name="settings_startup_sound_enabled">صوت بدء التشغيل مفعّل</string>
+    <string name="settings_startup_sound_playing">قيد التشغيل: %s</string>
+    <string name="settings_select_startup_sound">اختر صوت بدء التشغيل</string>
+    <string name="settings_startup_sound_selected">تم اختيار صوت بدء التشغيل</string>
+    <string name="settings_clear_startup_sound">مسح صوت بدء التشغيل</string>
+    <string name="settings_clear_startup_sound_confirm">هل أنت متأكد أنك تريد مسح صوت بدء التشغيل؟</string>
+    <string name="settings_startup_sound_cleared">تم مسح صوت بدء التشغيل</string>
+
+    <string name="settings_enable_cloud_backup_summary">النسخ الاحتياطي تلقائيًا من السحابة</string>
+    <string name="settings_configure_webdav">تكوين خدمة WebDAV</string>
+    <string name="webdav_config_title">تكوين WebDAV</string>
+    <string name="webdav_url">رابط WebDAV</string>
+    <string name="webdav_username">اسم المستخدم</string>
+    <string name="webdav_password">كلمة المرور</string>
+    <string name="save">حفظ</string>
+    <string name="test">اختبار</string>
+    <string name="webdav_path_label">المسار (مثال /Backup)</string>
+    <string name="webdav_view_logs">عرض السجلات</string>
+    <string name="webdav_backup_logs_title">سجلات النسخ الاحتياطي</string>
+    <string name="webdav_no_logs">لا توجد سجلات</string>
+    <string name="webdav_clear_logs">مسح</string>
+    <string name="close">إغلاق</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">إعدادات النسخ الاحتياطي</string>
+    <string name="settings_enable_cloud_backup">تفعيل النسخ الاحتياطي السحابي</string>
+    <string name="webdav_test_success">نجح الاختبار</string>
+    <string name="webdav_test_failed">فشل الاختبار: %s</string>
+
+    <!-- Script Library Strings -->
+    <string name="settings_vibration">الاهتزاز واللمس</string>
+    <string name="settings_vibration_summary">الاهتزاز عند اللمس</string>
+    <string name="settings_vibration_enabled">تفعيل الاهتزاز</string>
+    <string name="settings_vibration_intensity">شدة الاهتزاز</string>
+    <string name="settings_vibration_scope">نطاق الاهتزاز</string>
+    <string name="settings_vibration_scope_global">عالمي (في كل مكان)</string>
+    <string name="settings_vibration_scope_bottom_bar">الشريط السفلي فقط</string>
+
+    <!-- Umount Service -->
+
+    <!-- صفحة سماتي -->
+    <string name="my_themes_title">سماتي</string>
+    <string name="my_themes_empty">لا توجد سمات بعد</string>
+    <string name="my_themes_empty_action">تصفح متجر السمات</string>
+    <string name="my_themes_apply">تطبيق السمة</string>
+    <string name="my_themes_delete">حذف السمة</string>
+    <string name="my_themes_delete_confirm">هل أنت متأكد من حذف هذه السمة؟</string>
+    <string name="my_themes_deleted">تم حذف السمة</string>
+    <string name="my_themes_applied">تم تطبيق السمة</string>
+    <string name="my_themes_apply_failed">فشل تطبيق السمة — اضغط مطولاً للحذف وإعادة التنزيل</string>
+
+    <!-- حوار التنزيل -->
+    <string name="theme_download_title">جارٍ تنزيل السمة</string>
+    <string name="theme_download_completed">اكتمل التنزيل</string>
+    <string name="theme_download_failed">فشل التنزيل</string>
+    <string name="theme_download_progress">التقدم</string>
+    <string name="theme_download_file">ملف السمة</string>
+    <string name="theme_download_image">صورة المعاينة</string>
+    <string name="theme_download_cancel">إلغاء</string>
+    <string name="theme_download_pause">إيقاف مؤقت</string>
+    <string name="theme_download_apply">تطبيق السمة</string>
+    <string name="theme_download_go_to_my_themes">سماتي</string>
+    <string name="theme_download_finalizing">جارٍ الانتهاء...</string>
+    <string name="settings_predictive_back">إيماءة العودة التنبؤية</string>
+    <string name="settings_predictive_back_summary">تمكين رسوم إيماءة العودة التنبؤية المتحركة في Android 14+</string>
+
+    <string name="home_device_status_battery_charging">جارٍ الشحن</string>
+    <string name="home_device_status_cpu_temp">درجة حرارة المعالج</string>
+    <string name="home_device_status_memory_trend">اتجاه الذاكرة</string>
+    <string name="home_device_status_cpu_freq">تردد المعالج</string>
+    <string name="home_network_rx">تنزيل</string>
+    <string name="home_network_tx">رفع</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">GPU</string>
+
+
+
+    <string name="settings_search_title">بحث في الإعدادات</string>
+    <string name="settings_search_empty_hint">اكتب للبحث في جميع الإعدادات…</string>
+    <string name="settings_no_results">لا توجد نتائج</string>
+
+    <!-- Color Generation -->
+    <string name="color_generation_classic">كلاسيكي</string>
+    <string name="color_generation_custom">مخصص</string>
+
+    <!-- Color Standard -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- Color Style -->
+    <string name="color_style_tonal_spot">بقعة نغمية</string>
+    <string name="color_style_vibrant">نابض بالحياة</string>
+    <string name="color_style_content">المحتوى</string>
+    <string name="color_style_expressive">تعبيري</string>
+    <string name="color_style_rainbow">قوس قزح</string>
+    <string name="color_style_fruit_salad">سلطة فواكه</string>
+    <string name="color_style_monochrome">أحادي اللون</string>
+    <string name="color_style_neutral">محايد</string>
+    <string name="color_style_fidelity">دقة</string>
+    <string name="settings_focus_card_background">خلفية بطاقة FocusUI</string>
+    <string name="settings_focus_card_background_enabled">تم تمكين خلفيات بطاقة FocusUI؛ اضغط مطولاً على بطاقة لإدارة خلفيتها</string>
+    <string name="settings_focus_card_background_summary">تمكين خلفيات بطاقة FocusUI وإدارة الخلفية بالضغط المطول</string>
+    <string name="settings_focus_card_dual_dim">تمكين التعتيم المزدوج للنهار/الليل</string>
+    <string name="settings_focus_card_dual_dim_desc">ضبط تعتيم خلفية البطاقة تلقائياً للسمات الفاتحة والداكنة</string>
+    <string name="settings_focus_card_day_dim">تعتيم خلفية البطاقة في الوضع النهاري</string>
+    <string name="settings_focus_card_night_dim">تعتيم خلفية البطاقة في الوضع الليلي</string>
+    <string name="settings_focus_card_opacity">شفافية خلفية البطاقة</string>
+    <string name="settings_focus_card_dual_opacity">تمكين الشفافية المزدوجة للنهار/الليل</string>
+    <string name="settings_focus_card_dual_opacity_desc">ضبط شفافية خلفية البطاقة تلقائياً للسمات الفاتحة والداكنة</string>
+    <string name="settings_focus_card_day_opacity">شفافية خلفية البطاقة في الوضع النهاري</string>
+    <string name="settings_focus_card_night_opacity">شفافية خلفية البطاقة في الوضع الليلي</string>
+    <string name="settings_focus_card_kernel">بطاقة النواة</string>
+    <string name="settings_focus_card_app">بطاقة التطبيقات</string>
+    <string name="settings_focus_card_device">بطاقة حالة الجهاز</string>
+    <string name="settings_focus_card_storage">بطاقة التخزين</string>
+    <string name="settings_focus_card_wallpaper_selected">تم تعيين الخلفية</string>
+    <string name="dashboard_card_background_title">خلفية بطاقة لوحة القيادة</string>
+    <string name="settings_dashboard_card_background">خلفية بطاقة لوحة القيادة</string>
+    <string name="settings_dashboard_card_background_enabled">تم تمكين خلفية لوحة القيادة؛ اضغط مطولاً على البطاقة لإدارتها</string>
+    <string name="settings_dashboard_card_background_summary">تمكين خلفية لبطاقة لوحة القيادة DashboardUI</string>
+    <string name="dashboard_card_background_clear">مسح خلفية لوحة القيادة</string>
+    <string name="dashboard_card_background_clear_confirm">هل أنت متأكد من مسح خلفية بطاقة لوحة القيادة؟</string>
+    <string name="dashboard_card_background_saved">تم حفظ خلفية لوحة القيادة بنجاح</string>
+    <string name="dashboard_card_background_error">فشل حفظ خلفية لوحة القيادة</string>
+    <string name="dashboard_card_background_cleared">تم مسح خلفية لوحة القيادة</string>
+    <string name="dashboard_card_background_restore">استعادة الافتراضي</string>
+    <string name="dashboard_card_background_restored">تمت استعادة خلفية لوحة القيادة</string>
+    <string name="settings_dashboard_card_dual_dim">تمكين التعتيم المزدوج للنهار/الليل</string>
+    <string name="settings_dashboard_card_dual_dim_desc">ضبط تعتيم خلفية لوحة القيادة تلقائياً للسمات الفاتحة والداكنة</string>
+    <string name="settings_dashboard_card_day_dim">تعتيم خلفية لوحة القيادة في الوضع النهاري</string>
+    <string name="settings_dashboard_card_night_dim">تعتيم خلفية لوحة القيادة في الوضع الليلي</string>
+    <string name="settings_dashboard_card_opacity">شفافية خلفية لوحة القيادة</string>
+    <string name="settings_dashboard_card_dual_opacity">تمكين الشفافية المزدوجة للنهار/الليل</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">ضبط شفافية خلفية لوحة القيادة تلقائياً للسمات الفاتحة والداكنة</string>
+    <string name="settings_dashboard_card_day_opacity">شفافية خلفية لوحة القيادة في الوضع النهاري</string>
+    <string name="settings_dashboard_card_night_opacity">شفافية خلفية لوحة القيادة في الوضع الليلي</string>
+    <string name="settings_title_image_permission_required">يرجى منح إذن التخزين لاختيار صورة العنوان</string>
+    <string name="settings_background_permission_required">يرجى منح إذن التخزين لاختيار صورة الخلفية</string>
+    <string name="settings_sound_effect_save_failed">فشل حفظ المؤثر الصوتي</string>
+    <string name="settings_startup_sound_save_failed">فشل حفظ صوت البدء</string>
+    <string name="settings_info_copy">النسخ بالضغط المطول</string>
+    <string name="settings_info_copy_summary">اضغط مطولاً على عنصر في لوحة معلومات الشاشة الرئيسية لنسخ محتواه</string>
+    <string name="home_info_copied">تم نسخ %1$s</string>
+</resources>

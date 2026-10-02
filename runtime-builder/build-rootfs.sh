@@ -1,0 +1,637 @@
+#!/usr/bin/env bash
+# 组装 DSH-Folk 的 Android 容器运行时：Ubuntu 24.04 base rootfs
+# + Node.js + @deepseek-ai/dsh，产出 rootfs.tar.gz 与 metadata.json。
+#
+# 支持两个目标架构（TARGET_ARCH=arm64|amd64）。在 x86_64 的 GitHub runner 上跑：
+# base rootfs 直接取官方 cloud image 的 rootfs tarball，Node 取官方预编译包，
+# dsh 用 runner 本机的 Node 安装到目标 rootfs 里（npm 只搬 JS，不编译原生模块）。
+# 因此不需要 qemu；唯一需要目标架构执行的步骤（postinst 之类）一概不做。
+#
+# arm64 的产物名保持无后缀（rootfs.tar.gz / metadata.json）—— 1.7.5 及更早的 App
+# 把这两个名字写死在代码里，改名等于让存量用户拉不到运行时。
+set -euo pipefail
+
+UBUNTU_RELEASE="${UBUNTU_RELEASE:-noble}"          # 24.04 LTS
+NODE_VER="${NODE_VER:-v24.19.0}"
+DSH_VERSION="${DSH_VERSION:-latest}"
+# 锁在 pnpm 10：10.x 是自包含的纯 JS CLI（bin/pnpm.cjs），能跨架构直接随 rootfs
+# 搬运；pnpm 12 的 npm 包换成了「postinstall 下载本机原生二进制」的启动器，配合
+# 我们必须使用的 --ignore-scripts 会留下一个缺原生二进制的壳，在手机上既不可靠也
+# 没必要。不要写 latest —— 上一次这样无意间拿到了 12.3.4。
+PNPM_VERSION="${PNPM_VERSION:-10.34.5}"
+TARGET_ARCH="${TARGET_ARCH:-arm64}"                # arm64 | amd64
+RELEASE_CHANNEL="${RELEASE_CHANNEL:-stable}"       # stable | beta
+# 运行时口味：full = 完整版（含文档预览/转换），slim = 精简版。
+#
+# 精简版砍掉三块**只用开发时才需要、或只服务文档转换**的内容，实测压缩后共省
+# 约 63MB（产物 232MB → 约 169MB）：
+#   1) 纯类型声明 *.d.ts/*.d.mts/*.d.cts  —— 只有 TS 编译器读，运行时零引用
+#   2) sourcemap *.map                    —— 没装 source-map-support，运行时不读
+#   3) LibreOffice 的 soffice.wasm/.data   —— 文档预览与转换（44.6MB，是大头）
+# 外加文档 *.md 与 test/docs/example 目录（约 3.7MB）。
+#
+# 为什么删除是安全的，以及它是怎么被验证的，见 [3b/9] 那一段和
+# runtime-builder/check-trim-safety.js —— 那份脚本把「没有任何运行时入口指向将被
+# 删掉的文件」变成构建期断言，而不是靠这次分析的正确性。
+RUNTIME_FLAVOR="${RUNTIME_FLAVOR:-full}"           # full | slim
+
+# rootfs 自身的修订号，**改动 rootfs 内容时必须递增**。
+#
+# metadata.json 的 version 原来只由 dsh 版本派生，于是 rootfs 内容变了（比如
+# r2 补齐 git 的动态库依赖）版本串却一模一样，App 拿它做「有没有新运行时」的
+# 判据就永远判不出来，存量用户收不到修复。
+#   r1 = 初版（含 python3 + git，但 git 的 libcurl 依赖不全）
+#   r2 = 补齐 git-remote-https 的传递依赖（libnghttp2 / libssh / krb5 / ldap …）
+#   r3 = 修 pnpm：固定自包含的 10.x，并把 pnpm/每个 bin 链接都设为可执行
+#   r4 = 关掉 pnpm 的升级提示（update-notifier=false 写进 rootfs 的 npmrc）：
+#        原来容器里会打印 "Update available! 10.34.5 → 12.3.4"，指向一个装了
+#        就坏的版本，用户照着做会把 pnpm 弄挂。r3 之后的通道都带着这个坑。
+#   r6 = 补齐常用命令行工具（curl/wget/unzip/xz/less/file/jq/nano/openssl/ssh 及
+#        其依赖闭包，共 20 个包），并把动态库闭包检查的入口从「git-core + perl +
+#        python 子目录」扩大到整个 usr/bin 与 usr/sbin —— 覆盖面从「我们显式盯着
+#        的那几个入口」变成「全部用户态程序」。
+#
+# 加 amd64 支持时**不递增**：arm64 的 rootfs 内容一个字节都没变，递增只会让所有
+# 存量用户收到一次「有新运行时」的无意义提示。amd64 是全新资产，自带独立 metadata。
+ROOTFS_REV="${ROOTFS_REV:-6}"
+WORK="${WORK:-/tmp/dsh-runtime}"
+OUT="${OUT:-$PWD/out}"
+
+# 这份运行时**要求的最低 DSH-Folk App 版本**，写进 metadata.json 的 minAppVersion。
+#
+# 为什么要有这个字段：rootfs 里的 dsh 会随上游升级而改变行为，而 App 侧的适配
+# （预装哪些插件、怎么修上游内置能力与三方插件的冲突、怎么 patch web app）都写在
+# App 里。App 太旧时，用户拿到一个"能装但起不来"的运行时，看到的是一串 node
+# 堆栈 —— 而不是"请先更新应用"。声明了这条要求，旧 App 会在下载之前就被拦住。
+#
+# 空串 = 不声明（metadata 里不出现该字段），旧 App 照样能用这份运行时。
+# CI 默认取仓库 build.gradle.kts 的 baseVersionName()，即"构建这份运行时的那个 App 版本"，
+# 所以只要运行时与 App 同源，要求就自动对齐，不需要人工维护一个会漂移的常量。
+MIN_APP_VERSION="${MIN_APP_VERSION:-}"
+
+# 通道 × 口味 → 滚动 tag 与版本后缀。四种组合各占一个互不覆盖的 release 位置。
+#
+# 后缀顺序是「口味在前、通道在后」，好处是 **`-beta` 永远留在末尾**：今天任何按
+# 「串尾是不是 -beta」判断测试通道的东西，对四个变体都仍然成立。
+#   stable/full → 0.2.0-rc.2-ubuntunoble-r6
+#   beta/full   → 0.2.0-rc.2-ubuntunoble-r6-beta
+#   stable/slim → 0.2.0-rc.2-ubuntunoble-r6-slim
+#   beta/slim   → 0.2.0-rc.2-ubuntunoble-r6-slim-beta
+case "$RELEASE_CHANNEL/$RUNTIME_FLAVOR" in
+  stable/full)
+    VERSION_CHANNEL_SUFFIX=""; FLAVOR_SUFFIX=""
+    CHANNEL_RELEASE_TAG="runtime-latest"
+    ;;
+  beta/full)
+    VERSION_CHANNEL_SUFFIX="-beta"; FLAVOR_SUFFIX=""
+    CHANNEL_RELEASE_TAG="runtime-beta-latest"
+    ;;
+  stable/slim)
+    VERSION_CHANNEL_SUFFIX=""; FLAVOR_SUFFIX="-slim"
+    CHANNEL_RELEASE_TAG="runtime-slim-latest"
+    ;;
+  beta/slim)
+    VERSION_CHANNEL_SUFFIX="-beta"; FLAVOR_SUFFIX="-slim"
+    CHANNEL_RELEASE_TAG="runtime-slim-beta-latest"
+    ;;
+  *)
+    echo "!! RELEASE_CHANNEL 只支持 stable / beta，RUNTIME_FLAVOR 只支持 full / slim；收到 $RELEASE_CHANNEL / $RUNTIME_FLAVOR" >&2
+    exit 2
+    ;;
+esac
+
+# ── 架构映射表 ──
+# 每加一项都要问「这个值在另一个架构上是什么」，别再往下面散落 if。
+case "$TARGET_ARCH" in
+  arm64)
+    UBUNTU_ARCH="arm64"           # ubuntu-base tarball 与 apt 索引里的架构名
+    NODE_ARCH="arm64"             # nodejs.org 的 linux-<arch> 命名
+    NPM_CPU="arm64"               # npm --cpu
+    PREBUILD_KEEP="linux-arm64"   # node-pty prebuilds 里保留的目录
+    APT_REPO_PATH="ubuntu-ports"  # arm64 的 deb 在 ports 仓库
+    MULTIARCH="aarch64-linux-gnu"
+    ELF_MACHINE=183               # EM_AARCH64
+    ANDROID_ABI="arm64-v8a"       # metadata.json 的 arch（对齐 Build.SUPPORTED_ABIS）
+    ASSET_SUFFIX=""               # 沿用旧名，向后兼容
+    # 异架构原生模块黑名单：本架构**不该**出现的产物
+    BAD_NATIVE_PATHS=("*linux-x64*" "*darwin*" "*win32*" "*x64*")
+    ;;
+  amd64)
+    UBUNTU_ARCH="amd64"
+    NODE_ARCH="x64"
+    NPM_CPU="x64"
+    PREBUILD_KEEP="linux-x64"
+    APT_REPO_PATH="ubuntu"        # amd64 在主仓库，不是 ports
+    MULTIARCH="x86_64-linux-gnu"
+    ELF_MACHINE=62                # EM_X86_64
+    ANDROID_ABI="x86_64"
+    ASSET_SUFFIX="-x86_64"
+    # 注意：这里绝不能像 arm64 那样拒 *x64* —— linux-x64 正是我们要的产物
+    BAD_NATIVE_PATHS=("*linux-arm64*" "*darwin*" "*win32*" "*arm64*")
+    ;;
+  *)
+    echo "!! TARGET_ARCH 只支持 arm64 / amd64，收到 $TARGET_ARCH" >&2
+    exit 2
+    ;;
+esac
+
+echo "==> 目标架构 $TARGET_ARCH（ubuntu=$UBUNTU_ARCH · node=linux-$NODE_ARCH · abi=$ANDROID_ABI）"
+echo "    通道 $RELEASE_CHANNEL / 口味 $RUNTIME_FLAVOR → tag $CHANNEL_RELEASE_TAG"
+
+ROOTFS="$WORK/rootfs"
+mkdir -p "$WORK" "$OUT"
+
+# 多镜像候选：逐个试，第一个成功的就用（CI 网络到 cdimage 常年不稳）
+try_download() {
+  local dest="$1"; shift
+  for url in "$@"; do
+    echo "    尝试 $url"
+    if curl -fsSL --connect-timeout 15 --retry 2 -o "$dest" "$url"; then
+      echo "    命中 $url"
+      return 0
+    fi
+  done
+  return 1
+}
+
+echo "==> [1/9] 下载 Ubuntu ${UBUNTU_RELEASE} ${UBUNTU_ARCH} base rootfs"
+BASE_TAR="$WORK/base.tar.gz"
+BASE_PATH="ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-${UBUNTU_ARCH}.tar.gz"
+if [ ! -f "$BASE_TAR" ]; then
+  # 国内镜像把 cdimage 挂在 /ubuntu-cdimage/ 前缀下，**不是**根路径 —— 原来的 URL
+  # 少了这一段，nju/hit/aliyun 一律 404，等于每次构建都白试一圈才回落到
+  # cdimage.ubuntu.com（也就是一直在走最慢的那条路）。
+  try_download "$BASE_TAR" \
+    "https://mirror.nju.edu.cn/ubuntu-cdimage/$BASE_PATH" \
+    "https://mirrors.tuna.tsinghua.edu.cn/ubuntu-cdimage/$BASE_PATH" \
+    "https://mirrors.hit.edu.cn/ubuntu-cdimage/$BASE_PATH" \
+    "https://mirrors.aliyun.com/ubuntu-cdimage/$BASE_PATH" \
+    "https://mirrors.bfsu.edu.cn/ubuntu-cdimage/$BASE_PATH" \
+    "https://mirrors.huaweicloud.com/ubuntu-cdimage/$BASE_PATH" \
+    "https://cdimage.ubuntu.com/$BASE_PATH"
+fi
+rm -rf "$ROOTFS"; mkdir -p "$ROOTFS"
+tar -xzf "$BASE_TAR" -C "$ROOTFS"
+echo "    rootfs 顶层: $(ls "$ROOTFS" | tr '\n' ' ')"
+
+echo "==> [2/9] 安装 Node.js ${NODE_VER} (linux-${NODE_ARCH})"
+NODE_TAR="$WORK/node.tar.xz"
+NODE_FILE="node-${NODE_VER}-linux-${NODE_ARCH}.tar.xz"
+if [ ! -f "$NODE_TAR" ]; then
+  try_download "$NODE_TAR" \
+    "https://mirrors.huaweicloud.com/nodejs/${NODE_VER}/${NODE_FILE}" \
+    "https://registry.npmmirror.com/-/binary/node/${NODE_VER}/${NODE_FILE}" \
+    "https://mirrors.aliyun.com/nodejs-release/${NODE_VER}/${NODE_FILE}" \
+    "https://mirrors.cloud.tencent.com/nodejs-release/${NODE_VER}/${NODE_FILE}" \
+    "https://mirror.nju.edu.cn/nodejs-release/${NODE_VER}/${NODE_FILE}" \
+    "https://mirrors.sjtug.sjtu.edu.cn/nodejs-release/${NODE_VER}/${NODE_FILE}" \
+    "https://nodejs.org/dist/${NODE_VER}/${NODE_FILE}"
+fi
+# --strip-components=1 把 node-vX-linux-<arch>/{bin,lib,include,share} 摊进 /usr/local
+tar -xJf "$NODE_TAR" -C "$ROOTFS/usr/local" --strip-components=1
+test -x "$ROOTFS/usr/local/bin/node"
+
+echo "==> [3/9] 安装 @deepseek-ai/dsh@${DSH_VERSION}"
+# 用 runner（x86_64）的 npm 装进目标 rootfs 的前缀。
+# --os/--cpu 必须显式指定：dsh 依赖 sharp 与 koffi，它们通过 optionalDependencies
+# 按宿主平台挑预编译包，不指定就会装成 runner 平台的 .node，在目标上一 require 就炸。
+# amd64 目标恰好与 runner 同架构，但仍然显式写死 —— 别让正确性依赖「runner 是什么」。
+# --ignore-scripts 同时挡掉任何想在构建机上编译产物的 postinstall。
+npm install --global \
+  --prefix "$ROOTFS/usr/local" \
+  --os=linux --cpu="$NPM_CPU" \
+  --ignore-scripts --no-audit --no-fund \
+  "@deepseek-ai/dsh@${DSH_VERSION}"
+
+DSH_ENTRY="$ROOTFS/usr/local/lib/node_modules/@deepseek-ai/dsh"
+test -d "$DSH_ENTRY"
+DSH_REAL_VERSION="$(node -p "require('$DSH_ENTRY/package.json').version")"
+echo "    dsh = $DSH_REAL_VERSION"
+
+# 重建 bin 软链：入口路径从 package.json 的 bin 字段读，不要写死
+# （dsh 的入口是 lib/bin.js，将来改了这里也不用跟着改）。
+# App 侧靠 readlink -f 解析出真实 JS 再交给 node --expose-internals，
+# 所以这个链接必须是容器内可解析的相对链接。
+DSH_BIN_REL="$(node -p "
+  const b = require('$DSH_ENTRY/package.json').bin;
+  typeof b === 'string' ? b : b.dsh
+")"
+rm -f "$ROOTFS/usr/local/bin/dsh"
+ln -s "../lib/node_modules/@deepseek-ai/dsh/${DSH_BIN_REL}" "$ROOTFS/usr/local/bin/dsh"
+test -f "$ROOTFS/usr/local/lib/node_modules/@deepseek-ai/dsh/${DSH_BIN_REL}"
+echo "    入口 = ${DSH_BIN_REL}"
+
+# node-pty 把所有平台的预编译产物打在同一个包里（win32 那两份各 12 MB），
+# 只留目标架构那份：既减掉约 24 MB，也让下面的异架构自检不必给它开特例。
+find "$ROOTFS/usr/local/lib/node_modules" -type d -name prebuilds | while read -r d; do
+  find "$d" -mindepth 1 -maxdepth 1 -type d ! -name "$PREBUILD_KEEP" -exec rm -rf {} +
+done
+
+# 架构自检：任何异架构的原生模块留在 rootfs 里都是隐患，设备上 require 到就是
+# ENOEXEC。CI 阶段直接失败比让用户在设备上排查便宜得多。
+#
+# 黑名单必须**按目标架构取反**：amd64 目标要的正是 linux-x64，照 arm64 那套
+# 硬编码拒 *x64* 会把想要的产物当成脏东西删/报错。
+FIND_BAD=()
+for pat in "${BAD_NATIVE_PATHS[@]}"; do
+  [ ${#FIND_BAD[@]} -eq 0 ] || FIND_BAD+=(-o)
+  FIND_BAD+=(-path "$pat")
+done
+BAD_NATIVE="$(find "$ROOTFS/usr/local/lib/node_modules" -name "*.node" \
+  \( "${FIND_BAD[@]}" \) 2>/dev/null || true)"
+if [ -n "$BAD_NATIVE" ]; then
+  echo "!! rootfs 里出现非 ${TARGET_ARCH} 原生模块："
+  printf '   %s\n' $BAD_NATIVE
+  exit 1
+fi
+NATIVE_COUNT="$(find "$ROOTFS/usr/local/lib/node_modules" -name "*.node" 2>/dev/null | wc -l)"
+echo "    原生模块 ${NATIVE_COUNT} 个，未发现异架构产物"
+
+# dsh 的插件管理（dsh plugin --profile web add …）内部转发 pnpm，PATH 上没有 pnpm
+# 就直接返回 127「pnpm not found on PATH」。rootfs 里只有 corepack 的 shim，
+# 而 corepack 首次运行要联网下载 —— 用户在手机上装插件时才发现没网就太晚了。
+# pnpm 是纯 JS、零 runtime 依赖，异架构安装完全安全（不像 sharp/koffi 要挑预编译产物）。
+# 固定版本见顶部 PNPM_VERSION：不能用 latest，pnpm 12 的包是 postinstall 下载原生
+# 二进制的启动器，而这里为了异架构构建必须 --ignore-scripts；10.x 的 bin/pnpm.cjs
+# 才是我们要的自包含 JS CLI。
+echo "    附带安装 pnpm@${PNPM_VERSION}（dsh plugin 内部转发它）"
+npm install --global \
+  --prefix "$ROOTFS/usr/local" \
+  --ignore-scripts --no-audit --no-fund \
+  "pnpm@${PNPM_VERSION}"
+PNPM_PKG="$ROOTFS/usr/local/lib/node_modules/pnpm"
+test -f "$PNPM_PKG/package.json"
+PNPM_BIN_REL="$(node -p "
+  const b = require('$PNPM_PKG/package.json').bin;
+  typeof b === 'string' ? b : b.pnpm
+")"
+test -f "$PNPM_PKG/$PNPM_BIN_REL"
+# npm 通常会建链接，但不要把运行时正确性押在它的实现细节上：按 package.json.bin
+# 重建相对链接，并显式修可执行位：不要把运行时正确性押在 npm 的实现细节上，
+# 也让「解压后 pnpm 一定在 PATH 上」成为可验证的事实。
+for name in $(node -p "Object.keys(require('$PNPM_PKG/package.json').bin).join(' ')"); do
+  rel="$(node -p "require('$PNPM_PKG/package.json').bin['$name']")"
+  chmod 0755 "$PNPM_PKG/$rel"
+  rm -f "$ROOTFS/usr/local/bin/$name"
+  ln -s "../lib/node_modules/pnpm/$rel" "$ROOTFS/usr/local/bin/$name"
+done
+test -L "$ROOTFS/usr/local/bin/pnpm"
+test -x "$PNPM_PKG/$PNPM_BIN_REL"
+# rootfs 打包前用 runner 的 Node 跑目标目录里的纯 JS CLI --version：不能直接执行
+# rootfs 的 node（二架构 job 都不应把正确性依赖在 runner 架构上），但 10.x CLI 是
+# 架构无关 JS，这正好同时验证包内容完整、入口可加载、版本正确。
+node "$PNPM_PKG/$PNPM_BIN_REL" --version | grep -Fx "$PNPM_VERSION"
+PNPM_REAL_VERSION="$(node -p "require('$PNPM_PKG/package.json').version")"
+[ "$PNPM_REAL_VERSION" = "$PNPM_VERSION" ]
+echo "    pnpm = $PNPM_REAL_VERSION · 入口 = $PNPM_BIN_REL"
+
+# 关掉 pnpm 的「Update available! 10.x → 12.x」提示。
+#
+# 它不只是噪音：它明确写着 `pnpm add -g pnpm`，而 12.x 正是我们因为
+# 「postinstall 下载本机原生二进制 + 无 shebang 的启动器」而撤掉的那个包 ——
+# 用户照着它做会把容器里的插件安装能力弄坏。日志里出现一句把人引向已知坏
+# 版本的提示，比没有提示更糟。
+#
+# 两处都写：$PREFIX/etc/npmrc 是 npm 的全局配置（pnpm 按 npm 的 prefix 推导它），
+# /root/.npmrc 是容器里 HOME=/root 的用户配置 —— 前者覆盖任何调用，后者覆盖
+# 不继承 npm 前缀环境的调用。构建末尾会真的问一次 pnpm 自己读到了什么。
+for rc in "$ROOTFS/usr/local/etc/npmrc" "$ROOTFS/root/.npmrc"; do
+  mkdir -p "$(dirname "$rc")"
+  if [ -f "$rc" ] && grep -q '^[[:space:]]*update-notifier[[:space:]]*=' "$rc"; then
+    continue
+  fi
+  printf 'update-notifier=false\n' >> "$rc"
+done
+# 断言而不是假定：拿 runner 的 Node 跑 rootfs 里的 pnpm，让它自己回答配置值
+# （HOME 指到 rootfs 的 /root）。「以为配了、其实没读」正是 pnpm 11 迁移时的教训。
+NOTIFIER="$(cd "$ROOTFS" && HOME="$ROOTFS/root" node "$PNPM_PKG/$PNPM_BIN_REL" config get update-notifier 2>/dev/null | tr -d '\r')"
+[ "$NOTIFIER" = "false" ] || { echo "!! pnpm 没有读到 update-notifier=false（读到 ${NOTIFIER}）" >&2; exit 1; }
+echo "    pnpm 升级提示已关闭（update-notifier=false，由 pnpm 自己确认）"
+
+if [ "$RUNTIME_FLAVOR" = "slim" ]; then
+  echo "==> [3b/9] 精简：删掉「只服务开发」与「只服务文档转换」的内容"
+  # 先做**安全性断言**，再动手删。判据是「有没有任何 Node 运行时会解析到的入口指向
+  # 即将被删的文件」——只有这个判据能证明删了之后运行时还起得来。把它做成脚本而不是
+  # 相信一次人工分析的结论：dsh 换版本就可能改入口指向，那时这里会立刻失败，
+  # 而不是让用户拿到一份起不来的 rootfs。
+  node "$(dirname "$0")/check-trim-safety.js" "$DSH_ENTRY/node_modules"
+
+  NM="$DSH_ENTRY/node_modules"
+  NM_BEFORE="$(du -sm "$NM" | cut -f1)"
+  # 1) 纯类型声明：只有 TS 编译器读
+  find "$NM" \( -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' \) -delete
+  # 2) sourcemap：没装 source-map-support，运行时不读（代价只是栈回溯不映射源码）
+  find "$NM" -name '*.map' -delete
+  # 3) 文档
+  find "$NM" -name '*.md' -delete
+  # 4) 测试/示例/文档目录
+  find "$NM" -type d \( -name test -o -name tests -o -name __tests__ -o -name example -o -name examples -o -name docs \) \
+    -prune -exec rm -rf {} +
+  # 5) LibreOffice 的 wasm 引擎与数据（文档预览/转换，是精简里最大的一块，约 44.6MB）。
+  #    只删 assets，**保留包本身**：dsh-skill-office 要从它解析 CLI 路径、
+  #    dsh-office-to-pdf 要 import libreoffice-kit，而两者都在**真正转换时**才
+  #    resolveEngine()（见 libreoffice-kit/lib/index.js:1702 与
+  #    dsh-office-to-pdf/lib/index.js:599 的 createConverter 惰性创建），
+  #    所以缺 assets 的表现是「转换时报错」，不是 dsh 起不来。
+  rm -f "$NM/@deepseek-ai/libreoffice-kit-wasm/assets/soffice.wasm" \
+        "$NM/@deepseek-ai/libreoffice-kit-wasm/assets/soffice.data"
+
+  # 自检：删干净了，且**没删过头**
+  LEFT_TS="$(find "$NM" \( -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' \) | wc -l)"
+  LEFT_MAP="$(find "$NM" -name '*.map' | wc -l)"
+  [ "$LEFT_TS" -eq 0 ] || { echo "!! 还剩 $LEFT_TS 个类型声明"; exit 1; }
+  [ "$LEFT_MAP" -eq 0 ] || { echo "!! 还剩 $LEFT_MAP 个 sourcemap"; exit 1; }
+  test ! -e "$NM/@deepseek-ai/libreoffice-kit-wasm/assets/soffice.wasm" \
+    || { echo "!! soffice.wasm 没删掉"; exit 1; }
+  test -f "$NM/@deepseek-ai/libreoffice-kit-wasm/package.json" \
+    || { echo "!! libreoffice-kit-wasm 的 package.json 被误删（dsh-skill-office 要解析它）"; exit 1; }
+  test -f "$NM/@deepseek-ai/libreoffice-kit/lib/index.js" \
+    || { echo "!! libreoffice-kit 被误删"; exit 1; }
+  test -f "$DSH_ENTRY/${DSH_BIN_REL}" || { echo "!! 精简把 dsh 入口删了"; exit 1; }
+  echo "    node_modules ${NM_BEFORE}MB → $(du -sm "$NM" | cut -f1)MB"
+fi
+
+echo "==> [4/9] 安装 python3（无线 ADB 配对依赖）"
+# 无线 ADB 配对（AdbBridge / adb-pair.py）需要容器内的 python3，
+# 而 ubuntu-base 里没有它。手机上第一次配对才 apt install 的话：
+#  - 要联网、要 apt 在 proot 下正常工作（dpkg 的 postinst 常在 proot 下失败）；
+#  - 用户点「配对」后要等好几分钟，失败原因还很难查。
+# 所以这里直接把 python3 及其依赖解包进 rootfs：
+# 只用 dpkg-deb -x（纯解包，不跑任何 maintainer script，不需要目标架构可执行），
+# postinst 真正做的事（sitecustomize.py 与 dist-packages 目录）下面手工补上。
+# 包名清单与架构无关：这 15 个在 noble 的 arm64 与 amd64 索引里都存在。
+PY_PKGS="python3.12-minimal libpython3.12-minimal libpython3.12-stdlib python3.12
+         python3-minimal python3 libpython3-stdlib
+         libexpat1 libsqlite3-0 libreadline8t64 readline-common
+         libnsl2 libtirpc3t64 media-types netbase tzdata"
+# arm64 的 deb 在 ubuntu-ports，amd64 在主仓库 ubuntu —— 路径不同，镜像域名相同。
+APT_MIRRORS="https://mirrors.tuna.tsinghua.edu.cn/${APT_REPO_PATH}
+             https://mirrors.aliyun.com/${APT_REPO_PATH}
+             https://mirror.nju.edu.cn/${APT_REPO_PATH}"
+if [ "$TARGET_ARCH" = "arm64" ]; then
+  APT_MIRRORS="$APT_MIRRORS
+             http://ports.ubuntu.com/ubuntu-ports"
+else
+  APT_MIRRORS="$APT_MIRRORS
+             http://archive.ubuntu.com/ubuntu"
+fi
+
+DEB_DIR="$WORK/debs"
+mkdir -p "$DEB_DIR"
+INDEX_DIR="$WORK/pkgindex"
+mkdir -p "$INDEX_DIR"
+
+# 找一个能同时给出三个 suite 索引的镜像（noble / -updates / -security：
+# 安全更新里的版本比 noble 里的新，只读 noble 会拿到装不上的旧版本组合）
+APT_BASE=""
+for m in $APT_MIRRORS; do
+  index_ok=1
+  for suite in "$UBUNTU_RELEASE" "$UBUNTU_RELEASE-updates" "$UBUNTU_RELEASE-security"; do
+    if ! curl -fsSL --connect-timeout 15 "$m/dists/$suite/main/binary-${UBUNTU_ARCH}/Packages.gz" \
+         | gzip -d > "$INDEX_DIR/$suite.txt" 2>/dev/null; then
+      index_ok=0; break
+    fi
+  done
+  if [ "$index_ok" = 1 ]; then APT_BASE="$m"; echo "    包索引镜像: $m"; break; fi
+done
+test -n "$APT_BASE"
+
+# 从索引里挑每个包的最高版本（跨三个 suite 比较）
+resolve_deb() {
+  local pkg="$1" best_ver="" best_fn="" ver fn block
+  for suite in "$UBUNTU_RELEASE" "$UBUNTU_RELEASE-updates" "$UBUNTU_RELEASE-security"; do
+    # RS="" 段落模式下 $0 是整段，用正则 ~ 会把 "Package: python3" 误配到
+    # "Package: python3.12" 那一段；改成逐字段精确等值比较
+    block="$(awk -v want="Package: $pkg" 'BEGIN{RS="";FS="\n";ORS="\n\n"}
+      { for (i=1;i<=NF;i++) if ($i==want) { print; next } }' "$INDEX_DIR/$suite.txt")"
+    [ -n "$block" ] || continue
+    ver="$(printf '%s\n' "$block" | sed -n 's/^Version: //p' | head -1)"
+    fn="$(printf '%s\n' "$block" | sed -n 's/^Filename: //p' | head -1)"
+    [ -n "$ver" ] || continue
+    if [ -z "$best_ver" ] || dpkg --compare-versions "$ver" gt "$best_ver"; then
+      best_ver="$ver"; best_fn="$fn"
+    fi
+  done
+  [ -n "$best_fn" ] || return 1
+  printf '%s\t%s\n' "$best_ver" "$best_fn"
+}
+
+for pkg in $PY_PKGS; do
+  info="$(resolve_deb "$pkg")" || { echo "!! 索引里找不到 $pkg"; exit 1; }
+  ver="$(printf '%s' "$info" | cut -f1)"
+  fn="$(printf '%s' "$info" | cut -f2)"
+  echo "    $pkg $ver"
+  curl -fsSL --connect-timeout 20 --retry 2 -o "$DEB_DIR/$pkg.deb" "$APT_BASE/$fn"
+  # 纯解包：不执行 maintainer script（它们要在目标架构上跑；arm64 时 runner 根本
+  # 跑不了，amd64 时也不该让 rootfs 的正确性依赖构建机环境）。
+  # 副作用：dpkg 数据库里没有这些包的记录，容器内 apt 仍会认为 python3 未安装 ——
+  # 用户真去 apt install python3 时会重新装一遍并覆盖，属可接受（不会坏）。
+  dpkg-deb -x "$DEB_DIR/$pkg.deb" "$ROOTFS"
+done
+
+# postinst 真正会做的两件事，手工补：
+# 1) sitecustomize.py：python3.12 的 lib 里那个是指向 /etc 的符号链接，缺文件即 dangling
+install -d "$ROOTFS/etc/python3.12"
+printf '# Empty sitecustomize.py to avoid a dangling symlink\n' \
+  > "$ROOTFS/etc/python3.12/sitecustomize.py"
+# 2) /usr/local/lib/python3.12/dist-packages：pip --break-system-packages 的落点
+install -d "$ROOTFS/usr/local/lib/python3.12/dist-packages"
+install -d "$ROOTFS/usr/lib/python3/dist-packages"
+
+# 自检：解包出来的解释器必须是目标架构，且 stdlib 齐全（缺 lib-dynload 会在设备上才炸）
+test -x "$ROOTFS/usr/bin/python3.12"
+head -c 20 "$ROOTFS/usr/bin/python3.12" | od -An -tx1 | tr -d ' \n' | grep -q '^7f454c46' \
+  || { echo "!! python3.12 不是 ELF"; exit 1; }
+# e_machine 是 2 字节小端；原来只读 1 字节，对 183(0x00b7) 与 62(0x003e) 都刚好等于
+# 低位字节而侥幸成立，这里改成读满 2 字节，别再依赖这个巧合。
+PY_ARCH="$(od -An -tu2 -j18 -N2 "$ROOTFS/usr/bin/python3.12" | tr -d ' \n')"
+test "$PY_ARCH" = "$ELF_MACHINE" \
+  || { echo "!! python3.12 不是 $TARGET_ARCH (e_machine=$PY_ARCH，期望 $ELF_MACHINE)"; exit 1; }
+test -L "$ROOTFS/usr/bin/python3"
+DYNLOAD_COUNT="$(ls "$ROOTFS/usr/lib/python3.12/lib-dynload"/*.so 2>/dev/null | wc -l)"
+test "$DYNLOAD_COUNT" -ge 40 || { echo "!! lib-dynload 只有 $DYNLOAD_COUNT 个模块"; exit 1; }
+for m in _ssl _hashlib _sqlite3 _ctypes _decimal; do
+  ls "$ROOTFS/usr/lib/python3.12/lib-dynload/$m."*.so >/dev/null 2>&1 \
+    || { echo "!! 缺少 python 模块 $m"; exit 1; }
+done
+test -f "$ROOTFS/usr/lib/python3.12/ssl.py"
+echo "    python3 已就绪 · lib-dynload $DYNLOAD_COUNT 个模块"
+
+echo "==> [5/9] 安装 git（git 源插件依赖）"
+# 插件目录里 2663 条有 1357 条（51%）的安装命令是 `github:owner/name` 规格，
+# pnpm 解析它要 `git ls-remote`；ubuntu-base 没有 git，于是这一半插件全装不上
+# （真机报 ERR_PNPM_GIT_RESOLVE_FAILED: git executable not found on PATH）。
+# 手机上现装的问题跟 python3 一样：要联网、apt 的 postinst 在 proot 下常失败、
+# 用户要干等好几分钟。所以同样预解包进 rootfs。
+#
+# 因为是 dpkg-deb -x 纯解包，**dpkg 的依赖关系没人替我们解**，包列表必须手写全。
+# r1 只列了直接依赖，漏掉 libcurl-gnutls 的 8 个传递依赖：git 本体只链
+# libpcre2/libz/libc 所以看着好用，但 git-remote-https（pnpm 走 https 克隆真正
+# exec 的那个）链 libcurl，一 exec 就 `cannot find libnghttp2.so.14`。
+# 现在结尾用 check-elf-closure.js 求真闭包兜底，别再靠手写列表的正确性。
+#
+# git 只用到 perl 跑几个辅助脚本（add -i、send-email 之类），核心命令是 C 实现，
+# 但 dpkg 的依赖关系摆在那儿，缺了 perl 一些子命令会直接报错，所以一并带上。
+GIT_PKGS="git git-man liberror-perl perl perl-base perl-modules-5.38
+          libcurl3t64-gnutls libpcre2-8-0 zlib1g
+          libnghttp2-14 librtmp1 libssh-4 libpsl5t64
+          libgssapi-krb5-2 libkrb5-3 libk5crypto3 libkrb5support0
+          libldap2 libsasl2-2 libsasl2-modules-db libkeyutils1
+          libbrotli1 libexpat1"
+
+for pkg in $GIT_PKGS; do
+  info="$(resolve_deb "$pkg")" || { echo "!! 索引里找不到 $pkg"; exit 1; }
+  ver="$(printf '%s' "$info" | cut -f1)"
+  fn="$(printf '%s' "$info" | cut -f2)"
+  echo "    $pkg $ver"
+  curl -fsSL --connect-timeout 20 --retry 2 -o "$DEB_DIR/$pkg.deb" "$APT_BASE/$fn"
+  # 同 python3：纯解包，不跑 maintainer script
+  dpkg-deb -x "$DEB_DIR/$pkg.deb" "$ROOTFS"
+done
+
+# 自检：git-remote-https 才是 pnpm 走 https 克隆时真正调用的那个
+test -x "$ROOTFS/usr/bin/git"
+test -x "$ROOTFS/usr/lib/git-core/git-remote-https" \
+  || { echo "!! 缺少 git-remote-https（https 克隆会失败）"; exit 1; }
+test -x "$ROOTFS/usr/bin/perl" || { echo "!! 缺少 perl"; exit 1; }
+echo "    git 已就绪"
+
+# CA 根证书 bundle：ubuntu-base 不含 ca-certificates，容器 git 走 https 一份根证书都没有
+# （CAfile: none → server certificate verification failed）。此前只靠 App 侧 ensureGitCa 往
+# /root/.gitconfig 写 http.sslCAInfo 兜底，但运行时更新会清掉 /root/.gitconfig，dsh 自身
+# reconcile/自愈跑的 git 就撞无 CA。这里把构建机（同为 Ubuntu、同一套 Mozilla 根证书）现成的
+# bundle 直接放进标准路径，让容器 git/openssl/curl 原生就能校验 https，不依赖任何运行期配置。
+# 纯 PEM 文本，架构无关。
+echo "==> [5b/9] 安装 CA 根证书 bundle"
+test -s /etc/ssl/certs/ca-certificates.crt || { echo "!! 构建机缺 CA bundle"; exit 1; }
+install -D -m 0644 /etc/ssl/certs/ca-certificates.crt "$ROOTFS/etc/ssl/certs/ca-certificates.crt"
+# openssl 默认查 /usr/lib/ssl/cert.pem（Ubuntu 上指向上面那个文件）；补一个软链，确保
+# git 的 libcurl 无需 env/config 也能找到。绝对目标在 proot 下按 rootfs 根解析，正确。
+install -d "$ROOTFS/usr/lib/ssl"
+ln -sf /etc/ssl/certs/ca-certificates.crt "$ROOTFS/usr/lib/ssl/cert.pem"
+test -s "$ROOTFS/etc/ssl/certs/ca-certificates.crt"
+echo "    CA bundle 就绪（$(wc -c < "$ROOTFS/etc/ssl/certs/ca-certificates.crt") 字节）"
+
+echo "==> [5c/9] 安装常用命令行工具"
+# 为什么要有这一步：容器里 dsh 的 agent 是靠**敲命令**干活的，而 ubuntu-base 只有
+# 91 个包，常用工具几乎全缺 —— 没有 curl/wget 就没法在命令行下东西，没有 unzip/xz
+# 就解不开压缩包，没有 jq 处理 JSON 只能现写 node 脚本，没有 file 认不出文件类型，
+# 没有 ssh/openssl 连不了远程也验不了证书。这些不是锦上添花：agent 遇到缺失时要么
+# 绕路要么直接卡住，而用户要的是「一个能自己干活的容器」。
+#
+# 清单是**算出来的，不是凭直觉手写的**：从 noble 的 Packages 索引对下面这些根包做
+# Depends 递归闭包（不含 Recommends，等价 --no-install-recommends），再减去
+# ubuntu-base 已装的包与 [4][5] 两步已解包过的包，最后交给 [6/9] 的
+# check-elf-closure.js 求真闭包兜底。r1 的教训就是手写列表必漏传递依赖。
+#
+# 刻意不装的两个（都有实测代价数据，别凭感觉推翻）：
+#   dig（bind9-dnsutils）—— 它强制 bind9-libs → libxml2 → **libicu74 单包 35 MB**，
+#     一个 dig 连带 43 MB，占整份清单的三分之二；而查 DNS 用 node 的 dns 模块就够
+#     （node -e "require('dns').resolve4('example.com',console.log)"）。不值。
+#   tree —— 只存在于 **universe** 组件，而本脚本只拉 main 索引（拉 universe 会让
+#     每个架构每次构建多下约 45 MB）。为个树状图不值，find 能顶。
+# 下面 20 个包已逐个核对在 noble 的 arm64 与 amd64 **main** 索引里都存在。
+CLI_PKGS="curl libcurl4t64 wget unzip xz-utils less file libmagic1t64 libmagic-mgc
+          jq libjq1 libonig5 nano libedit2 libbsd0 openssl openssh-client
+          adduser libfido2-1 libcbor0.10"
+
+for pkg in $CLI_PKGS; do
+  info="$(resolve_deb "$pkg")" || { echo "!! 索引里找不到 $pkg"; exit 1; }
+  ver="$(printf '%s' "$info" | cut -f1)"
+  fn="$(printf '%s' "$info" | cut -f2)"
+  echo "    $pkg $ver"
+  curl -fsSL --connect-timeout 20 --retry 2 -o "$DEB_DIR/$pkg.deb" "$APT_BASE/$fn"
+  # 同 python3 / git：纯解包，不跑 maintainer script（它们要在目标架构上执行）
+  dpkg-deb -x "$DEB_DIR/$pkg.deb" "$ROOTFS"
+done
+
+# 自检：命令真的在、且是可执行的入口。缺一个就说明清单写漏，构建期直接失败，
+# 别等用户在容器里敲出 command not found 才发现。
+# ssh-keygen 一并验：git 走 ssh 规格克隆 github 时用的是它。
+for c in curl wget unzip xz less file jq nano openssl ssh scp sftp ssh-keygen; do
+  test -x "$ROOTFS/usr/bin/$c" || { echo "!! 缺少命令 $c"; exit 1; }
+done
+# file 的魔数库不是 ELF，闭包检查看不到它；缺了 file 会退化成一个只会报错/误判的壳
+test -s "$ROOTFS/usr/lib/file/magic.mgc" || { echo "!! 缺少 file 的 magic.mgc"; exit 1; }
+echo "    常用工具已就绪（20 个包）"
+
+echo "==> [6/9] 检查动态库依赖闭合"
+# 「文件存在 + 是 ELF」这种自检拦不住缺库（r1 就是这么放过去的），
+# 这里递归解析 DT_NEEDED 求真闭包。
+#
+# 入口从「git-core + perl 扩展 + python3 子目录」扩到整个 usr/bin 与 usr/sbin：
+# 那些子目录只覆盖我们**显式盯着**的几个入口，而缺库这种事恰恰发生在我们没盯的
+# 地方（r1 的 git-remote-https 就是这么漏的）。扩到全量后，任何一个用户态程序的
+# 传递依赖断了都会在构建期失败，同时附带把 e_machine 也全量校验一遍。
+# （r6 已在本地用 base + python + git + 新工具的忠实模拟验证过全量闭合：
+#   usr/bin + usr/sbin 共 347 个入口 ELF、77 个 SONAME，无缺失。）
+node "$(dirname "$0")/check-elf-closure.js" --arch="$TARGET_ARCH" "$ROOTFS" \
+  usr/bin \
+  usr/sbin \
+  usr/lib/git-core \
+  "usr/lib/${MULTIARCH}/perl" \
+  usr/lib/python3.12/lib-dynload
+
+echo "==> [7/9] 容器内初始设置"
+install -d -m 700 "$ROOTFS/root/.dsh"
+install -d -m 1777 "$ROOTFS/tmp"
+# APT 换国内源（用户在容器里 apt install 时不至于卡住）；DNS 由 App 在安装后写入。
+# 仓库路径要跟着架构走：arm64 在 ubuntu-ports，amd64 在 ubuntu。
+cat > "$ROOTFS/etc/apt/sources.list.d/ubuntu.sources" <<EOF
+Types: deb
+URIs: https://mirrors.tuna.tsinghua.edu.cn/${APT_REPO_PATH}/
+Suites: ${UBUNTU_RELEASE} ${UBUNTU_RELEASE}-updates ${UBUNTU_RELEASE}-security ${UBUNTU_RELEASE}-backports
+Components: main restricted universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+EOF
+# proot 下不能跑的东西提前禁掉，避免 apt 触发时整条命令失败
+printf '#!/bin/sh\nexit 0\n' > "$ROOTFS/usr/sbin/policy-rc.d"
+chmod +x "$ROOTFS/usr/sbin/policy-rc.d"
+cat > "$ROOTFS/root/.profile" <<'EOF'
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export DSH_HOME=/root/.dsh
+export LANG=C.UTF-8
+export TERM=xterm-256color
+EOF
+
+echo "==> [8/9] 打包 rootfs${ASSET_SUFFIX}.tar.gz"
+TARBALL="$OUT/rootfs${ASSET_SUFFIX}.tar.gz"
+rm -f "$TARBALL"
+# numeric-owner + 不带前导目录：App 侧 TarGzipExtractor 直接铺到 filesDir/rootfs
+tar --numeric-owner -czf "$TARBALL" -C "$ROOTFS" .
+SIZE=$(stat -c %s "$TARBALL")
+SHA=$(sha256sum "$TARBALL" | cut -d' ' -f1)
+echo "    $TARBALL  $((SIZE / 1024 / 1024)) MB  sha256=$SHA"
+
+echo "==> [9/9] 生成 metadata${ASSET_SUFFIX}.json"
+REPO="${GITHUB_REPOSITORY:-IPF-Sinon/DSH-Folk}"
+TAG="${RELEASE_TAG:-$CHANNEL_RELEASE_TAG}"
+ASSET="https://github.com/${REPO}/releases/download/${TAG}/rootfs${ASSET_SUFFIX}.tar.gz"
+# 条件字段：用「前置逗号 + 换行」拼进上一行末尾，未声明时连空行都不留（JSON 里
+# 多一个空行没问题，但生成的 metadata 是要被人工读的，不该有噪声）。
+if [ -n "$MIN_APP_VERSION" ]; then
+  MIN_APP_LINE=$'\n'"  \"minAppVersion\": \"${MIN_APP_VERSION}\","
+else
+  MIN_APP_LINE=""
+fi
+cat > "$OUT/metadata${ASSET_SUFFIX}.json" <<EOF
+{
+  "version": "${DSH_REAL_VERSION}-ubuntu${UBUNTU_RELEASE}-r${ROOTFS_REV}${FLAVOR_SUFFIX}${VERSION_CHANNEL_SUFFIX}",
+  "url": "${ASSET}",
+  "sha256": "${SHA}",
+  "sizeBytes": ${SIZE},
+  "mirrors": [
+    "https://v6.gh-proxy.org/${ASSET}",
+    "https://axisnow.gh-proxy.org/${ASSET}",
+    "https://v4.gh-proxy.org/${ASSET}",
+    "https://cdn.gh-proxy.org/${ASSET}",
+    "https://gh-proxy.org/${ASSET}"
+  ],
+  "arch": "${ANDROID_ABI}",
+  "flavor": "${RUNTIME_FLAVOR}",
+  "dsh": "${DSH_REAL_VERSION}",
+  "nodeVersion": "${NODE_VER}",${MIN_APP_LINE}
+  "builtAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+cat "$OUT/metadata${ASSET_SUFFIX}.json"

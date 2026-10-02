@@ -1,0 +1,673 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="desktop_app_name">餐厅招牌菜</string>
+
+    <string name="home">后厨操作台</string>
+
+    <string name="failure">翻车了</string>
+
+
+
+    <string name="settings_nav_layout_title">菜单编排风格</string>
+    <string name="settings_nav_layout_summary">想秀啥就秀啥</string>
+    <string name="settings_nav_scheme">菜单编排方案</string>
+    <string name="settings_nav_mode_auto">自动传统</string>
+    <string name="settings_nav_mode_bottom">老在下面</string>
+    <string name="settings_nav_mode_rail">老在左边</string>
+    <string name="settings_nav_mode_floating">飘在下边</string>
+    <string name="settings_floating_auto_hide">底栏自动收起来</string>
+    <string name="settings_floating_auto_hide_summary">3秒没操作就把底栏藏起来</string>
+    <string name="settings_floating_swipe_hide">滑动收起底栏</string>
+    <string name="settings_floating_swipe_hide_summary">往下滑的时候藏底栏，往上滑的时候亮出来</string>
+    <string name="settings_navbar_glass_effect">毛玻璃效果</string>
+    <string name="settings_navbar_glass_effect_summary">给悬浮底栏加个毛玻璃特效</string>
+    <string name="settings_navbar_glass_blur_strength">模糊程度</string>
+    <string name="settings_navbar_glass_transparency">背景透明度</string>
+    <string name="settings_navbar_glass_highlight_strength">高光程度</string>
+    <string name="settings_navbar_glass_specular">镜面反光</string>
+    <string name="settings_navbar_glass_specular_summary">在底栏顶部开个镜面高光</string>
+    <string name="settings_navbar_glass_inner_glow">内发光</string>
+    <string name="settings_navbar_glass_inner_glow_summary">在底栏底部加个微光效果</string>
+    <string name="settings_navbar_glass_border">玻璃边框</string>
+    <string name="settings_navbar_glass_border_summary">给底栏加个微妙的边框描边</string>
+    <string name="settings_compact_rounded_bar">紧凑圆角风格</string>
+    <string name="settings_compact_rounded_bar_summary">使用圆角紧凑间距的浮动底栏</string>
+    <string name="settings_stats_top_layout">顶部摆盘</string>
+    <string name="settings_stats_top_layout_list">列表摆盘</string>
+    <string name="settings_stats_top_layout_grid">网格摆盘</string>
+
+    <string name="reboot">重新起火</string>
+    <string name="settings">烹饪秘籍</string>
+    <string name="reboot_recovery">去后厨</string>
+    <string name="reboot_bootloader">去备料间</string>
+    <string name="reboot_download">去进货</string>
+    <string name="reboot_edl">去抢救</string>
+    <string name="reboot_fastbootd">换换地儿</string>
+    <string name="about">咱家底</string>
+    <string name="developer_and_maintainer">掌勺大厨 | 传人</string>
+    <string name="settings_app_language">方言</string>
+    <string name="system_default">照旧</string>
+
+    <string name="settings_grid_working_card_hide_check">不显对勾</string>
+    <string name="settings_grid_working_card_hide_check_summary">工牌上的小勾勾或警告全藏起</string>
+    <string name="settings_grid_working_card_hide_text">不显状态字</string>
+    <string name="settings_grid_working_card_hide_text_summary">工牌上那些"火大无王"啊"翻车啦"啊的字儿全藏起</string>
+    <string name="settings_grid_working_card_hide_mode">不显模式字</string>
+    <string name="settings_grid_working_card_hide_mode_summary">工牌上那个"Full"啊"Half"啊模式标识收起</string>
+
+    <string name="settings_folkx_engine_title">FolkX 烹饪动画</string>
+    <string name="settings_folkx_engine_summary">在主页面切换时使用丝滑的物理弹簧动画</string>
+    <string name="settings_folkx_animation_type">动画类型</string>
+    <string name="settings_folkx_animation_speed">动画速度</string>
+    <string name="settings_folkx_animation_linear">直线运动</string>
+    <string name="settings_folkx_animation_spatial">空间运动</string>
+    <string name="settings_folkx_animation_fade">渐隐渐显</string>
+    <string name="settings_folkx_animation_vertical">垂直滑动</string>
+    <string name="settings_folkx_animation_diagonal">对角滑动</string>
+
+    <string name="send_log">发送烹饪日志</string>
+    <string name="settings_clean_storage">清理后厨存货</string>
+    <string name="settings_clean_storage_summary">清掉残渣，免得下载或应用翻车</string>
+    <string name="settings_clean_storage_confirm">会把下载的主题、导入的音乐、厨房声响和全部缓存统统倒掉，重新备好台面。设置不会动。要开工吗？</string>
+    <string name="settings_clean_storage_done">打扫完毕</string>
+    <string name="github">GitHub</string>
+
+
+
+
+
+
+
+
+
+
+    <string name="home_kernel">核心食材版本</string>
+    <string name="home_fingerprint">菜品指纹</string>
+
+    <string name="home_selinux_status">厨房卫生状态</string>
+    <string name="home_selinux_status_disabled">已关闭</string>
+    <string name="home_selinux_status_enforcing">严格检查</string>
+    <string name="home_selinux_status_permissive">宽松模式</string>
+    <string name="home_selinux_status_unknown">未知状态</string>
+
+
+    <string name="home_device_info">厨房设备</string>
+    <string name="home_system_version">餐厅系统版本</string>
+
+
+
+    <string name="apm_remove">移除</string>
+    <string name="apm_update">更新菜谱</string>
+
+
+
+    <string name="enable_web_debugging">启用 WebView 调试</string>
+    <string name="enable_web_debugging_summary">可用于调试 WebUI。请仅在烹饪需要时启用。</string>
+    <string name="apm_enable_module_banner">启用招牌菜横幅</string>
+    <string name="apm_enable_module_banner_summary">为支持的招牌菜显示横幅图片</string>
+    <string name="apm_enable_folk_banner">自定义招牌菜横幅</string>
+    <string name="apm_enable_folk_banner_summary">长按招牌菜卡片自选横幅图片</string>
+    <string name="apm_banner_api_mode">配菜图鉴模式</string>
+    <string name="apm_banner_api_mode_summary">用随机配菜图库或本地食材库给每道菜配装饰图</string>
+    <string name="apm_banner_api_source">配置配菜源</string>
+    <string name="apm_banner_api_source_hint">输入配菜图库地址或食材库路径</string>
+    <string name="apm_banner_api_source_saved">配菜源已入库</string>
+    <string name="apm_banner_api_source_not_configured">还没配菜呢</string>
+    <string name="apm_banner_api_url_configured">配菜图库已入库</string>
+    <string name="apm_banner_local_dir_configured">本地食材库已入库</string>
+    <string name="apm_banner_clear_cache">清理备菜台</string>
+    <string name="apm_banner_cache_cleared">备菜台已清空</string>
+    <string name="apm_banner_api_config_title">配置配菜源</string>
+    <string name="apm_banner_api_config_desc">输入配菜图库地址或本地食材库路径，每道菜都能配上独一无二的装饰图！</string>
+    <string name="apm_banner_api_examples_title">配菜示例：</string>
+    <string name="apm_banner_api_examples">图库: https://picsum.photos/800/400\n食材: /sdcard/Pictures/Banners</string>
+    <!-- API 配菜市场 -->
+    <string name="apm_api_marketplace_title">API 配菜市场</string>
+    <string name="apm_api_preview">试菜</string>
+    <string name="apm_api_apply">上菜</string>
+    <string name="apm_api_preview_title">API 试菜</string>
+    <string name="apm_api_preview_failed">试菜失败</string>
+    <string name="apm_api_url_label">API 地址：</string>
+    <string name="apm_api_apply_success">API 配菜已上桌</string>
+    <string name="apm_api_verifying">尝菜中…</string>
+    <string name="apm_api_retry">重新配菜</string>
+    <string name="apm_api_empty">暂无 API 配菜</string>
+    <string name="settings_banner_custom_opacity">横幅透明度</string>
+    <string name="settings_banner_custom_opacity_summary">自定义横幅透明度，不再跟随壁纸模式</string>
+    <string name="settings_banner_opacity">横幅不透明度</string>
+
+
+
+
+    <string name="home_more_menu_feedback_or_suggestion">反馈或建议</string>
+    <string name="home_more_menu_about">关于</string>
+
+    <string name="home_more_menu_music_play">播放小曲</string>
+    <string name="home_more_menu_music_pause">暂停小曲</string>
+
+    <!-- Plugin strings -->
+
+
+
+
+
+
+    <string name="amber_theme">琥珀色</string>
+    <string name="blue_theme">蓝色</string>
+    <string name="blue_grey_theme">蓝灰色</string>
+    <string name="brown_theme">棕色</string>
+    <string name="cyan_theme">青色</string>
+    <string name="deep_orange_theme">深橙色</string>
+    <string name="deep_purple_theme">深紫色</string>
+    <string name="green_theme">绿色</string>
+    <string name="indigo_theme">靛青色</string>
+    <string name="light_blue_theme">浅蓝色</string>
+    <string name="light_green_theme">浅绿色</string>
+    <string name="lime_theme">酸橙色</string>
+    <string name="orange_theme">橙色</string>
+    <string name="pink_theme">粉色</string>
+    <string name="purple_theme">紫色</string>
+    <string name="red_theme">红色</string>
+    <string name="sakura_theme">樱花粉</string>
+    <string name="teal_theme">蓝绿色</string>
+    <string name="yellow_theme">黄色</string>
+    <string name="theme_color">主题颜色</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_system">系统</string>
+    <string name="loading_themes">正在加载主题…</string>
+    <string name="loading_apis">正在加载 API 配菜…</string>
+    <string name="retry">再试</string>
+
+    <string name="about_powered_by">由 %1$s 提供支持</string>
+
+    <!-- Online Module Strings -->
+
+    <!-- Online Module Source Strings -->
+
+    <!-- Repo Module Detail Strings -->
+
+    <!-- Online KPM Strings -->
+
+    <!-- Online Plugin Strings -->
+
+    <!-- Online Script Strings -->
+
+    <!-- Crash Handle Strings -->
+    <string name="crash_handle_title">厨房事故报告</string>
+    <string name="crash_handle_copy">复制</string>
+
+    <!-- About Screen Strings -->
+    <string name="about_app_version">店里的版本: %s</string>
+    <string name="about_github">代码仓库</string>
+
+    <string name="settings_app_dpi">软件 DPI</string>
+    <string name="dpi_apply_settings">确定</string>
+
+<string name="settings_app_title">软件名</string>
+    <string name="app_title_custom">自个儿起</string>
+    <string name="settings_custom_app_title">设置软件名</string>
+    <string name="custom_app_title_dialog_title">自定义软件名</string>
+    <string name="custom_app_title_dialog_hint">写个名儿呗</string>
+    <string name="custom_app_title_dialog_confirm">中</string>
+    <string name="cancel">算了</string>
+    <string name="settings_custom_background">自定背景</string>
+    <string name="settings_custom_background_enabled">已开自定背景</string>
+    <string name="settings_custom_background_opacity">卡片透明度</string>
+    <string name="settings_custom_background_blur">背景虚化</string>
+    <string name="settings_custom_background_dim">背景暗度</string>
+    <string name="settings_custom_background_dual_dim">明暗双切</string>
+    <string name="settings_custom_background_dual_dim_desc">根据亮色和暗色主题自动调整背景暗度</string>
+    <string name="settings_custom_background_day_dim">白天暗度</string>
+    <string name="settings_custom_background_night_dim">夜间暗度</string>
+    <string name="settings_multi_background_mode">开多背景模式</string>
+    <string name="settings_multi_background_mode_summary">不同页面用不同背景图</string>
+    <string name="settings_select_home_background">后厨背景</string>
+    <string name="settings_select_settings_background">秘籍背景</string>
+
+    <string name="settings_advanced_title_style">高级标题样式</string>
+    <string name="settings_advanced_title_style_summary">用自定义图片替换顶部标题</string>
+    <string name="settings_advanced_title_style_enabled">高级标题样式已开启</string>
+    <string name="settings_select_title_image">挑标题图片</string>
+    <string name="settings_title_image_selected">标题图片挑好了</string>
+    <string name="settings_title_image_saved">标题图片存好了</string>
+    <string name="settings_title_image_error">标题图片存失败</string>
+    <string name="settings_clear_title_image">撤标题图片</string>
+    <string name="settings_clear_title_image_confirm">真要撤标题图片吗？</string>
+    <string name="settings_title_image_cleared">标题图片撤了</string>
+    <string name="settings_title_image_day_opacity">白天透明度</string>
+    <string name="settings_title_image_night_opacity">晚上透明度</string>
+    <string name="settings_title_image_dim">背景暗度</string>
+    <string name="settings_title_image_offset_x">水平位置</string>
+
+    <!-- Font Settings -->
+    <string name="settings_custom_font">自定字体</string>
+    <string name="settings_select_font_file">挑字体文件</string>
+    <string name="settings_custom_font_enabled">已开自定字体</string>
+    <string name="settings_custom_font_summary">用自定 TTF 字体</string>
+    <string name="settings_font_selected">已选好自定字体</string>
+    <string name="settings_custom_font_error">存字体失败</string>
+    <string name="settings_custom_font_saved">自定字体存好了</string>
+    <string name="settings_clear_font">用回默认字体</string>
+    <string name="settings_clear_font_confirm">真要恢复默认字体吗？</string>
+    <string name="settings_font_cleared">已用回默认字体</string>
+    <string name="settings_select_background_image">挑背景图</string>
+    <string name="settings_custom_background_summary">设背景图</string>
+    <string name="settings_custom_background_saved">背景存好了</string>
+    <string name="settings_custom_background_error">存背景失败</string>
+    <string name="settings_crop_not_supported">设备不支持裁剪，原图已存</string>
+    <string name="settings_crop_dialog_title">裁壁纸</string>
+    <string name="settings_crop_dialog_message">要裁图吗？</string>
+    <string name="settings_crop_dialog_crop">裁</string>
+    <string name="settings_crop_dialog_direct">不裁</string>
+    <string name="settings_background_selected">背景已选好</string>
+    <string name="settings_background_image_cleared">背景已撤了</string>
+    <string name="settings_clear_background">撤背景</string>
+    <string name="settings_clear_background_confirm">真要撤背景图吗？</string>
+
+    <string name="settings_alt_icon">备用图标</string>
+    <string name="alt_icon_summary">用备选启动器图标</string>
+
+    <!-- Video Background Settings -->
+    <string name="settings_video_background">视频背景</string>
+    <string name="settings_video_background_summary">使用视频作为背景</string>
+    <string name="settings_select_video">选择视频</string>
+    <string name="settings_video_selected">已选择视频</string>
+    <string name="settings_clear_video_background">清除视频壁纸</string>
+    <string name="settings_clear_video_background_confirm">确定要清除视频壁纸吗？</string>
+    <string name="settings_video_volume">视频音量</string>
+
+
+    <!-- 隐藏设定字符串 -->
+    <string name="home_hide_fingerprint">隐藏菜品指纹信息</string>
+    <string name="home_hide_fingerprint_summary">在信息卡片中隐藏菜品指纹信息</string>
+    <!-- KPM AutoLoad Strings -->
+    
+
+    <!-- APM Bulk Install Strings -->
+
+    <!-- Welcome Guide -->
+    <string name="welcome_title_1">欢迎光临 FolkPatch 餐厅</string>
+    <string name="welcome_desc_1">FolkPatch 是一家主打高度自定义和便捷操作的 Root 餐厅，基于 KernelPatch 秘方烹制。让您的厨房，由您掌勺。</string>
+    <string name="welcome_title_2">随心装修</string>
+    <string name="welcome_desc_2">从店面颜色、背景、招牌字体到背景音乐、震动反馈，一切都能按您的口味来。去主题商店逛逛，找到心仪的装修风格！</string>
+    <string name="welcome_title_3">后厨秘方</string>
+    <string name="welcome_desc_3">在设置菜单点右上角的调音图标，就能进入后厨秘方控制：FolkPatch Hide、Umount、Path Hide……高级厨艺都在这里！</string>
+    <string name="welcome_title_4">准备上菜？</string>
+    <string name="welcome_desc_4">现在您已经了解了基本操作。开始享受最自由的 Root 烹饪体验吧！</string>
+    <string name="welcome_prev">上一步</string>
+    <string name="welcome_next">下一步</string>
+    <string name="welcome_skip">跳过</string>
+    <string name="welcome_got_it">开饭！</string>
+
+    
+
+    <!-- Module Backup/Restore Strings -->
+
+    <!-- Auto Backup Strings -->
+
+    <!-- Home Layout Strings -->
+    <string name="settings_home_layout_style">主厨台面风格</string>
+    <string name="settings_home_layout_default">ListUI</string>
+    <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
+    <string name="settings_home_layout_circle">CircleUI</string>
+    <string name="settings_home_layout_dashboard_pro">DashboardUI</string>
+    <string name="settings_save_theme">存起主题</string>
+    <string name="settings_import_theme">导入主题</string>
+    <string name="settings_theme_saved">主题已存起</string>
+    <string name="settings_theme_imported">主题已导入</string>
+    <string name="settings_theme_save_failed">存起主题失败</string>
+    <string name="settings_theme_import_failed">导入主题失败</string>
+    <string name="settings_reset_theme">恢复装修</string>
+    <string name="settings_reset_theme_confirm">确定要把装修风格恢复成默认吗？这会清掉所有自定义背景、字体、音乐和音效。</string>
+    <string name="settings_theme_reset">装修已恢复</string>
+    <string name="settings_theme_reset_failed">恢复装修失败</string>
+
+    <!-- Theme Strings -->
+    <string name="theme_export_title">打包装</string>
+    <string name="theme_import_title">导入风格</string>
+    <string name="theme_name">装修名称</string>
+    <string name="theme_type">店面类型</string>
+    <string name="theme_type_phone">小桌</string>
+    <string name="theme_type_tablet">大桌</string>
+    <string name="theme_version">版本号</string>
+    <string name="theme_author">设计师</string>
+    <string name="theme_description">装修说明</string>
+    <string name="theme_export_action">打包</string>
+    <string name="theme_import_action">导入</string>
+    <string name="theme_import_confirm">真要导入这个装修风格吗？</string>
+
+    <!-- Grid Working Card Background -->
+    <string name="settings_grid_working_card_background">工牌背景</string>
+    <string name="settings_grid_working_card_background_enabled">已启用自定义工牌背景</string>
+    <string name="settings_grid_working_card_background_summary">给工牌设置自定义背景图</string>
+    <string name="settings_grid_working_card_background_selected">背景已选好</string>
+    <string name="settings_grid_working_card_dual_opacity">启用明暗双透明度</string>
+    <string name="settings_grid_working_card_dual_opacity_desc">根据亮色和暗色主题自动调整卡片透明度</string>
+    <string name="settings_grid_working_card_day_opacity">白天透明度</string>
+    <string name="settings_grid_working_card_night_opacity">夜间透明度</string>
+    <string name="settings_clear_grid_working_card_background">清除工牌背景</string>
+    <string name="settings_clear_grid_working_card_background_confirm">确定要清除工牌背景图吗？</string>
+    <string name="settings_grid_working_card_background_saved">工牌背景存好了</string>
+    <string name="settings_grid_working_card_background_error">工牌背景存失败了</string>
+    <string name="settings_grid_working_card_background_cleared">工牌背景已清除</string>
+
+    <!-- Biometric Strings -->
+    <string name="action_biometric">生物识别认证</string>
+    <string name="msg_biometric">请验证您的生物识别身份</string>
+    <string name="msg_enable_biometric">启用生物识别认证以在打开应用时要求验证？</string>
+    <string name="settings_biometric_login">生物识别认证</string>
+    <string name="settings_biometric_login_summary">打开餐厅软件时要求生物识别认证</string>
+    <string name="settings_strong_biometric">强力生物识别</string>
+    <string name="settings_strong_biometric_summary">烹饪、撤下或禁用招牌菜时需要验证</string>
+
+    <!-- Theme Store Strings -->
+    <string name="theme_store_title">主题商店</string>
+    <string name="theme_source_official">官方</string>
+    <string name="theme_source_third_party">第三方</string>
+    <string name="theme_store_author">主厨: %s</string>
+    <string name="theme_store_version">版本: %s</string>
+    <string name="theme_source">来源</string>
+    <string name="theme_store_download">采购</string>
+    <string name="theme_store_search_hint">搜索主题...</string>
+
+    <!-- Update Check Strings -->
+    <string name="settings_auto_update_check">自动看新菜谱</string>
+    <string name="settings_auto_update_check_summary">开张时自动瞧瞧有嘛新菜谱没</string>
+    <string name="settings_check_update">看新菜谱</string>
+    <string name="update_available_title">有新菜谱啦</string>
+    <string name="update_available_message">菜谱有点旧了，要搞点新菜谱不？</string>
+    <string name="update_action">搞新菜谱</string>
+    <string name="update_close">关咯</string>
+    <string name="update_latest">菜谱挺新的</string>
+    <!--折叠选项-->
+    <string name="settings_category_general">餐厅规矩</string>
+    <string name="settings_category_appearance">餐厅布局</string>
+    <string name="settings_appearance_font">字体样式</string>
+    <string name="settings_appearance_theme">主题装修</string>
+
+    <string name="settings_nav_custom_icons">自定义导航图标</string>
+    <string name="settings_nav_custom_icons_summary">用自定义贴图替换底部导航栏图标</string>
+    <string name="nav_icon_home">主界面图标</string>
+    <string name="nav_icon_superuser">終端圖示</string>
+    <string name="nav_icon_apm">外掛圖示</string>
+    <string name="nav_icon_settings">设置图标</string>
+    <string name="nav_icon_clear">重置为默认</string>
+    <string name="nav_icon_custom_selected">自定义</string>
+    <string name="nav_icon_default">默认</string>
+    <string name="nav_icon_cleared">图标已重置</string>
+    <string name="nav_icon_set">图标已更新</string>
+    <string name="nav_icon_set_failed">图标保存失败</string>
+
+    <string name="settings_theme_mode">模式选择</string>
+    <string name="settings_theme_mode_summary">在皮肤库存模式和浏览器下载模式之间切换</string>
+    <string name="theme_mode_builtin">库存模式</string>
+    <string name="theme_mode_builtin_desc">使用皮肤库存浏览、下载和安装皮肤</string>
+    <string name="theme_mode_compat">浏览器模式</string>
+    <string name="theme_mode_compat_desc">使用浏览器直接下载皮肤材质包</string>
+    <string name="theme_mode_onboarding_title">选择皮肤模式</string>
+    <string name="theme_mode_onboarding_msg">您想如何获取皮肤材质包？可以在设置中随时更改。</string>
+    <string name="theme_mode_builtin_label">皮肤库存</string>
+    <string name="theme_mode_compat_label">浏览器下载</string>
+    <string name="theme_mode_switched">皮肤模式已切换为%s</string>
+    <string name="theme_mode_current">当前：%s</string>
+    <string name="theme_mode_switch_title">切换皮肤模式</string>
+    <string name="theme_mode_switch_msg">更改模式将影响皮肤浏览和安装的方式。是否继续？</string>
+    <string name="settings_appearance_banner">横幅挂牌</string>
+    <string name="settings_appearance_layout">后厨布局</string>
+    <string name="settings_appearance_background">后厨背景</string>
+    <string name="settings_appearance_night_mode">夜间打烊模式</string>
+    <string name="settings_amoled_theme">AMOLED 纯黑主题</string>
+    <string name="settings_amoled_theme_desc">为深色模式使用纯黑背景</string>
+    <string name="settings_switch_icon">启用按钮指示器</string>
+    <string name="settings_switch_icon_desc">为开关按钮添加状态指示图标</string>
+    <string name="settings_discrete_slider">档位滑杆</string>
+    <string name="settings_discrete_slider_desc">在菜单轨道上显示份量标记</string>
+    <string name="settings_category_behavior">吃饭行为</string>
+    <string name="settings_category_function">餐厅功能</string>
+    <string name="settings_category_security">饭菜安全</string>
+
+    <!-- 背景音乐字符串 -->
+    <string name="settings_background_music">背景音乐</string>
+    <string name="settings_background_music_summary">餐厅软件在前台时播放背景音乐</string>
+    <string name="settings_background_music_playing">正在播放: %s</string>
+    <string name="settings_background_music_enabled">背景音乐已启用</string>
+    <string name="settings_select_music_file">选择音乐文件</string>
+    <string name="settings_music_selected">背景音乐已选</string>
+    <string name="settings_clear_music">清除音乐</string>
+    <string name="settings_clear_music_confirm">确定要清除背景音乐吗？</string>
+    <string name="settings_music_auto_play">自动开唱</string>
+    <string name="settings_music_auto_play_summary">开门迎客时自动播放音乐</string>
+    <string name="settings_music_looping">循环播放</string>
+    <string name="settings_music_looping_summary">重复播放同一曲</string>
+    <string name="settings_music_volume">音量大小</string>
+    <string name="settings_music_saved">音乐文件已存</string>
+    <string name="settings_music_save_error">保存音乐失败</string>
+    <string name="settings_music_cleared">音乐已删</string>
+    <string name="settings_category_multimedia">餐厅喇叭</string>
+    <string name="settings_category_general_summary">語言、更新、動效、圖示與名稱、DPI</string>
+    <string name="settings_category_appearance_summary">菜单主题、颜色、布局、背景、字体</string>
+    <string name="settings_category_behavior_summary">Web 除錯、資訊複製、首頁卡片、外掛角標</string>
+    <string name="settings_category_security_summary">開啟應用時的生物辨識認證</string>
+    <string name="settings_category_backup_summary">DSH 設定匯出匯入、WebDAV 同步</string>
+    <string name="settings_category_function_summary">執行方式、權限通道、無線 ADB 配對</string>
+    <string name="settings_category_multimedia_summary">背景音乐、音效、振动</string>
+    <string name="settings_music_playback_control">音乐控制</string>
+
+    <!-- Theme Store Filter -->
+    <string name="theme_store_filter_title">挑装修风格</string>
+    <string name="theme_store_filter_author">设计师</string>
+    <string name="theme_store_filter_author_hint">输入设计师名字</string>
+    <string name="theme_store_filter_source">来源地</string>
+    <string name="theme_store_filter_source_all">全摆上</string>
+    <string name="theme_store_filter_type">店面类型</string>
+    <string name="theme_store_filter_apply">整</string>
+    <string name="theme_store_filter_reset">恢复原样</string>
+
+    <!-- File Picker -->
+    <string name="file_picker_permission_required">需要厨房权限</string>
+    <string name="file_picker_permission_desc">为了浏览菜谱文件，请授予\'所有菜谱文件访问\'厨房权限。</string>
+    <string name="file_picker_grant_permission">授予厨房权限</string>
+    <string name="file_picker_cancel">取消</string>
+    <string name="file_picker_internal_storage">内部存储</string>
+    <string name="file_picker_no_files">无菜谱文件</string>
+    <string name="file_picker_filtered_files">展示 %1$s 份菜谱</string>
+    <string name="file_picker_close">收起菜谱架</string>
+
+    <!-- HomeV3 Strings -->
+    <string name="home_device_status_title">厨房设备状态</string>
+    <string name="home_device_status_battery_temp">烤箱温度</string>
+    <string name="home_device_status_cpu_load">灶台负载</string>
+    <string name="home_device_status_battery_level">电力剩余</string>
+    <string name="home_storage_title">储物柜信息</string>
+    <string name="home_storage_internal">主储物柜</string>
+    <string name="home_storage_ram">操作台内存</string>
+    <string name="home_storage_zram">ZRAM</string>
+    <string name="home_storage_swap">交换空间</string>
+    <string name="home_info_auth_auth">已验证</string>
+    <string name="home_info_auth_na">不可用</string>
+    <string name="home_info_device_model">设备型号</string>
+
+    <string name="settings_list_card_hide_status_badge">使用经典表情</string>
+    <string name="settings_list_card_hide_status_badge_summary">主厨台面的状态徽章即刻变身经典表情</string>
+    <string name="settings_list_info_show_icons">信息区图标</string>
+    <string name="settings_list_info_show_icons_summary">在信息卡片中为每个信息项显示前置图标</string>
+    <string name="settings_custom_badge_text">自选角标文字</string>
+    <string name="settings_custom_badge_text_summary">修改角标的文本显示，仅供娱乐</string>
+
+    <!-- Install Mode Select -->
+
+
+    <!-- 超级用户应用操作弹窗 -->
+
+    <!-- SU Audit Log -->
+
+
+    <!-- Badge Count Settings -->
+    <string name="enable_badge_count">角标统计烹饪设置</string>
+    <string name="enable_badge_count_summary">配置菜单项的角标统计显示</string>
+
+    <string name="settings_sound_effect">厨房声响</string>
+    <string name="settings_sound_effect_summary">操作时发出厨房声响</string>
+    <string name="settings_sound_effect_enabled">声响已开</string>
+    <string name="settings_sound_effect_playing">当前声响: %s</string>
+    <string name="settings_sound_effect_source">声响来源</string>
+    <string name="settings_sound_effect_source_local">本地食材</string>
+    <string name="settings_sound_effect_source_preset">主厨预设</string>
+    <string name="settings_sound_effect_preset_title">主厨音效库</string>
+    <string name="settings_select_sound_effect">选择声响文件</string>
+    <string name="settings_sound_effect_selected">已选声响文件</string>
+    <string name="settings_sound_effect_scope">声响范围</string>
+    <string name="settings_sound_effect_scope_global">整个餐厅</string>
+    <string name="settings_sound_effect_scope_bottom_bar">仅操作台底部</string>
+    <string name="settings_clear_sound_effect">清除声响</string>
+    <string name="settings_clear_sound_effect_confirm">确定要清除声响吗？</string>
+    <string name="settings_sound_effect_cleared">声响已关</string>
+
+    <string name="settings_startup_sound">开张声响</string>
+    <string name="settings_startup_sound_summary">餐厅开门时播放迎宾声响</string>
+    <string name="settings_startup_sound_enabled">开张声响已开</string>
+    <string name="settings_startup_sound_playing">正在播放: %s</string>
+    <string name="settings_select_startup_sound">选择开张声响</string>
+    <string name="settings_startup_sound_selected">已选开张声响</string>
+    <string name="settings_clear_startup_sound">关闭开张声响</string>
+    <string name="settings_clear_startup_sound_confirm">确定要关闭开张声响吗？</string>
+    <string name="settings_startup_sound_cleared">开张声响已关</string>
+
+    <string name="settings_vibration">触感反馈</string>
+    <string name="settings_vibration_summary">操作时震动提示</string>
+    <string name="settings_vibration_enabled">开启触感</string>
+    <string name="settings_vibration_intensity">震动力度</string>
+    <string name="settings_vibration_scope">触感范围</string>
+    <string name="settings_vibration_scope_global">整个餐厅</string>
+    <string name="settings_vibration_scope_bottom_bar">仅操作台底部</string>
+
+    <!-- Backup Settings -->
+    <string name="settings_category_backup">菜品留份</string>
+    <string name="settings_enable_cloud_backup">启用云端留份</string>
+    <string name="settings_enable_cloud_backup_summary">自动将烹饪过的招牌菜留份到云端仓库</string>
+    <string name="settings_configure_webdav">配置云端仓库</string>
+    <string name="webdav_config_title">云端仓库配置</string>
+    <string name="webdav_url">仓库地址</string>
+    <string name="webdav_username">账号</string>
+    <string name="webdav_password">钥匙</string>
+    <string name="webdav_test_success">仓库连接正常</string>
+    <string name="webdav_test_failed">连接失败: %s</string>
+    <string name="save">保存</string>
+    <string name="test">测试</string>
+    <string name="webdav_path_label">路径 (例如 /Backup)</string>
+    <string name="webdav_view_logs">查看留份记录</string>
+    <string name="webdav_backup_logs_title">留份记录</string>
+    <string name="webdav_no_logs">暂无留份记录</string>
+    <string name="webdav_clear_logs">清空记录</string>
+    <string name="close">关闭</string>
+
+    <!-- Script Library Strings -->
+
+    <!-- Umount Service -->
+
+    <!-- 我的餐厅页面 -->
+    <string name="my_themes_title">我的餐厅</string>
+    <string name="my_themes_empty">餐厅还没装修呢</string>
+    <string name="my_themes_empty_action">去主题商店看看</string>
+    <string name="my_themes_apply">应用主题</string>
+    <string name="my_themes_delete">删除主题</string>
+    <string name="my_themes_delete_confirm">确定要删除这个主题吗？</string>
+    <string name="my_themes_deleted">主题已删除</string>
+    <string name="my_themes_applied">主题已应用</string>
+    <string name="my_themes_apply_failed">装修失败，食材可能不新鲜了。长按这个菜谱删了重新下单吧</string>
+
+    <!-- 下载对话 -->
+    <string name="theme_download_title">正在采购主题</string>
+    <string name="theme_download_completed">采购完成</string>
+    <string name="theme_download_failed">采购失败</string>
+    <string name="theme_download_progress">采购进度</string>
+    <string name="theme_download_file">主题菜谱</string>
+    <string name="theme_download_image">菜品预览</string>
+    <string name="theme_download_cancel">取消采购</string>
+    <string name="theme_download_pause">暂停采购</string>
+    <string name="theme_download_apply">应用主题</string>
+    <string name="theme_download_go_to_my_themes">我的餐厅</string>
+    <string name="theme_download_finalizing">准备上菜...</string>
+    <string name="settings_predictive_back">预测性返回手势</string>
+    <string name="settings_predictive_back_summary">启用 Android 14+ 的预测性返回手势动画</string>
+
+    <string name="home_device_status_battery_charging">烤箱加热中</string>
+    <string name="home_device_status_cpu_temp">灶台温度</string>
+    <string name="home_device_status_memory_trend">备料趋势</string>
+    <string name="home_device_status_cpu_freq">灶台频率</string>
+    <string name="home_network_rx">进货</string>
+    <string name="home_network_tx">出餐</string>
+    <string name="settings_home_layout_stats">StatsUI</string>
+    <string name="home_device_status_gpu_load">烤箱负载</string>
+
+
+    <string name="settings_search_title">菜谱检索</string>
+    <string name="settings_search_empty_hint">输入以检索所有菜谱配方…</string>
+    <string name="settings_no_results">莫得这个菜谱</string>
+
+    <!-- 色彩生成 -->
+    <string name="color_generation_classic">经典配方</string>
+    <string name="color_generation_custom">自选配方</string>
+
+    <!-- 色彩标准 -->
+    <string name="color_standard_md3_2021">MD3 2021</string>
+    <string name="color_standard_m3e_2025">M3e 2025</string>
+
+    <!-- 色彩风格 -->
+    <string name="color_style_tonal_spot">火候</string>
+    <string name="color_style_vibrant">爆炒</string>
+    <string name="color_style_content">食材</string>
+    <string name="color_style_expressive">鲜香</string>
+    <string name="color_style_rainbow">五彩拼盘</string>
+    <string name="color_style_fruit_salad">水果拼盘</string>
+    <string name="color_style_monochrome">单味</string>
+    <string name="color_style_neutral">原味</string>
+    <string name="color_style_fidelity">本味</string>
+    <string name="settings_focus_card_background">FocusUI 卡片壁纸</string>
+    <string name="settings_focus_card_background_enabled">FocusUI 卡片壁纸已开启，长按卡片管理壁纸</string>
+    <string name="settings_focus_card_background_summary">启用 FocusUI 卡片壁纸及长按壁纸管理</string>
+    <string name="settings_focus_card_dual_dim">启用昼夜双暗度</string>
+    <string name="settings_focus_card_dual_dim_desc">自动根据明暗主题调整卡片壁纸暗度</string>
+    <string name="settings_focus_card_day_dim">日间模式卡片壁纸暗度</string>
+    <string name="settings_focus_card_night_dim">夜间模式卡片壁纸暗度</string>
+    <string name="settings_focus_card_opacity">卡片壁纸透明度</string>
+    <string name="settings_focus_card_dual_opacity">启用昼夜双透明度</string>
+    <string name="settings_focus_card_dual_opacity_desc">自动根据明暗主题调整卡片壁纸透明度</string>
+    <string name="settings_focus_card_day_opacity">日间模式卡片壁纸透明度</string>
+    <string name="settings_focus_card_night_opacity">夜间模式卡片壁纸透明度</string>
+    <string name="settings_focus_card_kernel">内核卡片</string>
+    <string name="settings_focus_card_app">应用卡片</string>
+    <string name="settings_focus_card_device">设备状态卡片</string>
+    <string name="settings_focus_card_storage">存储卡片</string>
+    <string name="settings_focus_card_wallpaper_selected">已设置壁纸</string>
+    <string name="dashboard_card_background_title">仪表盘卡片壁纸</string>
+    <string name="settings_dashboard_card_background">仪表盘卡片壁纸</string>
+    <string name="settings_dashboard_card_background_enabled">仪表盘壁纸已开启，长按仪表盘卡片管理壁纸</string>
+    <string name="settings_dashboard_card_background_summary">为 DashboardUI 仪表盘卡片启用壁纸</string>
+    <string name="dashboard_card_background_clear">清除仪表盘壁纸</string>
+    <string name="dashboard_card_background_clear_confirm">确定要清除仪表盘卡片壁纸吗？</string>
+    <string name="dashboard_card_background_saved">仪表盘壁纸保存成功</string>
+    <string name="dashboard_card_background_error">仪表盘壁纸保存失败</string>
+    <string name="dashboard_card_background_cleared">仪表盘壁纸已清除</string>
+    <string name="dashboard_card_background_restore">恢复默认壁纸</string>
+    <string name="dashboard_card_background_restored">已恢复默认壁纸</string>
+    <string name="settings_dashboard_card_dual_dim">启用昼夜双暗度</string>
+    <string name="settings_dashboard_card_dual_dim_desc">自动根据明暗主题调整仪表盘壁纸暗度</string>
+    <string name="settings_dashboard_card_day_dim">白天模式仪表盘壁纸暗度</string>
+    <string name="settings_dashboard_card_night_dim">夜间模式仪表盘壁纸暗度</string>
+    <string name="settings_dashboard_card_opacity">仪表盘壁纸透明度</string>
+    <string name="settings_dashboard_card_dual_opacity">启用昼夜双透明度</string>
+    <string name="settings_dashboard_card_dual_opacity_desc">自动根据明暗主题调整仪表盘壁纸透明度</string>
+    <string name="settings_dashboard_card_day_opacity">白天模式仪表盘壁纸透明度</string>
+    <string name="settings_dashboard_card_night_opacity">夜间模式仪表盘壁纸透明度</string>
+    <string name="settings_title_image_permission_required">得先给仓库权限才能选招牌菜图片</string>
+    <string name="settings_background_permission_required">得先给仓库权限才能选厨房壁纸</string>
+    <string name="settings_sound_effect_save_failed">音效酱料保存失败</string>
+    <string name="settings_startup_sound_save_failed">开灶音效保存失败</string>
+    <string name="settings_info_copy">长按复制菜谱信息</string>
+    <string name="settings_info_copy_summary">长按后厨首页信息栏中的条目即可复制其内容</string>
+    <string name="home_info_copied">%1$s 已复制</string>
+</resources>
