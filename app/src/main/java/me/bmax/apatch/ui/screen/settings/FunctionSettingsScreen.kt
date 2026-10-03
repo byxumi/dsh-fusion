@@ -916,14 +916,13 @@ internal fun DshSettingsScreen(
                     dshOfficialLatest = dshOfficialLatest,
                     dshInstalling = runtimeState.dshInstalling,
                     onInstallDsh = { ver ->
-                        // DSH-Fusion：点更新/选版本 → 回首页，首页大卡片显示 dsh 安装状态与日志
-                        scope.launch {
-                            DshRuntime.installDsh(ver)
-                            navigator.navigate(HomeScreenDestination) {
-                                popUpTo(NavGraphs.root)
-                                launchSingleTop = true
-                            }
+                        // DSH-Fusion：点更新/选版本 → 先回首页（首页大卡片显示 dsh 安装状态与日志），
+                        // 再在当前协程（调用方 launch）里执行安装，返回值给调用方。
+                        navigator.navigate(HomeScreenDestination) {
+                            popUpTo(NavGraphs.root)
+                            launchSingleTop = true
                         }
+                        DshRuntime.installDsh(ver)
                     },
                     onListDshVersions = { DshRuntime.listOfficialDshVersions() },
                     onRefreshDshLatest = {
