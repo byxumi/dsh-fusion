@@ -2612,11 +2612,17 @@ object DshRuntime {
         val body = UpdateChecker.fetchApiJson(
             "/repos/deepseek-ai/deepseek-harness/releases?per_page=10",
         ) ?: return@withContext null
+        // DSH-Fusion：按「接受测试版」开关过滤 —— 关则跳过 rc/alpha/beta 只取稳定版。
+        val acceptBeta = dshAcceptBeta()
         runCatching {
             val arr = JSONArray(body)
             for (i in 0 until arr.length()) {
                 val tag = arr.getJSONObject(i).optString("tag_name", "")
-                if (tag.startsWith("dsh-v")) return@runCatching tag.removePrefix("dsh-v")
+                if (!tag.startsWith("dsh-v")) continue
+                val ver = tag.removePrefix("dsh-v")
+                if (acceptBeta || !Regex("[-.]?(rc|alpha|beta)[.-]?").containsMatchIn(ver)) {
+                    return@runCatching ver
+                }
             }
             null
         }.getOrNull()
@@ -2627,6 +2633,24 @@ object DshRuntime {
      */
     fun localDshVersion(): String =
         prefs().getString(DshEnv.KEY_RUNTIME_DSH, "").orEmpty()
+
+    /** DSH-Fusion：dsh 启动后自动检查官方 GitHub 最新版本（默认开）。 */
+    fun dshAutoCheckEnabled(): Boolean =
+        ready && prefs().getBoolean(DshEnv.KEY_DSH_AUTO_CHECK, true)
+
+    fun setDshAutoCheckEnabled(enabled: Boolean) {
+        if (!ready) return
+        prefs().edit().putBoolean(DshEnv.KEY_DSH_AUTO_CHECK, enabled).apply()
+    }
+
+    /** DSH-Fusion：dsh 是否接受测试版（rc/alpha）更新（默认关）。 */
+    fun dshAcceptBeta(): Boolean =
+        ready && prefs().getBoolean(DshEnv.KEY_DSH_ACCEPT_BETA, false)
+
+    fun setDshAcceptBeta(enabled: Boolean) {
+        if (!ready) return
+        prefs().edit().putBoolean(DshEnv.KEY_DSH_ACCEPT_BETA, enabled).apply()
+    }
 
     /**
      * DSH-Fusion 两段式运行时：容器就绪后，按官方 GitHub 仓库版本把 dsh 装进容器。
@@ -2656,7 +2680,8 @@ object DshRuntime {
      */
     suspend fun installDsh(version: String): Boolean = withContext(Dispatchers.IO) {
         if (!DshEnv.isRuntimeInstalled(appContext)) return@withContext false
-        _state.update { it.copy(dshInstalling = true) }
+        appendLog("> 安装 dsh " + version + "（容器内 npm）")
+        _state.update { it.copy(dshInstalling = true, message = "正在安装 dsh " + version) }
         val npm = "/usr/local/bin/npm"
         val registries = listOf(
             "https://registry.npmjs.org",
@@ -2664,11 +2689,13 @@ object DshRuntime {
         )
         try {
             for (registry in registries) {
+                appendLog("> npm registry: " + registry)
                 val out = runCatching {
-                    execRootfsForOutput(
+                    execRootfsStreaming(
                         npm + " install -g --prefix /usr/local --registry " + registry +
-                            " --no-audit --no-fund @deepseek-ai/dsh@" + version + " 2>&1 | tail -15",
+                            " --no-audit --no-fund @deepseek-ai/dsh@" + version + " 2>&1",
                         timeoutMs = 20 * 60_000L,
+                        onLine = { line -> if (line.isNotBlank()) appendLog(line) },
                     )
                 }.getOrDefault("")
                 val ver = runCatching {
@@ -2680,12 +2707,15 @@ object DshRuntime {
                 }.getOrDefault("")
                 if (ver == version) {
                     prefs().edit().putString(DshEnv.KEY_RUNTIME_DSH, version).apply()
-                    _state.update { it.copy(dshVersion = version) }
+                    _state.update { it.copy(dshVersion = version, message = "dsh " + version + " 安装成功") }
+                    appendLog("> dsh " + version + " 安装成功（registry=" + registry + "）")
                     android.util.Log.i(TAG, "dsh " + version + " 安装成功（registry=" + registry + "）")
                     return@withContext true
                 }
+                appendLog("! registry " + registry + " 安装 dsh 失败: " + out.takeLast(300))
                 android.util.Log.w(TAG, "registry " + registry + " 安装 dsh 失败: " + out.takeLast(300))
             }
+            appendLog("! dsh 安装失败，目标版本 " + version)
             android.util.Log.e(TAG, "dsh 安装失败，目标版本 " + version)
             false
         } finally {

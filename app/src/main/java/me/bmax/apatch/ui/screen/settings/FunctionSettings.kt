@@ -285,6 +285,10 @@ fun FunctionSettingsContent(
     onInstallDsh: suspend (String) -> Boolean,
     onListDshVersions: suspend () -> List<String>,
     onRefreshDshLatest: () -> Unit,
+    dshAutoCheck: Boolean = true,
+    onDshAutoCheckChange: (Boolean) -> Unit = {},
+    dshAcceptBeta: Boolean = false,
+    onDshAcceptBetaChange: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val showCleanStorageDialog = remember { mutableStateOf(false) }
@@ -1030,6 +1034,24 @@ fun FunctionSettingsContent(
                             }
                         }
                     }
+                    Spacer(Modifier.height(8.dp))
+                    ToggleSettingCard(
+                        flat = true,
+                        icon = Icons.Filled.CloudDownload,
+                        title = stringResource(R.string.dsh_engine_auto_check),
+                        description = stringResource(R.string.dsh_engine_auto_check_summary),
+                        checked = dshAutoCheck,
+                        onCheckedChange = onDshAutoCheckChange,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    ToggleSettingCard(
+                        flat = true,
+                        icon = Icons.Filled.Warning,
+                        title = stringResource(R.string.dsh_engine_beta),
+                        description = stringResource(R.string.dsh_engine_beta_summary),
+                        checked = dshAcceptBeta,
+                        onCheckedChange = onDshAcceptBetaChange,
+                    )
                     if (dshListOpen) {
                         DshVersionListDialog(
                             current = dshVersion.orEmpty(),

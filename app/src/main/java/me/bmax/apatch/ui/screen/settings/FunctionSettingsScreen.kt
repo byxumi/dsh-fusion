@@ -915,13 +915,26 @@ internal fun DshSettingsScreen(
                     dshVersion = runtimeState.dshVersion,
                     dshOfficialLatest = dshOfficialLatest,
                     dshInstalling = runtimeState.dshInstalling,
-                    onInstallDsh = { ver -> DshRuntime.installDsh(ver) },
+                    onInstallDsh = { ver ->
+                        // DSH-Fusion：点更新/选版本 → 回首页，首页大卡片显示 dsh 安装状态与日志
+                        scope.launch {
+                            DshRuntime.installDsh(ver)
+                            navigator.navigate(HomeScreenDestination) {
+                                popUpTo(NavGraphs.root)
+                                launchSingleTop = true
+                            }
+                        }
+                    },
                     onListDshVersions = { DshRuntime.listOfficialDshVersions() },
                     onRefreshDshLatest = {
                         scope.launch {
                             dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
                         }
                     },
+                    dshAutoCheck = DshRuntime.dshAutoCheckEnabled(),
+                    onDshAutoCheckChange = { on -> DshRuntime.setDshAutoCheckEnabled(on) },
+                    dshAcceptBeta = DshRuntime.dshAcceptBeta(),
+                    onDshAcceptBetaChange = { on -> DshRuntime.setDshAcceptBeta(on) },
                 )
             }
             if (permissionOnly) {

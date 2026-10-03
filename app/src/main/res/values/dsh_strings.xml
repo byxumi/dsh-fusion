@@ -437,6 +437,10 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_engine_install">Install dsh</string>
     <string name="dsh_engine_installing">Installing…</string>
     <string name="dsh_engine_version_history">dsh versions (long-press to pick)</string>
+    <string name="dsh_engine_auto_check">Auto-check dsh updates on launch</string>
+    <string name="dsh_engine_auto_check_summary">Check official GitHub for a newer dsh engine when the app opens</string>
+    <string name="dsh_engine_beta">Accept beta dsh versions</string>
+    <string name="dsh_engine_beta_summary">Install rc/alpha builds from the official repo; off = stable only</string>
     <string name="dsh_home_container_repair">Container</string>
     <string name="dsh_home_container_repair_sub">Repair / reinstall the Ubuntu container</string>
     <string name="dsh_home_dsh_engine">DSH engine</string>

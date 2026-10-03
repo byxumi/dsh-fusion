@@ -684,16 +684,14 @@ class MainActivity : AppCompatActivity() {
                         HarnessService.start(context)
                     }
                     // DSH-Fusion：打开软件自动释放容器后，以官方 GitHub 仓库为 dsh 版本真源，
-                    // 后台核对一次：官方有新版且本仓库有对应运行时 → 走既有更新提示。
+                    // 尊重「启动后自动检查 dsh 更新」开关：有新版（或未装）时自动安装到容器。
                     launch {
                         withContext(Dispatchers.IO) {
-                            val official = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
+                            if (!DshRuntime.dshAutoCheckEnabled()) return@withContext
+                            val official = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull() ?: return@withContext
                             val local = DshRuntime.localDshVersion()
-                            if (official != null && local.isNotEmpty() && official != local) {
-                                val result = runCatching { DshRuntime.checkRuntimeUpdate() }.getOrNull()
-                                if (result?.version != null && result.minAppVersion.isEmpty()) {
-                                    runtimePrompt.value = result
-                                }
+                            if (official != local) {
+                                runCatching { DshRuntime.installDsh(official) }
                             }
                         }
                     }

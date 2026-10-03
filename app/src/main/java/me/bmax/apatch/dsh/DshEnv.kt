@@ -159,6 +159,11 @@ object DshEnv {
      */
     const val KEY_RUNTIME_AUTO_CHECK = "runtime_auto_check"
 
+    /** DSH-Fusion：dsh 引擎 —— 启动后自动检查官方 GitHub 最新版本（默认开）。 */
+    const val KEY_DSH_AUTO_CHECK = "dsh_auto_check"
+    /** DSH-Fusion：dsh 引擎 —— 接受测试版（rc/alpha）更新；关则只装稳定版（默认关）。 */
+    const val KEY_DSH_ACCEPT_BETA = "dsh_accept_beta"
+
     /** 局域网访问开关（默认关；开则 dsh web 绑 0.0.0.0）。 */
     const val KEY_LAN = "dsh_lan"
 

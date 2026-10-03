@@ -419,6 +419,10 @@
     <string name="dsh_engine_install">安装 dsh</string>
     <string name="dsh_engine_installing">正在安装…</string>
     <string name="dsh_engine_version_history">dsh 版本（长按可选）</string>
+    <string name="dsh_engine_auto_check">启动后自动检查 dsh 更新</string>
+    <string name="dsh_engine_auto_check_summary">打开应用时检查官方 GitHub 是否有新版 dsh 引擎</string>
+    <string name="dsh_engine_beta">接受 dsh 测试版</string>
+    <string name="dsh_engine_beta_summary">安装官方 rc/alpha 版本；关闭则只装稳定版</string>
     <string name="dsh_home_container_repair">容器</string>
     <string name="dsh_home_container_repair_sub">修复 / 重装 Ubuntu 容器</string>
     <string name="dsh_home_dsh_engine">DSH 引擎</string>

@@ -129,6 +129,8 @@ fun HomeScreenDsh(
             message = state.message,
             progress = state.progress,
             version = state.runtimeVersion,
+            dshVersion = state.dshVersion,
+            dshInstalling = state.dshInstalling,
             webUrl = state.webUrl,
             onStart = { HarnessService.start(context) },
             onStop = { HarnessService.stop(context) },
@@ -291,6 +293,8 @@ private fun DshHeroCard(
     message: String,
     progress: Float,
     version: String?,
+    dshVersion: String?,
+    dshInstalling: Boolean,
     webUrl: String,
     onStart: () -> Unit,
     onStop: () -> Unit,
@@ -357,6 +361,15 @@ private fun DshHeroCard(
                     text = phaseLabel(phase, installed) + (version?.let { " · v$it" } ?: ""),
                     style = MaterialTheme.typography.titleSmall,
                     color = content.copy(alpha = 0.9f),
+                )
+                Text(
+                    text = if (dshInstalling)
+                        stringResource(R.string.dsh_engine_installing)
+                    else
+                        dshVersion?.let { stringResource(R.string.dsh_engine_installed, it) }
+                            ?: stringResource(R.string.dsh_engine_not_installed),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = content.copy(alpha = 0.85f),
                 )
                 if (message.isNotEmpty()) {
                     Spacer(Modifier.height(4.dp))
