@@ -33,6 +33,11 @@ class HarnessService : Service() {
         super.onCreate()
         createChannel()
         DshRuntime.attach(applicationContext)
+        // dm 通知链接线：FileObserver(.notify.ndjson) + $events 应答流(WS)。
+        // 引擎未就绪时 MuxClient 自带退避重连；start 都是进程级幂等，重复调用安全。
+        me.bmax.apatch.dsh.dm.DmLog.init(applicationContext)
+        me.bmax.apatch.dsh.dm.NotifyStore.start(applicationContext)
+        me.bmax.apatch.dsh.dm.NotifyBridge.start(applicationContext)
         startForeground(NOTIFICATION_ID, buildNotification(statusText(DshRuntime.state.value.phase)))
         observeState()
     }

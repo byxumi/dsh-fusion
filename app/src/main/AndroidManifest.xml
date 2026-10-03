@@ -321,6 +321,14 @@
             </intent-filter>
         </receiver>
 
+        <!-- dm 移植：通知动作接收器（回复/选项/批准/拒绝/重试）。
+             exported=false：显式 Intent 只能由本包 PendingIntent 发出，外部应用无法构造。 -->
+        <receiver
+            android:name=".dsh.dm.NotifyActionReceiver"
+            android:enabled="true"
+            android:exported="false">
+        </receiver>
+
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
