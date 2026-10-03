@@ -186,7 +186,7 @@ object NotifyCenter {
 
     private fun flash(msg: String) {
       try {
-        DmLog.log(TAG, "flashStatus: " + msg)
+        DmLog.log("flashStatus", msg)
       } catch (t: Throwable) {
         // 反馈面本身不得成为故障源（服务已销毁 / 主线程不可用）。
         DmLog.log("dsh-notify", "listener feedback failed: " + (t.message ?: t.javaClass.simpleName))
