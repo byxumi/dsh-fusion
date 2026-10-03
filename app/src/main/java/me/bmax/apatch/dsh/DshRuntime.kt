@@ -1083,24 +1083,38 @@ object DshRuntime {
      */
     fun resolvePortConflict(action: PortConflictAction, newPort: Int? = null) {
         if (!ready) return
-        when (action) {
-            PortConflictAction.AUTO -> {
-                setPort(findFreePort())
-                _state.update { it.copy(portConflict = false) }
-                bootstrap()
-            }
-            PortConflictAction.MANUAL -> {
-                val p = newPort ?: return
-                if (p !in 1..65535 || isPortInUse(p)) return // 保留 portConflict，UI 继续提示
-                setPort(p)
-                _state.update { it.copy(portConflict = false) }
-                bootstrap()
-            }
-            PortConflictAction.FORCE -> {
-                // 强行启动：跳过端口探测直接拉起（用户明知端口被占仍要用）
-                _state.update { it.copy(portConflict = false) }
-                scope.launch {
-                    bootMutex.withLock { startAndAwait() }
+        // DSH-Fusion：无论哪种决定，在后台先停掉可能残留的旧 dsh 进程（stopServer 内部
+        // waitFor(8s)，不能放 UI 线程）—— 否则 startServer 的守卫
+        // （serverProcess?.isAlive == true）会把换了端口后的新启动直接吞掉：
+        // 新端口没人监听，awaitReady 拿不到新 token = 打开撞认证墙。
+        scope.launch {
+            bootMutex.withLock {
+                stopServer()
+                delay(300)
+                when (action) {
+                    PortConflictAction.AUTO -> {
+                        val free = findFreePort()
+                        setPort(free)
+                        _state.update { it.copy(portConflict = false) }
+                        startAndAwait()
+                    }
+                    PortConflictAction.MANUAL -> {
+                        val p = newPort
+                        if (p == null || p !in 1..65535 || isPortInUse(p)) {
+                            // 保留 portConflict，UI 继续提示（端口不可用）
+                            _state.update { it.copy(portConflict = true) }
+                            return@withLock
+                        }
+                        setPort(p)
+                        _state.update { it.copy(portConflict = false) }
+                        startAndAwait()
+                    }
+                    PortConflictAction.FORCE -> {
+                        // 强行启动：跳过端口探测直接拉起（用户明知端口被占仍要用）。
+                        // 旧进程已在上面的 stopServer 清掉，这里干净起一个。
+                        _state.update { it.copy(portConflict = false) }
+                        startAndAwait()
+                    }
                 }
             }
         }
@@ -3586,17 +3600,26 @@ object DshRuntime {
         val deadline = System.currentTimeMillis() + READY_TIMEOUT_MS
         while (System.currentTimeMillis() < deadline) {
             if (isPortInUse(port()) && httpResponds(port())) {
-                awaitWebToken()
-                _state.update {
-                    it.copy(
-                        phase = DshPhase.RUNNING,
-                        progress = 1f,
-                        message = str(R.string.dsh_msg_service_ready, it.webUrl),
-                    )
+                // DSH-Fusion：端口就绪不代表 token 就绪。换端口/冷启动时 dsh 要重建插件树，
+                // 带 token 的 URL 行可能晚于 30s 才打印 —— 必须在 READY_TIMEOUT 窗口内等齐
+                // token 再宣布就绪，否则 webUrl 无 token、打开就撞认证墙。
+                val gotToken = awaitWebToken()
+                if (gotToken || _state.value.webToken != null) {
+                    _state.update {
+                        it.copy(
+                            phase = DshPhase.RUNNING,
+                            progress = 1f,
+                            message = str(R.string.dsh_msg_service_ready, it.webUrl),
+                        )
+                    }
+                    logInfo(R.string.dsh_log_ready, port())
+                    prefs().edit().putInt(DshEnv.KEY_PROROOT_FAIL, 0).apply()
+                    return
                 }
-                logInfo(R.string.dsh_log_ready, port())
-                prefs().edit().putInt(DshEnv.KEY_PROROOT_FAIL, 0).apply()
-                return
+                // 还没等到 token：不宣布就绪，继续循环等（forwardOutput 仍在收集），
+                // 直到 READY_TIMEOUT 截止才按无 token 继续（老兜底）。
+                delay(1_000)
+                continue
             }
             if (serverProcess?.isAlive == false) {
                 val base = str(R.string.dsh_err_process_exited)
@@ -3616,6 +3639,11 @@ object DshRuntime {
         // 卡在坏运行时上，自动回退 proot 的兜底形同不存在。
         val detail = str(R.string.dsh_err_start_timeout)
         appendLog("! $detail")
+        // 端口就绪了但认证 token 始终没等到（换端口/冷启动插件树过慢）：
+        // 单独说一句，避免用户以为「服务没起」——服务其实在跑，只是 Web 打开会撞认证墙。
+        if (_state.value.webToken == null && isPortInUse(port()) && httpResponds(port())) {
+            appendLog("! " + str(R.string.dsh_log_token_timeout, READY_TIMEOUT_MS / 1000))
+        }
         if (runtimeId() == "proroot" && noteProrootFailure(detail)) {
             logInfo(R.string.dsh_log_switched_to_proot)
         }
@@ -3633,8 +3661,15 @@ object DshRuntime {
      * 服务照常可用，所以按无 token 继续，只留一行日志说明 —— 否则表现成「启动卡住」，
      * 比认证墙更难查。
      */
-    private suspend fun awaitWebToken() {
-        if (_state.value.webToken != null) return
+    /**
+     * 在 TOKEN_WAIT_MS 窗口内等 dsh 打印带 token 的地址；返回是否拿到。
+     *
+     * 拿不到**不代表失败**：换端口/冷启动时插件树重建可能超过 30s，token 行晚到
+     * 由 [awaitReady] 的 READY_TIMEOUT_MS(90s) 外层循环继续等（forwardOutput 持续收集），
+     * 超时上报也由那里统一处理，这里不再刷日志。
+     */
+    private suspend fun awaitWebToken(): Boolean {
+        if (_state.value.webToken != null) return true
         val deadline = System.currentTimeMillis() + TOKEN_WAIT_MS
         var announced = false
         while (_state.value.webToken == null &&
@@ -3648,12 +3683,11 @@ object DshRuntime {
             delay(TOKEN_POLL_MS)
         }
         val token = _state.value.webToken
-        if (token == null) {
-            appendLog("! " + str(R.string.dsh_log_token_timeout, TOKEN_WAIT_MS / 1000))
-        } else {
+        if (token != null) {
             // 只记长度，不记 token 本身：长度够用来判断有没有被截断（base64url(32 字节) = 43）
             logInfo(R.string.dsh_log_token_captured, token.length)
         }
+        return token != null
     }
 
     /**
