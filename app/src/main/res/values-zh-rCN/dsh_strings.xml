@@ -402,8 +402,8 @@
     <string name="dsh_bk_items_tombstoned">，%1$d 项被删除记录挡下</string>
     <string name="dsh_bk_needs_restart">；需要重启 DSH 生效</string>
     <string name="dsh_bk_snapshot">；回滚快照 %1$s</string>
-    <string name="dsh_runtime_section">运行时</string>
-    <string name="dsh_runtime_summary">运行时损坏或想换新版本时重装容器</string>
+    <string name="dsh_runtime_section">容器</string>
+    <string name="dsh_runtime_summary">管理 Ubuntu 容器：损坏或想换新版本时重装容器</string>
     <string name="dsh_runtime_management_summary">查看当前版本、检查或执行更新（长按可选任意历史版本）、重装、导入本地包，并设置自动检查与测试版通道</string>
     <string name="dsh_runtime_installed_version">已安装：%1$s</string>
     <string name="dsh_runtime_not_installed">尚未安装 —— 在首页启动服务即会下载</string>
@@ -419,6 +419,10 @@
     <string name="dsh_engine_install">安装 dsh</string>
     <string name="dsh_engine_installing">正在安装…</string>
     <string name="dsh_engine_version_history">dsh 版本（长按可选）</string>
+    <string name="dsh_home_container_repair">容器</string>
+    <string name="dsh_home_container_repair_sub">修复 / 重装 Ubuntu 容器</string>
+    <string name="dsh_home_dsh_engine">DSH 引擎</string>
+    <string name="dsh_home_dsh_engine_sub">管理 dsh 引擎版本</string>
     <string name="dsh_runtime_reinstall">重装</string>
     <string name="dsh_runtime_update_available">可更新到 %1$s</string>
     <string name="dsh_runtime_update_requires_app">新运行时要求 DSH-Fusion %1$s 或更高版本，请先更新应用。</string>

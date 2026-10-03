@@ -2969,11 +2969,12 @@ object DshRuntime {
     }
 
     private fun validateRuntimeRoot(root: File): Boolean {
+        // DSH-Fusion 两段式：基础容器（BASE_ONLY）不含 dsh —— dsh 由 ensureDshInstalled
+        // 在容器启动后按官方 GitHub 版本独立安装并单独校验。这里只校验容器自身的完整性。
         val required = listOf(
             "usr/bin/bash" to "bash",
             "usr/local/bin/node" to "node",
             "usr/local/bin/pnpm" to "pnpm",
-            "usr/local/lib/node_modules/@deepseek-ai/dsh/package.json" to "dsh",
         )
         val missing = required.filterNot { File(root, it.first).exists() }
         if (missing.isNotEmpty()) {

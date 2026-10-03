@@ -34,6 +34,8 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -156,6 +158,30 @@ fun HomeScreenDsh(
                 value = perm.label(context),
                 subtitle = permHint(perm),
                 onClick = { navigator.navigate(SecuritySettingsScreenDestination(null)) },
+            )
+        }
+
+        // DSH-Fusion：首页两个独立模块卡片 —— 容器修复 / dsh 引擎管理
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            DshSmallCard(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Outlined.Build,
+                title = stringResource(R.string.dsh_home_container_repair),
+                value = stringResource(R.string.dsh_runtime_installed_version, state.runtimeVersion ?: "-"),
+                subtitle = stringResource(R.string.dsh_home_container_repair_sub),
+                onClick = { navigator.navigate(FunctionSettingsScreenDestination(null)) },
+            )
+            DshSmallCard(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Outlined.Terminal,
+                title = stringResource(R.string.dsh_home_dsh_engine),
+                value = state.dshVersion?.let { stringResource(R.string.dsh_engine_installed, it) }
+                    ?: stringResource(R.string.dsh_engine_not_installed),
+                subtitle = stringResource(R.string.dsh_home_dsh_engine_sub),
+                onClick = { navigator.navigate(FunctionSettingsScreenDestination(null)) },
             )
         }
 
