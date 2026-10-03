@@ -106,12 +106,11 @@ object DshAutostart {
     /**
      * 自启时是否连容器一起拉起来。
      *
-     * 默认 **true**（与 1.8.0 的行为一致：那时开机自启就是直接 bootstrap）。关掉之后只起
-     * 前台服务：通知栏出现、进程预热、点一下就能开始，但不烧那几秒 CPU 也不占内存。
-     * 对「只想开机后随手能用」的人来说这才是想要的。
+     * 默认 **false**（只起前台服务：通知栏出现、进程预热、点一下就能开始，不烧 CPU 也不
+     * 占内存）。需要开机后就能直接用的用户可自行打开「自启时同时启动容器」。
      */
     fun startContainer(ctx: Context): Boolean =
-        prefs(ctx).getBoolean(DshEnv.KEY_AUTOSTART_CONTAINER, true)
+        prefs(ctx).getBoolean(DshEnv.KEY_AUTOSTART_CONTAINER, false)
 
     fun setStartContainer(ctx: Context, on: Boolean) {
         prefs(ctx).edit().putBoolean(DshEnv.KEY_AUTOSTART_CONTAINER, on).apply()

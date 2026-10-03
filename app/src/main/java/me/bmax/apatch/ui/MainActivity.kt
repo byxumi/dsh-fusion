@@ -683,20 +683,19 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         HarnessService.start(context)
                     }
-                    // DSH-Fusion：dsh 与容器一体打包（df/dm 同款），rootfs 构建期按官方
-                    // GitHub 版本装入 dsh。打开软件后尊重「启动后自动检查 dsh 更新」开关：
-                    // 官方 dsh 有新版 → 走既有运行时更新提示（新版 rootfs 内含新 dsh）。
-                    launch {
-                        withContext(Dispatchers.IO) {
-                            if (!DshRuntime.dshAutoCheckEnabled()) return@withContext
-                            val official = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull() ?: return@withContext
-                            val local = DshRuntime.localDshVersion()
-                            if (official != local) {
-                                val result = runCatching { DshRuntime.checkRuntimeUpdate() }.getOrNull()
-                                if (result?.version != null && result.minAppVersion.isEmpty()) {
-                                    runtimePrompt.value = result
-                                }
-                            }
+                }
+
+                // ── 打开 App 自动检查更新（一体打包：新 rootfs = 新容器 + 新 dsh）──
+                // 独立于自启动开关：即使关了「打开应用自动启动容器」，更新检测也必须跑，
+                // 否则用户永远不知道有新版本。是否检查由「自动检查更新」开关控制。
+                LaunchedEffect(Unit) {
+                    withContext(Dispatchers.IO) {
+                        if (!DshRuntime.autoCheckEnabled(context) && !DshRuntime.dshAutoCheckEnabled()) {
+                            return@withContext
+                        }
+                        val result = runCatching { DshRuntime.checkRuntimeUpdate() }.getOrNull()
+                        if (result?.version != null && result.minAppVersion.isEmpty()) {
+                            runtimePrompt.value = result
                         }
                     }
                 }
