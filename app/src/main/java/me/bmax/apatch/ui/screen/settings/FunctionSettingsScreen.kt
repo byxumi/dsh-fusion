@@ -915,16 +915,26 @@ internal fun DshSettingsScreen(
                     dshVersion = runtimeState.dshVersion,
                     dshOfficialLatest = dshOfficialLatest,
                     dshInstalling = runtimeState.dshInstalling,
-                    onInstallDsh = { ver ->
-                        // DSH-Fusion：点更新/选版本 → 先回首页（首页大卡片显示 dsh 安装状态与日志），
-                        // 再在当前协程（调用方 launch）里执行安装，返回值给调用方。
-                        navigator.navigate(HomeScreenDestination) {
-                            popUpTo(NavGraphs.root)
-                            launchSingleTop = true
+                    onUpdateDsh = {
+                        // DSH-Fusion：dsh 与容器一体打包（df/dm 同款），rootfs 构建期装入 dsh。
+                        // 「更新 dsh」= 更新一体化运行时：复用容器卡的检查/确认/下载通道
+                        // （runtimeCheckRevision → 检查 → 确认 → 重装新版 rootfs）。
+                        scope.launch {
+                            val result = runCatching { DshRuntime.checkRuntimeUpdate() }.getOrNull()
+                            if (result?.version != null && result.minAppVersion.isEmpty()) {
+                                pendingRuntimeOp = {
+                                    DshRuntime.reinstallRuntime(true)
+                                    navigator.navigate(HomeScreenDestination) {
+                                        popUpTo(NavGraphs.root)
+                                        launchSingleTop = true
+                                    }
+                                }
+                            } else {
+                                // 无新版 rootfs（官方 dsh 新版尚未打包发布）：刷新官方最新提示
+                                dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
+                            }
                         }
-                        DshRuntime.installDsh(ver)
                     },
-                    onListDshVersions = { DshRuntime.listOfficialDshVersions() },
                     onRefreshDshLatest = {
                         scope.launch {
                             dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()

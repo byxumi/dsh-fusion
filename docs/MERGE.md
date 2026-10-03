@@ -121,27 +121,34 @@ dsh 版本依据官方 GitHub 仓库下载运行」）：
      KEY_RUNTIME_DSH 对比；官方有新版且本仓库 runtime 通道有对应版本时，走既有运行时
      更新提示（RuntimeCheckResult → runtimePrompt）下载新 rootfs。
 
-### 6.6 两段式运行时：先容器，后 dsh（当前架构）
+### 6.6 一体化打包：dsh 随 rootfs 构建时装入（与 df / dm 一致）
 
-容器与 dsh 引擎解耦，按顺序装配：
+**结论（研究 df 与 dm 后）**：df（DSH-Folk）与 dm（dsh-mobile-apk）两家都是
+「构建/打包期把 dsh 装进运行时、App 只负责下载解压、手机上**从不现装 dsh**」：
 
-1. **下载并启动 Ubuntu 容器**（容器实现沿用 df 的 proot/rootfs 方法）：
-   - runtime-builder/build-rootfs.sh 以 `BASE_ONLY=1` 产出**基础容器**
-     （Ubuntu 24.04 + node + pnpm，**不含 dsh**）；metadata.dsh="base"、
-     metadata.version="base-ubuntu-noble-r<N>"。
-   - 由 runtime.yml（workflow_dispatch, base_only=true）构建并发布到
-     `runtime-latest` 滚动 release；App 打开后自动下载解压（DshRuntime.downloadAndInstall）。
-2. **容器启动后，按官方 GitHub 版本安装 dsh**：
-   - bootstrap() 在 setupResolvConf() 之后调用 [DshRuntime.ensureDshInstalled]：
-     查询官方仓库最新 dsh 版本（fetchOfficialDshVersion，经 gh-proxy），与本地
-     KEY_RUNTIME_DSH 比较；本地为空 / "base" / 版本不一致 → 容器内执行
-     `npm install -g --prefix /usr/local @deepseek-ai/dsh@<官方版>`
-     （先官方 registry，失败回退 npmmirror），装完回读 package.json 版本校验并落盘。
-3. **最后启动 dsh web**：dsh 就绪后才 seedPlugins（预装插件依赖 dsh plugin）→
-   startAndAwait() 启动 `dsh web`（proot/proroot）。
+- df：CI 构建 Ubuntu rootfs 时用 `npm install --global --prefix $ROOTFS/usr/local`
+  `--os/--cpu --ignore-scripts` 精确装入 dsh（含 sharp/koffi 预编译原生模块），
+  产出 rootfs.tar.gz 一体包 → App 下载解压 → proot 进容器跑 `node --expose-internals`。
+- dm：APK 内嵌 Termux 快照（assets/snapshot.tar.xz → files/usr，含 node+dsh），
+  解压即跑；在线更新也是整体替换快照。完整性校验（df validateRuntimeRoot /
+  dm RuntimeTree）都必查 `dsh/lib/bin.js` 或 `@deepseek-ai/dsh/package.json`。
 
-好处：容器一次下载长期复用；dsh 引擎按官方 GitHub 版本随时独立更新，
-无需为换引擎重建整个 rootfs。一体容器（含 dsh）仍兼容：localDshVersion 与官方一致时跳过安装。
+因此 DSH-Fusion 采用相同逻辑：
+
+1. **rootfs 一体打包**：build-rootfs.sh 构建 Ubuntu 24.04 + node + pnpm + dsh
+   （dsh 版本按官方 GitHub 仓库最新 release tag 解析，`DSH_VERSION` 可覆盖）
+   → 单个 rootfs.tar.gz 发布到 `runtime-latest`，App 下载即含 dsh。
+2. **完整性校验必查 dsh**：[DshRuntime.validateRuntimeRoot] 检查
+   `usr/local/lib/node_modules/@deepseek-ai/dsh/package.json` 存在，缺失即安装失败
+   （不会出现「容器装了但 dsh 没有」的半成品）。
+3. **更新 dsh = 更新一体化运行时**：设置页「DSH 引擎」卡显示 rootfs 内 dsh 版本
+   （metadata.dsh）与官方最新；有新版时点「更新 dsh」走运行时更新通道
+   （checkRuntimeUpdate → 确认 → 重装新版 rootfs，下载进度回首页展示）。
+
+> 历史教训：曾尝试「基础容器（不含 dsh）+ App 在容器内 `npm install -g` 装 dsh」
+> 的两段式方案，违背两家「构建期装好、运行时不装」的架构：手机 npm 装 dsh
+> 会踩 registry 网络超时与 sharp/koffi 跨架构原生模块的坑（df 构建脚本正是用
+> `--os/--cpu --ignore-scripts` 精密处理这一点的），已回退为一化打包。
 
 ## 7. 后续路线（不在本版内）
 

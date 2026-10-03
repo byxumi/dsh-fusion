@@ -1,13 +1,13 @@
 name: Build DSH runtime rootfs
 # 带上 flavor：同一通道的完整版与精简版是两个不同的 release 位置，
 # run 名字不带口味时两次运行在列表里完全重名，看不出哪次发了哪一份。
-run-name: Build DSH runtime (${{ inputs.channel }} / ${{ inputs.flavor }} / ${{ inputs.base_only && 'base' || inputs.arch }})
+run-name: Build DSH runtime (${{ inputs.channel }} / ${{ inputs.flavor }} / ${{ inputs.arch }})
 
 on:
   workflow_dispatch:
     inputs:
       dsh_version:
-        description: '@deepseek-ai/dsh version (npm dist-tag or exact). Empty = resolve latest from official GitHub repo (dsh-v* release tag); ignored when base_only=true.'
+        description: '@deepseek-ai/dsh version (npm dist-tag or exact). Empty = resolve latest from official GitHub repo (dsh-v* release tag), packed into the rootfs at build time.'
         required: false
         default: ''
       node_version:
@@ -40,11 +40,6 @@ on:
         description: 'Minimum DSH-Folk app version required by this runtime (empty = take baseVersionName() from build.gradle.kts; none = no requirement)'
         required: false
         default: ''
-      base_only:
-        description: 'Base container: Ubuntu + node + pnpm WITHOUT dsh (two-stage runtime; App installs dsh by official GitHub version after container starts)'
-        required: false
-        default: false
-        type: boolean
       publish:
         description: 'Publish to the selected runtime release'
         required: false
@@ -126,7 +121,6 @@ jobs:
       - name: Build rootfs
         env:
           DSH_VERSION: ${{ inputs.dsh_version }}
-          BASE_ONLY: ${{ inputs.base_only && '1' || '0' }}
           NODE_VER: ${{ inputs.node_version }}
           TARGET_ARCH: ${{ matrix.arch }}
           OUT: ${{ github.workspace }}/out

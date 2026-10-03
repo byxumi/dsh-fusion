@@ -1584,9 +1584,7 @@ object DshRuntime {
                     if (_state.value.phase == DshPhase.ERROR) return@withLock
                 }
                 setupResolvConf()
-                // DSH-Fusion 两段式：容器就绪后，先按官方 GitHub 版本把 dsh 装进容器，
-                // 再预装插件（预装依赖 dsh plugin 命令），最后启动 dsh web。
-                ensureDshInstalled()
+                // 一体打包（df/dm 同款）：rootfs 自带 dsh，预装插件依赖 dsh plugin 命令。
                 seedPlugins()
                 ensureFsBridgeCli()
                 if (checkPortConflict()) return@withLock
@@ -2662,66 +2660,13 @@ object DshRuntime {
      * 在 [seedPlugins] 之前调用：预装插件依赖 dsh plugin 命令。
      */
     /**
-     * 两段式启动：容器就绪后自动按官方 GitHub 最新版本安装/更新 dsh（静默，仅日志）。
-     * 与手动 [installDsh] 共用实现；已是最新则跳过。
+     * dsh 引擎与容器一体打包（df/dm 同款逻辑）：rootfs 构建期把按官方 GitHub 版本
+     * 解析的 dsh 装进 rootfs，App 下载解压即含 dsh —— 手机上不现装。
+     *
+     * 「更新 dsh」= 更新一体化运行时（下载新版 rootfs，内含新 dsh），
+     * 走 [checkRuntimeUpdate] 既有通道。
      */
-    private suspend fun ensureDshInstalled() {
-        if (!DshEnv.isRuntimeInstalled(appContext)) return
-        val official = fetchOfficialDshVersion() ?: return
-        if (localDshVersion() == official) return
-        installDsh(official)
-    }
-
-    /**
-     * DSH-Fusion dsh 独立模块：按指定版本在容器内安装/更新 dsh 引擎。
-
-     * 容器内用 npm --prefix /usr/local 安装（先官方 registry，失败回退 npmmirror）。
-     * 成功落盘 KEY_RUNTIME_DSH 并更新状态。返回是否安装成功。
-     */
-    suspend fun installDsh(version: String): Boolean = withContext(Dispatchers.IO) {
-        if (!DshEnv.isRuntimeInstalled(appContext)) return@withContext false
-        appendLog("> 安装 dsh " + version + "（容器内 npm）")
-        _state.update { it.copy(dshInstalling = true, message = "正在安装 dsh " + version) }
-        val npm = "/usr/local/bin/npm"
-        val registries = listOf(
-            "https://registry.npmjs.org",
-            "https://registry.npmmirror.com",
-        )
-        try {
-            for (registry in registries) {
-                appendLog("> npm registry: " + registry)
-                val out = runCatching {
-                    execRootfsStreaming(
-                        npm + " install -g --prefix /usr/local --registry " + registry +
-                            " --no-audit --no-fund @deepseek-ai/dsh@" + version + " 2>&1",
-                        timeoutMs = 20 * 60_000L,
-                        onLine = { line -> if (line.isNotBlank()) appendLog(line) },
-                    )
-                }.getOrDefault("")
-                val ver = runCatching {
-                    execRootfsForOutput(
-                        "node -e " + "console.log(require(process.argv[1]).version)" +
-                            " /usr/local/lib/node_modules/@deepseek-ai/dsh/package.json 2>&1",
-                        timeoutMs = 30_000L,
-                    ).trim()
-                }.getOrDefault("")
-                if (ver == version) {
-                    prefs().edit().putString(DshEnv.KEY_RUNTIME_DSH, version).apply()
-                    _state.update { it.copy(dshVersion = version, message = "dsh " + version + " 安装成功") }
-                    appendLog("> dsh " + version + " 安装成功（registry=" + registry + "）")
-                    android.util.Log.i(TAG, "dsh " + version + " 安装成功（registry=" + registry + "）")
-                    return@withContext true
-                }
-                appendLog("! registry " + registry + " 安装 dsh 失败: " + out.takeLast(300))
-                android.util.Log.w(TAG, "registry " + registry + " 安装 dsh 失败: " + out.takeLast(300))
-            }
-            appendLog("! dsh 安装失败，目标版本 " + version)
-            android.util.Log.e(TAG, "dsh 安装失败，目标版本 " + version)
-            false
-        } finally {
-            _state.update { it.copy(dshInstalling = false) }
-        }
-    }
+    suspend fun updateDshViaRuntime(): RuntimeCheckResult = checkRuntimeUpdate()
 
     /**
      * DSH-Fusion dsh 独立模块：列出官方 GitHub 仓库**所有** dsh release 版本（新→旧）。
@@ -2999,12 +2944,12 @@ object DshRuntime {
     }
 
     private fun validateRuntimeRoot(root: File): Boolean {
-        // DSH-Fusion 两段式：基础容器（BASE_ONLY）不含 dsh —— dsh 由 ensureDshInstalled
-        // 在容器启动后按官方 GitHub 版本独立安装并单独校验。这里只校验容器自身的完整性。
+        // 一体打包（df 逻辑）：rootfs 构建期装入 dsh，App 下载即含 dsh —— 完整性校验必查。
         val required = listOf(
             "usr/bin/bash" to "bash",
             "usr/local/bin/node" to "node",
             "usr/local/bin/pnpm" to "pnpm",
+            "usr/local/lib/node_modules/@deepseek-ai/dsh/package.json" to "dsh",
         )
         val missing = required.filterNot { File(root, it.first).exists() }
         if (missing.isNotEmpty()) {
