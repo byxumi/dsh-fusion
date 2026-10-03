@@ -130,7 +130,6 @@ fun HomeScreenDsh(
             progress = state.progress,
             version = state.runtimeVersion,
             dshVersion = state.dshVersion,
-            dshInstalling = state.dshInstalling,
             webUrl = state.webUrl,
             onStart = { HarnessService.start(context) },
             onStop = { HarnessService.stop(context) },
@@ -163,7 +162,7 @@ fun HomeScreenDsh(
             )
         }
 
-        // DSH-Fusion：首页两个独立模块卡片 —— 容器修复 / dsh 引擎管理
+        // DSH-Fusion：整体运行时卡（容器与 dsh 引擎一体，显示两者版本）
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -171,18 +170,10 @@ fun HomeScreenDsh(
             DshSmallCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Outlined.Build,
-                title = stringResource(R.string.dsh_home_container_repair),
-                value = stringResource(R.string.dsh_runtime_installed_version, state.runtimeVersion ?: "-"),
-                subtitle = stringResource(R.string.dsh_home_container_repair_sub),
-                onClick = { navigator.navigate(FunctionSettingsScreenDestination(null)) },
-            )
-            DshSmallCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Outlined.Terminal,
-                title = stringResource(R.string.dsh_home_dsh_engine),
-                value = state.dshVersion?.let { stringResource(R.string.dsh_engine_installed, it) }
-                    ?: stringResource(R.string.dsh_engine_not_installed),
-                subtitle = stringResource(R.string.dsh_home_dsh_engine_sub),
+                title = stringResource(R.string.dsh_runtime_section),
+                value = (state.runtimeVersion ?: "-") +
+                    " · dsh " + (state.dshVersion ?: "-"),
+                subtitle = stringResource(R.string.dsh_home_runtime_sub),
                 onClick = { navigator.navigate(FunctionSettingsScreenDestination(null)) },
             )
         }
@@ -294,7 +285,6 @@ private fun DshHeroCard(
     progress: Float,
     version: String?,
     dshVersion: String?,
-    dshInstalling: Boolean,
     webUrl: String,
     onStart: () -> Unit,
     onStop: () -> Unit,
@@ -363,11 +353,8 @@ private fun DshHeroCard(
                     color = content.copy(alpha = 0.9f),
                 )
                 Text(
-                    text = if (dshInstalling)
-                        stringResource(R.string.dsh_engine_installing)
-                    else
-                        dshVersion?.let { stringResource(R.string.dsh_engine_installed, it) }
-                            ?: stringResource(R.string.dsh_engine_not_installed),
+                    text = dshVersion?.let { stringResource(R.string.dsh_engine_installed, it) }
+                        ?: stringResource(R.string.dsh_engine_not_installed),
                     style = MaterialTheme.typography.bodySmall,
                     color = content.copy(alpha = 0.85f),
                 )

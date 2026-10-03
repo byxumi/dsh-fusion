@@ -278,12 +278,9 @@ fun FunctionSettingsContent(
     permissionOnly: Boolean = false,
     flat: Boolean = false,
     highlightKey: String? = null,
-    // ── DSH-Fusion dsh 独立模块 ──
+    // ── 一体运行时内的 dsh 引擎（随 rootfs 打包；显示与开关并入本卡） ──
     dshVersion: String? = null,
     dshOfficialLatest: String? = null,
-    dshInstalling: Boolean = false,
-    onUpdateDsh: () -> Unit,
-    onRefreshDshLatest: () -> Unit,
     dshAutoCheck: Boolean = true,
     onDshAutoCheckChange: (Boolean) -> Unit = {},
     dshAcceptBeta: Boolean = false,
@@ -892,6 +889,49 @@ fun FunctionSettingsContent(
                         checked = runtimeSlim,
                         onCheckedChange = onRuntimeSlimChange,
                     )
+
+                    // ── 一体运行时内的 dsh 引擎（随 rootfs 打包，不单独安装） ──
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = dshVersion?.let { stringResource(R.string.dsh_engine_installed, it) }
+                            ?: stringResource(R.string.dsh_engine_not_installed),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = dshOfficialLatest?.let { stringResource(R.string.dsh_engine_official_latest, it) }
+                            ?: stringResource(R.string.dsh_engine_official_unknown),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // dsh 历史版本的容器：列出所有历史 rootfs（每行标注内置 dsh 版本），
+                    // 想用旧某版 dsh 就直接切到对应容器（升降级均保数据）。
+                    OutlinedButton(
+                        enabled = runtimeInstalled,
+                        onClick = { versionListOpen = true },
+                    ) {
+                        Text(stringResource(R.string.dsh_runtime_version_history_dsh))
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    ToggleSettingCard(
+                        flat = true,
+                        icon = Icons.Filled.CloudDownload,
+                        title = stringResource(R.string.dsh_engine_auto_check),
+                        description = stringResource(R.string.dsh_engine_auto_check_summary),
+                        checked = dshAutoCheck,
+                        onCheckedChange = onDshAutoCheckChange,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    ToggleSettingCard(
+                        flat = true,
+                        icon = Icons.Filled.Warning,
+                        title = stringResource(R.string.dsh_engine_beta),
+                        description = stringResource(R.string.dsh_engine_beta_summary),
+                        checked = dshAcceptBeta,
+                        onCheckedChange = onDshAcceptBetaChange,
+                    )
                     if (updateConfirming) {
                         AlertDialog(
                             onDismissRequest = { updateConfirming = false },
@@ -976,71 +1016,7 @@ fun FunctionSettingsContent(
             }
         }
 
-        // ───────── DSH-Fusion：dsh 引擎独立模块（容器与引擎各自管理版本） ─────────
-        item(key = "function_dsh_engine", visible = !permissionOnly) {
-            ExpressiveCard(flat = flat) {
-                Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                    SectionHeader(
-                        icon = { Icon(Icons.Filled.SettingsInputComponent, null, Modifier.size(20.dp)) },
-                        title = stringResource(R.string.dsh_engine_section),
-                        summary = stringResource(R.string.dsh_engine_summary),
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        text = when {
-                            dshInstalling -> stringResource(R.string.dsh_engine_installing)
-                            dshVersion.isNullOrEmpty() -> stringResource(R.string.dsh_engine_not_installed)
-                            else -> stringResource(R.string.dsh_engine_installed, dshVersion)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = dshOfficialLatest?.let { stringResource(R.string.dsh_engine_official_latest, it) }
-                            ?: stringResource(R.string.dsh_engine_official_unknown),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedButton(
-                            enabled = runtimeInstalled &&
-                                dshOfficialLatest != null && dshOfficialLatest != dshVersion,
-                            onClick = onUpdateDsh,
-                        ) {
-                            Text(if (dshVersion.isNullOrEmpty()) stringResource(R.string.dsh_engine_install) else stringResource(R.string.dsh_engine_update))
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        if (dshOfficialLatest == null) {
-                            IconButton(onClick = onRefreshDshLatest) {
-                                Icon(Icons.Filled.Refresh, stringResource(R.string.dsh_engine_official_latest), Modifier.size(18.dp))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    ToggleSettingCard(
-                        flat = true,
-                        icon = Icons.Filled.CloudDownload,
-                        title = stringResource(R.string.dsh_engine_auto_check),
-                        description = stringResource(R.string.dsh_engine_auto_check_summary),
-                        checked = dshAutoCheck,
-                        onCheckedChange = onDshAutoCheckChange,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    ToggleSettingCard(
-                        flat = true,
-                        icon = Icons.Filled.Warning,
-                        title = stringResource(R.string.dsh_engine_beta),
-                        description = stringResource(R.string.dsh_engine_beta_summary),
-                        checked = dshAcceptBeta,
-                        onCheckedChange = onDshAcceptBetaChange,
-                    )
-                    // dsh 与容器一体打包：官方 dsh 有新版时通过「更新 dsh」按钮走运行时更新，
-                    // 无独立版本列表/进度条（下载进度由首页容器卡与运行时日志展示）。
-                }
-            }
-        }
+
 
         // ───────── 插件依赖修复 ─────────
         item(key = "function_repair_plugins", visible = !permissionOnly) {

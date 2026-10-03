@@ -914,32 +914,7 @@ internal fun DshSettingsScreen(
                     highlightKey = highlightKey,
                     dshVersion = runtimeState.dshVersion,
                     dshOfficialLatest = dshOfficialLatest,
-                    dshInstalling = runtimeState.dshInstalling,
-                    onUpdateDsh = {
-                        // DSH-Fusion：dsh 与容器一体打包（df/dm 同款），rootfs 构建期装入 dsh。
-                        // 「更新 dsh」= 更新一体化运行时：复用容器卡的检查/确认/下载通道
-                        // （runtimeCheckRevision → 检查 → 确认 → 重装新版 rootfs）。
-                        scope.launch {
-                            val result = runCatching { DshRuntime.checkRuntimeUpdate() }.getOrNull()
-                            if (result?.version != null && result.minAppVersion.isEmpty()) {
-                                pendingRuntimeOp = {
-                                    DshRuntime.reinstallRuntime(true)
-                                    navigator.navigate(HomeScreenDestination) {
-                                        popUpTo(NavGraphs.root)
-                                        launchSingleTop = true
-                                    }
-                                }
-                            } else {
-                                // 无新版 rootfs（官方 dsh 新版尚未打包发布）：刷新官方最新提示
-                                dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
-                            }
-                        }
-                    },
-                    onRefreshDshLatest = {
-                        scope.launch {
-                            dshOfficialLatest = runCatching { DshRuntime.fetchOfficialDshVersion() }.getOrNull()
-                        }
-                    },
+                    // dsh 开关并入运行时卡（一体打包，随 rootfs 更新）
                     dshAutoCheck = DshRuntime.dshAutoCheckEnabled(),
                     onDshAutoCheckChange = { on -> DshRuntime.setDshAutoCheckEnabled(on) },
                     dshAcceptBeta = DshRuntime.dshAcceptBeta(),

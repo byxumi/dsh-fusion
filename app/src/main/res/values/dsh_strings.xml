@@ -424,6 +424,7 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_runtime_summary">Manage the Ubuntu container: reinstall when damaged or when you want a newer build</string>
     <string name="dsh_runtime_management_summary">View the current version, check or install updates (long press to pick any older version), reinstall, import a local archive, and set automatic checks plus the beta channel</string>
     <string name="dsh_runtime_installed_version">Installed: %1$s</string>
+    <string name="dsh_runtime_version_history_dsh">dsh versions (historical containers)</string>
     <string name="dsh_runtime_not_installed">Not installed yet — start the service on the home page to download it</string>
 
     <!-- DSH-Fusion: dsh engine independent module -->
@@ -441,10 +442,7 @@ This overwrites settings files and uninstalls plugins the snapshot does not cont
     <string name="dsh_engine_auto_check_summary">Check official GitHub for a newer dsh engine when the app opens</string>
     <string name="dsh_engine_beta">Accept beta dsh versions</string>
     <string name="dsh_engine_beta_summary">Install rc/alpha builds from the official repo; off = stable only</string>
-    <string name="dsh_home_container_repair">Container</string>
-    <string name="dsh_home_container_repair_sub">Repair / reinstall the Ubuntu container</string>
-    <string name="dsh_home_dsh_engine">DSH engine</string>
-    <string name="dsh_home_dsh_engine_sub">Manage dsh engine version</string>
+    <string name="dsh_home_runtime_sub">Manage the whole runtime (container + dsh engine)</string>
     <string name="dsh_runtime_reinstall">Reinstall</string>
     <string name="dsh_runtime_update_available">Update available: %1$s</string>
     <string name="dsh_runtime_update_requires_app">The new runtime requires DSH-Fusion %1$s or newer. Update the app first.</string>
