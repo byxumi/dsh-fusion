@@ -53,7 +53,20 @@ object DshEnv {
      *
      * 顺序无关：每一项都独立 rename 出去再 rename 回来。
      */
-    val PRESERVED_PATHS = listOf("root/.dsh", "root/.local", ".l2s")
+    /**
+     * 运行时整体替换（升级 / 重装 / 换版本）时保留的用户数据子树。
+     *
+     * - `root/.dsh`：全部 DSH 用户数据（settings、sessions、attachments、workspaces
+     *   元数据、插件、token、credentials）—— dsh 的 DSH_HOME。
+     * - `root/.local`：用户级缓存 / pnpm store 等。
+     * - `root/workspace`：dsh 默认 cwd 与 Web UI 工作区文件树 —— 用户在容器里存的
+     *   工作文件就在这里，升级时若被清空等于用户数据丢失（df 原版漏了它）。
+     * - `.l2s`：proot 无硬链接时的 l2s 中间目录（保留避免升级后链接失效）。
+     *
+     * 注意：/root/workspace/sdcard 只是 proot bind 占位（宿主侧是 /sdcard 真实数据），
+     * 升级后 [DshRuntime.startServer] 的 mkdir -p + 挂载重建会自动还原，不占用额外空间。
+     */
+    val PRESERVED_PATHS = listOf("root/.dsh", "root/.local", "root/workspace", ".l2s")
 
     /** 运行时替换期间暂存上述子树的目录（rootfs 之外；rename 原子搬移，零拷贝）。 */
     fun dshPreserve(ctx: Context): File = File(ctx.filesDir, ".dsh-preserve")
