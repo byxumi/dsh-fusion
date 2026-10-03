@@ -56,7 +56,7 @@ object DshEngineAuth {
         val token = DshRuntime.state.value.webToken
         if (token.isNullOrBlank()) return null
         val app = context.applicationContext
-        synchronized(this) {
+        return synchronized(this) {
             val port = DshRuntime.port()
             var conn: HttpURLConnection? = null
             try {
