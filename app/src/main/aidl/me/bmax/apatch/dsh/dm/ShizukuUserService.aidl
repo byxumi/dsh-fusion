@@ -58,3 +58,15 @@ interface ShizukuUserService {
      * [writeChunk] 与 [repairOwnership] 才知道「这些文件该属于谁」。
      */
     void configure(int appUid, String appDataDir) = 8;
+
+    /**
+     * v3：把 path 的属主归一到**已配置的应用 uid**（不接受任意 uid/gid —— 这不是通用 chown，
+     * 只是「把文件修回我自己的」这一件事）。有界遍历：maxEntries 上限、不跟随符号链接、
+     * 超限如实回报 truncated。未 configure 时结构化拒绝。
+     * @return {ok,scanned,fixed,truncated,error?}
+     */
+    Bundle repairOwnership(in String path, int maxEntries) = 9;
+
+    /** v4: confirm the one-time configured full UID and trusted data anchor. */
+    Bundle configuration() = 10;
+}
