@@ -1,12 +1,7 @@
 name: Build DSH-Folk
 
 on:
-  push:
-    branches: [ main, develop ]
-    paths: [ 'app/**', 'gradle/**', 'build.gradle.kts', 'settings.gradle.kts', '.github/workflows/build.yml', '.github/actions/**' ]
-  pull_request:
-    branches: [ main, develop ]
-    paths: [ 'app/**', 'gradle/**', 'build.gradle.kts', 'settings.gradle.kts', '.github/workflows/build.yml', '.github/actions/**' ]
+  # DSH-Fusion：提交代码不会自动构建 —— 构建由开发者显式拉起（workflow_dispatch 手动触发）。
   workflow_dispatch:
     inputs:
       build_type:

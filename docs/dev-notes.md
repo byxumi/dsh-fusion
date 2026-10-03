@@ -56,7 +56,7 @@
 tag 形如 `v1.8.1-beta.7`，标了 GitHub 的 prerelease。几个刻意的选择：
 
 - **测试版用 release 变体 + 正式版的签名**，不是 debug 包。debug 变体的包名是
-  `top.funcun.folkpatch.debug`（一个能与正式版共存的独立应用），装上它不是「升级」而是多一个
+  `com.byxumi.dshfusion.debug`（一个能与正式版共存的独立应用），装上它不是「升级」而是多一个
   图标；debug 签名也压根覆盖不了正式版。测试版必须能原地替换正式版，否则这条通道毫无意义。
 - **versionCode 用目标正式版的号**（`1.8.1` → `10801`），不加 beta 偏移。它必须大于当前正式版
   （否则 `compareVersions` 判成不更新，用户永远收不到提示），又不能大于将来那个正式版（否则正式版

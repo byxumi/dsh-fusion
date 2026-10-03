@@ -40,7 +40,7 @@ import me.bmax.apatch.BuildConfig
  *
  * ```
  * java.lang.SecurityException: No persistable permission grants found for UID 10055
- *   and Uri content://top.funcun.dshfolk.documents/tree/…
+ *   and Uri content://com.byxumi.dshfusion.documents/tree/…
  * ```
  *
  * 这是那台 ROM 的问题，应用侧改不动系统。但**应用自己**发放同一份授权是允许的：

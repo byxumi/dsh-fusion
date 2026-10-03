@@ -9,28 +9,19 @@ name: Build DSH-Folk beta
 # App 端的「接受测试版更新」开关就是在读它。
 #
 # 为什么用 release 变体而不是 debug：
-#  - debug 变体的包名是 top.funcun.folkpatch.debug（与正式版共存的独立应用），
+#  - debug 变体的包名是 com.byxumi.dshfusion.debug（与正式版共存的独立应用），
 #    装上它根本不是「升级」，而是多一个图标；
 #  - debug 签名与正式版不同，即使包名一样也无法覆盖安装。
 # 测试版必须能原地替换正式版，所以它走 release 变体 + 同一个 keystore，
 # 只有版本名带 -beta.N 和 prerelease 标记与正式版不同。
 
 on:
-  # DSH-Fusion：每个新版本（main 上实质代码变更）自动发布 beta 测试版。
-  # 只盯代码路径，文档/资源说明类的改动不触发，避免噪音刷屏 Releases。
-  push:
-    branches: [ main ]
-    paths:
-      - 'app/**'
-      - 'build.gradle.kts'
-      - 'gradle/**'
-      - 'runtime-builder/**'
-      - 'scripts/patches/**'
-      - '.github/workflows/beta.yml'
+  # DSH-Fusion：提交代码不会自动构建/发版 —— beta 发布由开发者显式拉起
+  # （workflow_dispatch 手动触发）。
   workflow_dispatch:
     inputs:
       target_version:
-        description: 'Version this beta leads to (e.g. 1.8.1). Leave empty on push-triggered runs (auto from baseVersionName).'
+        description: 'Version this beta leads to (e.g. 1.8.1). Leave empty to auto-take baseVersionName() from build.gradle.kts.'
         required: false
         type: string
       notes:

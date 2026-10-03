@@ -95,7 +95,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "top.funcun.dshfolk"
+        applicationId = "com.byxumi.dshfusion"
         minSdk = androidMinSdkVersion
         targetSdk = androidTargetSdkVersion
         versionCode = managerVersionCode
@@ -170,14 +170,14 @@ android {
 // tag 与 BuildConfig.VERSION_NAME 比较，改动它会让自比较失准。
 val abiVersionOffsets = mapOf("arm64-v8a" to 1, "x86_64" to 2)
 
-// debug 用独立包名，与 release（top.funcun.dshfolk）共存，可同时安装测试。
+// debug 用独立包名，与 release（com.byxumi.dshfusion）共存，可同时安装测试。
 // buildType 上没有 applicationId 全量覆盖（只有 applicationIdSuffix，会产生
 // .dshfolk.debug 而不是要求的 folkpatch.debug），所以走 variant API 直接改。
 // manifest 的 provider authority 都写 ${applicationId}，代码里也一律用
 // context.packageName / BuildConfig.APPLICATION_ID 拼，会自动跟随新包名。
 androidComponents {
     onVariants(selector().withBuildType("debug")) { variant ->
-        variant.applicationId.set("top.funcun.folkpatch.debug")
+        variant.applicationId.set("com.byxumi.dshfusion.debug")
     }
     onVariants { variant ->
         for (output in variant.outputs) {

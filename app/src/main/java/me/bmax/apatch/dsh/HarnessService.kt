@@ -137,7 +137,7 @@ class HarnessService : Service() {
     companion object {
         const val CHANNEL_ID = "dsh_harness"
         const val NOTIFICATION_ID = 1001
-        const val ACTION_STOP = "top.funcun.dshfolk.action.STOP_HARNESS"
+        const val ACTION_STOP = "com.byxumi.dshfusion.action.STOP_HARNESS"
 
         /**
          * 自启动专用的 action。
@@ -146,7 +146,7 @@ class HarnessService : Service() {
          * 后者才受「是否同时拉起容器」那个开关约束。字面量同时写在
          * `assets/dsh-folk-autostart.sh` 里（root 脚本用 `am -a` 传它），改这里要一起改。
          */
-        const val ACTION_AUTOSTART = "top.funcun.dshfolk.action.AUTOSTART"
+        const val ACTION_AUTOSTART = "com.byxumi.dshfusion.action.AUTOSTART"
 
         fun start(context: Context) {
             context.startForegroundService(Intent(context, HarnessService::class.java))

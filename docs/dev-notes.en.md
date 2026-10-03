@@ -59,7 +59,7 @@ App betas are published by the **Build DSH-Folk beta** workflow (`workflow_dispa
 using tags such as `v1.8.1-beta.7` marked as GitHub prereleases. Several decisions here are intentional:
 
 - **Betas use the release variant and the production release signature**, not a debug package. The debug variant's package name is
-  `top.funcun.folkpatch.debug` (an independent app that can coexist with the production version); installing it is not an “upgrade” but adds another
+  `com.byxumi.dshfusion.debug` (an independent app that can coexist with the production version); installing it is not an “upgrade” but adds another
   icon, and a debug signature cannot replace the production version at all. A beta must be able to replace the production version in place, or the channel serves no purpose.
 - **versionCode uses the target production version's number** (`1.8.1` → `10801`), with no beta offset. It must be greater than the current production version
   (otherwise `compareVersions` considers it not an update and users are never notified), yet cannot be greater than that future production version (otherwise the production version
