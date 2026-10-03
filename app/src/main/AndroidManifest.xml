@@ -88,6 +88,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- dm 移植：虚拟屏控制器浮窗 / 悬浮球(系统级悬浮窗,设置页引导授权) -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- 无线 ADB 配对需要读 WiFi 状态解析本机 IP 与 mDNS 发现。
          ACCESS_WIFI_STATE / ACCESS_NETWORK_STATE 同时供 /native/network 读网络状态。
          注意 Android 10 起 getConnectionInfo() 的 SSID/BSSID 需要位置权限才返回真值，
